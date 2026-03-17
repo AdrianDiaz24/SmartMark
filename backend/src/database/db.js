@@ -49,7 +49,7 @@ async function initDB() {
         );
     `);
 
-    console.log('Tablas creadas correctamente.');
+    console.log('Tablas creadas correctamente');
 
     return db;
 }
