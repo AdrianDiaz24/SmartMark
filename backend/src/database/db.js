@@ -1,25 +1,57 @@
-
-// El '.verbose()' sirve para que, si hay un error en la base de datos,
-// la consola nos dé muchísimos detalles para ayudarnos a encontrar el fallo.
 const sqlite3 = require('sqlite3').verbose();
 const { open } = require('sqlite');
 
-// Asyncrona para que node espere a que se levante la BD
 async function initDB() {
 
-    // Abre la conexión
+    // 1. Abrimos la conexión
     const db = await open({
-        // Aquí le decimos dónde queremos que cree el archivo físico de la base de datos
         filename: './src/database/smartmark.db',
-        // Le indicamos qué motor debe usar para leerlo
         driver: sqlite3.Database
     });
 
     console.log('Conexión a la base de datos SQLite establecida correctamente.');
 
-    // 4. Devolvemos la conexión lista para ser usada por otros archivos
+    // 2. Ejecutamos código SQL puro para crear todas las tablas
+    await db.exec(`
+        -- 1. TABLA DE CATEGORÍAS (Con soporte para subcarpetas)
+        CREATE TABLE IF NOT EXISTS Categorias (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            padre_id INTEGER, -- Si es NULL, va a la raíz. Si tiene un ID, es una subcarpeta.
+            FOREIGN KEY (padre_id) REFERENCES Categorias(id) ON DELETE CASCADE
+        );
+
+        -- 2. TABLA DE MARCADORES (Tus enlaces guardados)
+        CREATE TABLE IF NOT EXISTS Marcadores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            titulo TEXT,
+            url TEXT NOT NULL,
+            descripcion TEXT,
+            imagen TEXT,
+            categoria_id INTEGER, -- Si es NULL, el enlace se muestra suelto en la raíz.
+            FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE
+        );
+
+        -- 3. TABLA DE ETIQUETAS (Los Tags)
+        CREATE TABLE IF NOT EXISTS Tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL UNIQUE -- El UNIQUE evita que guardemos "#React" dos veces
+        );
+
+        -- 4. TABLA INTERMEDIA (Relación Muchos a Muchos)
+        -- Empareja un Marcador con un Tag
+        CREATE TABLE IF NOT EXISTS Marcadores_Tags (
+            marcador_id INTEGER,
+            tag_id INTEGER,
+            PRIMARY KEY (marcador_id, tag_id), -- Evita que le pongamos la misma etiqueta dos veces al mismo enlace
+            FOREIGN KEY (marcador_id) REFERENCES Marcadores(id) ON DELETE CASCADE,
+            FOREIGN KEY (tag_id) REFERENCES Tags(id) ON DELETE CASCADE
+        );
+    `);
+
+    console.log('Tablas creadas correctamente.');
+
     return db;
 }
 
-// Si no lo exportas, este archivo es invisible para el resto de tu proyecto.
 module.exports = initDB;
