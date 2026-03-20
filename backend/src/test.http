@@ -1,0 +1,14 @@
+### Guardar un nuevo marcador
+POST http://localhost:3000/api/links
+Content-Type: application/json
+
+{
+  "url": "https://es.react.dev/"
+}
+
+### Obtener todos los marcadores
+GET http://localhost:3000/api/links
+
+### Eliminar un marcador por ID
+DELETE http://localhost:3000/api/links/1
+
