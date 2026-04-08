@@ -1,0 +1,72 @@
+.header {
+    background-color: #2B2A2A;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-family: sans-serif;
+}
+
+/* --- LOGO --- */
+.header__logo {
+    display: flex;
+    align-items: center;
+}
+
+.header__logo-img {
+    height: 35px;
+    object-fit: contain;
+}
+
+/* --- BUSCADOR --- */
+.header__search {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+    max-width: 500px;
+    margin: 0 20px;
+}
+
+
+.header__search-input {
+    background-color: #E4E4E4;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    width: 100%;
+    outline: none;
+    font-size: 14px;
+    color: #333;
+}
+
+/* --- BOTÓN AÑADIR --- */
+.header__add {
+    display: flex;
+    align-items: center;
+}
+
+.header__add-btn {
+    background-color: #E4E4E4;
+    color: #333;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.header__add-btn:hover {
+    background-color: #cccccc;
+}
+
+.header__add-icon {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
