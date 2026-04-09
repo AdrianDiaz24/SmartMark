@@ -1,0 +1,47 @@
+.folder-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    cursor: pointer;
+    font-family: sans-serif;
+}
+
+.folder-item__icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    margin-top: 2px;
+}
+
+.folder-item__info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.folder-item__title {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
+.folder-item__count {
+    font-size: 12px;
+    color: #999;
+}
+
+
+.folder-item__subcarpetas {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 5px;
+    padding-left: 10px;
+    border-left: 1px solid #555;
+}
+
+
+.folder-item__subcarpeta-title {
+    font-size: 13px;
+    color: #ccc;
+}

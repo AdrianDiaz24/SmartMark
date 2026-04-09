@@ -1,8 +1,8 @@
 import React from 'react';
 import './Header.css';
 
-import Logo from '../assets/Img/logo.png';
-import Mas from '../assets/Img/mas.png';
+import Logo from '../assets/Img/Logo_SmartMark.png';
+import Mas from '../assets/Img/mas_negro.png';
 
 function Header() {
     return(

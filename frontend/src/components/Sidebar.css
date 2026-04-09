@@ -1,0 +1,52 @@
+
+.sidebar__list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar {
+    background-color: #2B2A2A;
+    width: 260px;
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    position: sticky;
+    top: 30px;
+    flex-shrink: 0;
+}
+
+.sidebar__add-icon {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
+
+/* --- CABECERA DEL SIDEBAR --- */
+.sidebar__header {
+    display: flex;
+    justify-content: space-between; /* Empuja el título a la izquierda y el botón a la derecha */
+    align-items: center; /* Los alinea perfectamente en el centro vertical */
+    margin-bottom: 25px;
+}
+
+/* --- BOTÓN AÑADIR --- */
+.sidebar__add-btn {
+    background-color: #E4E4E4;
+    color: #333;
+    border: none; /* Quita el borde feo que traen los botones por defecto */
+    border-radius: 20px; /* Curva los bordes al máximo para hacer el efecto píldora */
+    padding: 6px 12px; /* Le da un poco más de aire por dentro */
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Separación entre tu icono y el texto */
+    cursor: pointer;
+}
+
+.sidebar__add-btn:hover {
+    background-color: #cccccc; /* Un pequeño efecto visual al pasar el ratón */
+}
+
+/* (Y aquí debajo el resto de estilos de los botones y el header que te pasé antes) */
