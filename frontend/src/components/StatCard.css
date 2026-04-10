@@ -1,0 +1,26 @@
+.stat-card {
+    background-color: #E4E4E4; /* Fondo gris claro */
+    color: #333;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    flex: 1;
+    font-family: sans-serif;
+}
+
+.stat-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-card__title {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.stat-card__count {
+    font-size: 24px;
+    font-weight: bold;
+}
