@@ -1,0 +1,112 @@
+/* La capa semitransparente que se pone por encima de todo tu contenido */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #2B2A2A;
+    border-radius: 15px;
+    padding: 30px;
+    width: 350px;
+    color: white;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.modal__title {
+    margin: 0;
+    font-size: 20px;
+}
+
+.modal__field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal__field label {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.modal__input,
+.modal__select {
+    background-color: #E4E4E4;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 15px;
+    font-size: 13px;
+    color: #555;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.modal__select {
+    cursor: pointer;
+    appearance: none;
+}
+
+.modal__help-text {
+    font-size: 10px;
+    color: #ccc;
+    margin-top: -4px;
+}
+
+.modal__field--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+}
+
+.modal__add-tag-btn {
+    background-color: #E4E4E4;
+    color: #333;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.modal__submit-btn {
+    background-color: #E4E4E4;
+    color: #333;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 24px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.modal__submit-btn:hover {
+    background-color: #cccccc;
+}

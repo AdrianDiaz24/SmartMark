@@ -1,6 +1,7 @@
-import React from "react";
+import React, {useState} from "react";
 import './Sidebar.css';
 import FolderItem from "./FolderItem";
+import CreateFolderModal from "./CreateFolderModal";
 
 
 import iconoAñadir from '../assets/Img/añadir_carpeta.png';
@@ -8,12 +9,15 @@ import iconoCarpeta from '../assets/Img/carpeta.png';
 import iconoArchivador from '../assets/Img/archivador.png';
 
 function Sidebar(){
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     return (
         <aside className="sidebar">
             <section className={"sidebar__header"}>
                 <h3 className={"sidebar__title"}>Carpetas</h3>
-                <button className={"sidebar__add-btn"}>
-                    <img src={iconoAñadir} alt="Añadir carpeta" className={"sidebar__add-icon"}/>
+                <button className="sidebar__add-btn" onClick={() => setIsModalOpen(true)}>
+                    <img src={iconoAñadir} alt="Añadir carpeta" className="sidebar__add-icon" />
                     Añadir carpeta
                 </button>
             </section>
@@ -40,6 +44,12 @@ function Sidebar(){
                     contador="50 links"
                 />
             </section>
+
+            <CreateFolderModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
+
         </aside>
     )
 }
