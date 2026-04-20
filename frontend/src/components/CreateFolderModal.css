@@ -1,4 +1,4 @@
-/* La capa semitransparente que se pone por encima de todo tu contenido */
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -109,4 +109,17 @@
 
 .modal__submit-btn:hover {
     background-color: #cccccc;
+}
+
+.modal__field--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+}
+
+.modal__selected-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 }

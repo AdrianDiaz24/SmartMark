@@ -1,0 +1,17 @@
+.tag-badge {
+    color: white;
+    border: 2px solid transparent; /* Borde transparente por defecto para que no cambie de tamaño al seleccionarlo */
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Esta clase se activa solo cuando el tag está seleccionado */
+.tag-badge--selected {
+    border-color: white;
+    /* Un pequeño resplandor para que destaque más */
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
