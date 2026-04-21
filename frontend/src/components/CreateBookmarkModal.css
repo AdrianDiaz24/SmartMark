@@ -1,0 +1,70 @@
+
+.modal-content--large {
+    width: 750px;
+    max-width: 90vw;
+    padding: 40px;
+}
+
+
+.bookmark-form .modal__field--file {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+
+.modal__textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+
+.modal__file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+
+.modal__upload-btn {
+    background-color: #E4E4E4;
+    color: #333;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+.modal__upload-btn:hover {
+    background-color: #cccccc;
+}
+
+
+.modal__folder-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.modal__select--small {
+    width: auto;
+    min-width: 200px;
+}
+
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
