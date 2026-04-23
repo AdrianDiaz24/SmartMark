@@ -1,0 +1,23 @@
+/* Para gestionar el contenedor de las tarjetas */
+
+.bookmarks-page-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.cards-container {
+    flex: 1;
+    display: flex;
+}
+
+.cards-container--grid {
+    flex-wrap: wrap;
+    gap: 20px;
+    align-content: flex-start;
+}
+
+.cards-container--list {
+    flex-direction: column;
+    gap: 20px;
+}

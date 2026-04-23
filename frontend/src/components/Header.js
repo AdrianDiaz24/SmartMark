@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CreateBookmarkModal from "./CreateBookmarkModal";
 import './Header.css';
 
@@ -6,12 +7,13 @@ import Logo from '../assets/Img/Logo_SmartMark.png';
 import Mas from '../assets/Img/mas_negro.png';
 
 function Header() {
-
     const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
+    const navigate = useNavigate(); //
 
     return(
         <header className="header">
-            <section className="header__logo">
+            {}
+            <section className="header__logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
                 <img src={Logo} alt="SmartMark" className="header__logo-img"/>
             </section>
 
@@ -24,14 +26,12 @@ function Header() {
             </section>
 
             <section className={"header__add"}>
-                {}
                 <button className={"header__add-btn"} onClick={() => setIsBookmarkModalOpen(true)}>
                     <img src={Mas} alt="Agregar marcador" className={"header__add-icon"}/>
                     Añadir marcador
                 </button>
             </section>
 
-            {}
             <CreateBookmarkModal
                 isOpen={isBookmarkModalOpen}
                 onClose={() => setIsBookmarkModalOpen(false)}

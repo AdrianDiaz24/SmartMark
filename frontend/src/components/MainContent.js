@@ -1,9 +1,12 @@
 import React from 'react';
+import {useNavigate} from "react-router-dom";
 import StatCard from './StatCard';
 import LinkCard from './LinkCard'; // <-- Importamos la nueva tarjeta
 import './MainContent.css';
 
 function MainContent() {
+    const navigate = useNavigate();
+
     return (
         <section className="main-content">
 
@@ -15,30 +18,46 @@ function MainContent() {
             </div>
 
 
-            <div className="main-content__recent">
+            <section className="main-content__recent" aria-labelledby="recent-title">
                 <div className="main-content__recent-header">
-                    <h2 className="main-content__recent-title">Recientes</h2>
-                    <button className="main-content__ver-todo-btn">Ver todo</button>
+                    <h2 id="recent-title" className="main-content__recent-title">Recientes</h2>
+
+                    {/* 3. Conectamos el botón para que navegue a la nueva ruta */}
+                    <button
+                        className="main-content__ver-todo-btn"
+                        onClick={() => navigate('/todos')}
+                    >
+                        Ver todo
+                    </button>
                 </div>
 
                 <div className="main-content__recent-list">
                     <LinkCard
                         titulo="Lorem ipsum"
                         descripcion="Lorem ipsum dolor sit amet consectetur adipiscing elit, ultrices inceptos venenatis facilisi gravida ligula interdum,"
-                        tags={["Tag 1", "Tag 2"]}
+                        tags={[
+                            { id: 1, name: "Tag 1", color: "51986C" },
+                            { id: 2, name: "Tag 2", color: "FF4343" }
+                        ]}
                     />
                     <LinkCard
                         titulo="Lorem ipsum"
                         descripcion="Lorem ipsum dolor sit amet consectetur adipiscing elit, ultrices inceptos venenatis facilisi gravida ligula interdum,"
-                        tags={["Tag 1", "Tag 2"]}
+                        tags={[
+                            { id: 1, name: "Tag 1", color: "51986C" },
+                            { id: 2, name: "Tag 2", color: "FF4343" }
+                        ]}
                     />
                     <LinkCard
                         titulo="Lorem ipsum"
                         descripcion="Lorem ipsum dolor sit amet consectetur adipiscing elit, ultrices inceptos venenatis facilisi gravida ligula interdum,"
-                        tags={["Tag 1", "Tag 2"]}
+                        tags={[
+                            { id: 1, name: "Tag 1", color: "51986C" },
+                            { id: 2, name: "Tag 2", color: "FF4343" }
+                        ]}
                     />
                 </div>
-            </div>
+            </section>
 
         </section>
     );
