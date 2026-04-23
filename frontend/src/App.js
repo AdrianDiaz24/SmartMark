@@ -1,19 +1,23 @@
 import React from 'react';
-import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
-import "./App.css";
-import MainContent from "./components/MainContent";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Header from './components/Header';
+import HomePage from './pages/HomePage';
+
+
+import './App.css';
 
 function App() {
-  return (
-    <div className="App">
-      <Header />
-      <main className={"app-layout"}>
-          <Sidebar/>
-          <MainContent/>
-      </main>
-    </div>
-  );
+    return (
+        <Router>
+            <div className="App">
+                <Header />
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    {/* <Route path="/todos" element={<BookmarksPage />} /> */}
+                </Routes>
+            </div>
+        </Router>
+    );
 }
 
 export default App;
