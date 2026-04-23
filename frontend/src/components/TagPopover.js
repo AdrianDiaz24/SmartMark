@@ -1,19 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import TagBadge from './TagBadge';
+import CreateTagModal from './CreateTagModal';
 import './TagPopover.css';
 
 function TagPopover({ isOpen, onClose, availableTags, selectedTags, onToggleTag }) {
+
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
     if (!isOpen) return null;
 
     return (
         <>
-            {/* Capa de fondo para cerrar el popover al hacer clic fuera de él */}
+            {}
             <div className="tag-popover-overlay" onClick={onClose}></div>
 
             <div className="tag-popover">
                 <header className="tag-popover__header">
                     <span className="tag-popover__title">Tags</span>
-                    <button type="button" className="tag-popover__add-new">+</button>
+                    {}
+                    <button
+                        type="button"
+                        className="tag-popover__add-new"
+                        onClick={() => setIsCreateModalOpen(true)}
+                    >
+                        +
+                    </button>
                 </header>
 
                 <div className="tag-popover__list">
@@ -28,6 +39,12 @@ function TagPopover({ isOpen, onClose, availableTags, selectedTags, onToggleTag 
                     ))}
                 </div>
             </div>
+
+            {}
+            <CreateTagModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+            />
         </>
     );
 }

@@ -1,0 +1,54 @@
+
+
+.modal-content--tag {
+    width: 320px;
+    padding: 25px;
+}
+
+
+.modal__form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 15px;
+}
+
+
+.modal__color-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-top: 5px;
+}
+
+
+.modal__color-swatch {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+
+.modal__color-swatch {
+    border-radius: 10px;
+    aspect-ratio: 1.8 / 1;
+}
+
+
+.modal__color-swatch--selected {
+    border-color: white;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+
+.modal__actions--right {
+    justify-content: flex-end;
+}
+
+.modal-overlay {
+    z-index: 2000 !important;
+}
