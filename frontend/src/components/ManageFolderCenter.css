@@ -1,0 +1,83 @@
+.manage-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 400px;
+}
+
+.manage-card {
+    background-color: #2B2A2A;
+    border-radius: 15px;
+    padding: 30px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.manage-card__title {
+    margin: 0;
+    font-size: 20px;
+}
+
+.manage-card__field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.manage-card__field label {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.manage-card__input {
+    background-color: #E4E4E4;
+    border: none;
+    border-radius: 20px;
+    padding: 12px 18px;
+    font-size: 15px;
+    color: #333;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.manage-info-grid {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+}
+
+.info-box {
+    background-color: #E4E4E4;
+    color: #333;
+    border-radius: 15px;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 10px;
+}
+
+.info-box__label {
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1.3;
+}
+
+.info-box__value {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.info-box__value--small {
+    font-size: 18px;
+}

@@ -36,7 +36,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
+}
 
+.sidebar__title {
+    margin: 0;
+    font-size: 20px;
 }
 
 
@@ -55,6 +60,6 @@
 }
 
 .sidebar__add-btn:hover {
-    background-color: #cccccc; /* Un pequeño efecto visual al pasar el ratón */
+    background-color: #cccccc;
 }
 

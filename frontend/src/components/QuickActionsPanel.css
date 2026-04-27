@@ -1,0 +1,51 @@
+.quick-actions {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.manage-card {
+    background-color: #2B2A2A;
+    border-radius: 15px;
+    padding: 30px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.manage-card__title {
+    margin: 0;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.manage-card--actions {
+    gap: 15px;
+}
+
+.manage-btn {
+    border: none;
+    border-radius: 20px;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.manage-btn:hover {
+    opacity: 0.8;
+}
+
+.manage-btn--light {
+    background-color: #E4E4E4;
+    color: #333;
+}
+
+.manage-btn--danger {
+    background-color: #FF4343;
+    color: white;
+}

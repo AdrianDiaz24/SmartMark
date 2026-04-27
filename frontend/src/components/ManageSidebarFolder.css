@@ -1,0 +1,86 @@
+.manage-sidebar-folder {
+    width: 280px;
+    background-color: #2B2A2A;
+    border-radius: 15px;
+    padding: 25px;
+    color: white;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.manage-sidebar-folder__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.manage-sidebar-folder__header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.manage-sidebar-folder__add-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.manage-sidebar-folder__add-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: invert(1);
+}
+
+.manage-sidebar-folder__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.manage-sidebar-folder__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    font-size: 16px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+}
+
+
+.manage-sidebar-folder__item:hover,
+.manage-sidebar-folder__item.active {
+    opacity: 1;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.manage-sidebar-folder__icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    opacity: 0.8;
+}
+
+
+.manage-sidebar-folder__sublist {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-left: 22px;
+    padding-left: 12px;
+    border-left: 1px solid #555;
+    margin-top: 2px;
+    margin-bottom: 6px;
+}
+
+.manage-sidebar-folder__item--sub {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 0;
+}

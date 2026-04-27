@@ -17,18 +17,14 @@ const SIDEBAR_TAGS = [
 ];
 
 function Sidebar() {
-
     const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
-
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-
     const activeFolder = searchParams.get('carpeta');
     const activeTag = searchParams.get('tag');
-
 
     const handleFilter = (tipo, valor) => {
         navigate(`/todos?${tipo}=${valor}`);
@@ -37,17 +33,24 @@ function Sidebar() {
     return (
         <aside className="sidebar-container">
 
-            {}
             <div className="sidebar-block">
                 <div className="sidebar__header">
-                    <h3 className="sidebar__title">Carpetas</h3>
+
+                    <h3
+                        className="sidebar__title"
+                        onClick={() => navigate('/gestionar-carpetas')}
+                        style={{ cursor: 'pointer', transition: 'opacity 0.2s' }}
+                        onMouseEnter={(e) => e.target.style.opacity = 0.8}
+                        onMouseLeave={(e) => e.target.style.opacity = 1}
+                    >
+                        Carpetas
+                    </h3>
                     <button className="sidebar__add-btn" onClick={() => setIsFolderModalOpen(true)}>
                         <img src={iconoAñadir} alt="Añadir carpeta" className="sidebar__add-icon" />
                     </button>
                 </div>
 
                 <div className="sidebar__list">
-                    {}
                     <div onClick={() => handleFilter('carpeta', 'todas')} style={{ opacity: activeFolder === 'todas' ? 1 : 0.6, cursor: 'pointer' }}>
                         <FolderItem icono={iconoArchivador} titulo="Todos los marcadores" contador="" />
                     </div>
@@ -63,16 +66,14 @@ function Sidebar() {
                 </div>
             </div>
 
-            {}
+
             <div className="sidebar-block">
                 <div className="sidebar__header">
                     <h3 className="sidebar__title">Tags</h3>
-                    {/* Conectamos el botón para abrir el nuevo modal de tags */}
                     <button className="sidebar__add-btn" onClick={() => setIsTagModalOpen(true)} style={{ fontSize: '18px', padding: '0 8px' }}>
                         +
                     </button>
                 </div>
-                {}
                 <div className="sidebar__tags-list" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {SIDEBAR_TAGS.map(tag => (
                         <TagBadge
@@ -86,7 +87,6 @@ function Sidebar() {
                 </div>
             </div>
 
-            {}
             <CreateFolderModal isOpen={isFolderModalOpen} onClose={() => setIsFolderModalOpen(false)} />
             <CreateTagModal isOpen={isTagModalOpen} onClose={() => setIsTagModalOpen(false)} />
 

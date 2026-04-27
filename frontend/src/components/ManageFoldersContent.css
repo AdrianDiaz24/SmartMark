@@ -1,0 +1,28 @@
+.manage-page-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.manage-header {
+    border-bottom: 1px solid #ccc;
+    padding: 20px 40px 15px 40px;
+    margin-bottom: 25px;
+}
+
+
+.manage-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.manage-content {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    width: 100%;
+    padding: 0 40px;
+    box-sizing: border-box;
+}
