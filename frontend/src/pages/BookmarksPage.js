@@ -6,12 +6,11 @@ import GridCard from '../components/GridCard';
 import LinkCard from '../components/LinkCard';
 import './BookmarksPage.css';
 
-
 const MOCK_BOOKMARKS = [
-    { id: 1, titulo: "Lorem ipsum", descripcion: "Lorem ipsum dolor sit amet consectetur adipiscing elit...", tags: [{ id: 1, name: "tag 1", color: "51986C" }, { id: 3, name: "tag 3", color: "616060" }] },
-    { id: 2, titulo: "Lorem ipsum", descripcion: "Lorem ipsum dolor sit amet consectetur adipiscing elit...", tags: [{ id: 1, name: "tag 1", color: "51986C" }, { id: 3, name: "tag 3", color: "616060" }] },
-    { id: 3, titulo: "Lorem ipsum", descripcion: "Lorem ipsum dolor sit amet consectetur adipiscing elit...", tags: [{ id: 1, name: "tag 1", color: "51986C" }, { id: 3, name: "tag 3", color: "616060" }] },
-    { id: 4, titulo: "Lorem ipsum", descripcion: "Lorem ipsum dolor sit amet consectetur adipiscing elit...", tags: [{ id: 1, name: "tag 1", color: "51986C" }, { id: 3, name: "tag 3", color: "616060" }] },
+    { id: 1, title: "Lorem ipsum", description: "Lorem ipsum dolor sit amet consectetur adipiscing elit...", tags: [{ id: 1, name: "tag 1", color: "51986C" }, { id: 3, name: "tag 3", color: "616060" }] },
+    { id: 2, title: "Lorem ipsum", description: "Lorem ipsum dolor sit amet consectetur adipiscing elit...", tags: [{ id: 1, name: "tag 1", color: "51986C" }, { id: 3, name: "tag 3", color: "616060" }] },
+    { id: 3, title: "Lorem ipsum", description: "Lorem ipsum dolor sit amet consectetur adipiscing elit...", tags: [{ id: 1, name: "tag 1", color: "51986C" }, { id: 3, name: "tag 3", color: "616060" }] },
+    { id: 4, title: "Lorem ipsum", description: "Lorem ipsum dolor sit amet consectetur adipiscing elit...", tags: [{ id: 1, name: "tag 1", color: "51986C" }, { id: 3, name: "tag 3", color: "616060" }] },
 ];
 
 function BookmarksPage() {
@@ -35,7 +34,6 @@ function BookmarksPage() {
     return (
         <div className="bookmarks-page-wrapper">
 
-            {}
             <FilterBar
                 activeFolder={activeFolder}
                 activeTag={activeTag}
@@ -48,29 +46,14 @@ function BookmarksPage() {
             <main className="app-layout">
                 <Sidebar />
 
-                {}
                 <section className={`cards-container ${viewMode === 'grid' ? 'cards-container--grid' : 'cards-container--list'}`}>
-                    {MOCK_BOOKMARKS.map((bookmark) => {
-                        if (viewMode === 'grid') {
-                            return (
-                                <GridCard
-                                    key={bookmark.id}
-                                    titulo={bookmark.titulo}
-                                    descripcion={bookmark.descripcion}
-                                    tags={bookmark.tags}
-                                />
-                            );
-                        } else {
-                            return (
-                                <LinkCard
-                                    key={bookmark.id}
-                                    titulo={bookmark.titulo}
-                                    descripcion={bookmark.descripcion}
-                                    tags={bookmark.tags}
-                                />
-                            );
-                        }
-                    })}
+                    {MOCK_BOOKMARKS.map((bookmark) => (
+                        viewMode === 'grid' ? (
+                            <GridCard key={bookmark.id} bookmark={bookmark} />
+                        ) : (
+                            <LinkCard key={bookmark.id} bookmark={bookmark} />
+                        )
+                    ))}
                 </section>
             </main>
 

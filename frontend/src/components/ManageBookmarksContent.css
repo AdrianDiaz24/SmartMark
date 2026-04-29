@@ -1,0 +1,36 @@
+.manage-page-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+.manage-header {
+    border-bottom: 1px solid #ccc;
+    padding: 20px 40px 15px 40px;
+    margin-bottom: 25px;
+}
+
+.manage-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+
+.manage-content--2-cols {
+    display: flex;
+    gap: 30px;
+    padding: 0 40px 50px 40px;
+
+    width: 100%;
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+
+
+.manage-content--2-cols .quick-actions {
+    width: 280px;
+    flex-shrink: 0;
+}

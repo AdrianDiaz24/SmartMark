@@ -6,6 +6,7 @@ import BookmarksPage from './pages/BookmarksPage';
 import ManageFoldersPage from './pages/ManageFoldersPage'; // 1. Importamos la nueva página
 import './App.css';
 import ManageTagsPage from "./pages/ManageTagsPage";
+import ManageBookmarksPage from "./pages/ManageBookmarksPage";
 
 function App() {
     return (
@@ -17,6 +18,7 @@ function App() {
                     <Route path="/todos" element={<BookmarksPage />} />
                     <Route path="/gestionar-carpetas" element={<ManageFoldersPage />} />
                     <Route path="/gestionar-tags" element={<ManageTagsPage />} />
+                    <Route path="/gestionar-marcadores" element={<ManageBookmarksPage />} />
                 </Routes>
             </div>
         </Router>
