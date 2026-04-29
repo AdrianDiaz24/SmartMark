@@ -1,6 +1,6 @@
 .app-layout {
     display: flex;
-    padding: 30px; /* Margen general alrededor de la aplicación */
-    gap: 30px; /* Separación entre el menú izquierdo y la parte derecha */
+    padding: 30px;
+    gap: 30px;
     align-items: flex-start;
 }

@@ -3,7 +3,6 @@ import TagBadge from './TagBadge';
 import TagPopover from './TagPopover';
 import './CreateBookmarkModal.css';
 
-// mismos datos de prueba de momento
 const MOCK_TAGS = [
     { id: 1, name: 'tag 1', color: '51986C' },
     { id: 2, name: 'tag 2', color: 'FF4343' },
