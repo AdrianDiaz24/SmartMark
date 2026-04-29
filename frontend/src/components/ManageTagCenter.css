@@ -1,0 +1,28 @@
+.manage-card__color-grid {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+    width: 100%;
+}
+
+.manage-card__color-swatch {
+    flex: 1;
+    min-width: 60px;
+    height: 30px;
+    border-radius: 15px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    padding: 0;
+}
+
+.manage-card__color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.manage-card__color-swatch--selected {
+    border-color: white;
+    transform: scale(1.1);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}

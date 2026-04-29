@@ -37,11 +37,9 @@ function Sidebar() {
                 <div className="sidebar__header">
 
                     <h3
-                        className="sidebar__title"
+                        className="sidebar__title sidebar__title--clickable"
                         onClick={() => navigate('/gestionar-carpetas')}
-                        style={{ cursor: 'pointer', transition: 'opacity 0.2s' }}
-                        onMouseEnter={(e) => e.target.style.opacity = 0.8}
-                        onMouseLeave={(e) => e.target.style.opacity = 1}
+                        title="Ir a gestionar carpetas"
                     >
                         Carpetas
                     </h3>
@@ -69,7 +67,13 @@ function Sidebar() {
 
             <div className="sidebar-block">
                 <div className="sidebar__header">
-                    <h3 className="sidebar__title">Tags</h3>
+                    <h3
+                        className="sidebar__title sidebar__title--clickable"
+                        onClick={() => navigate('/gestionar-tags')}
+                        title="Ir a gestionar tags"
+                    >
+                        Tags
+                    </h3>
                     <button className="sidebar__add-btn" onClick={() => setIsTagModalOpen(true)} style={{ fontSize: '18px', padding: '0 8px' }}>
                         +
                     </button>
