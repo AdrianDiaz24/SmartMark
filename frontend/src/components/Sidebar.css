@@ -63,3 +63,18 @@
     background-color: #cccccc;
 }
 
+.sidebar__title {
+    margin: 0;
+    font-size: 20px;
+    color: white;
+}
+
+.sidebar__title--clickable {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar__title--clickable:hover {
+    opacity: 0.8;
+}
+

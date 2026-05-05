@@ -1,24 +1,37 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import iconoEditar from '../assets/Img/editar.svg';
 import TagBadge from './TagBadge';
 import './GridCard.css';
 
-function GridCard({ titulo, descripcion, tags }) {
-    return (
-        <article className="grid-card">
-            <div className="grid-card__image-placeholder"></div>
-            <div className="grid-card__info">
-                <h4 className="grid-card__title">{titulo}</h4>
-                <p className="grid-card__description">{descripcion}</p>
+function GridCard({ bookmark }) {
+    const navigate = useNavigate();
 
-                {tags && tags.length > 0 && (
-                    <div className="grid-card__tags">
-                        {tags.map((tag) => (
-                            <TagBadge key={tag.id} texto={tag.name} colorHex={tag.color} isSelected={false} />
-                        ))}
-                    </div>
-                )}
+    const handleEdit = (e) => {
+        e.stopPropagation();
+        navigate('/gestionar-marcadores');
+    };
+
+    return (
+        <div className="grid-card">
+            <div className="grid-card__image"></div>
+
+            <div className="grid-card__content">
+                <h3 className="grid-card__title">{bookmark?.title || 'Lorem ipsum'}</h3>
+                <p className="grid-card__description">
+                    {bookmark?.description || 'Lorem ipsum dolor sit amet consectetur adipiscing elit...'}
+                </p>
+
+                <div className="grid-card__tags">
+                    <TagBadge texto="tag 1" colorHex="51986C" />
+                    <TagBadge texto="tag 3" colorHex="616060" />
+                </div>
             </div>
-        </article>
+
+            <button className="card__edit-btn card__edit-btn--bottom" onClick={handleEdit}>
+                <img src={iconoEditar} alt="Editar" />
+            </button>
+        </div>
     );
 }
 
