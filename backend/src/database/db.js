@@ -13,30 +13,35 @@ async function initDB() {
 
     // 2. Ejecutamos código SQL puro para crear todas las tablas
     await db.exec(`
-        -- 1. TABLA DE CATEGORÍAS (Con soporte para subcarpetas)
+        -- 1. TABLA DE CATEGORÍAS 
         CREATE TABLE IF NOT EXISTS Categorias (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
             padre_id INTEGER, -- Si es NULL, va a la raíz. Si tiene un ID, es una subcarpeta.
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (padre_id) REFERENCES Categorias(id) ON DELETE CASCADE
         );
 
-        -- 2. TABLA DE MARCADORES (Tus enlaces guardados)
+        -- 2. TABLA DE ETIQUETAS 
+        CREATE TABLE IF NOT EXISTS Tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL UNIQUE, 
+            color TEXT NOT NULL, 
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- 3. TABLA DE MARCADORES (Tus enlaces guardados)
         CREATE TABLE IF NOT EXISTS Marcadores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titulo TEXT,
+            titulo TEXT NOT NULL,
             url TEXT NOT NULL,
             descripcion TEXT,
-            imagen TEXT,
+            portada BLOB, -- Almacena la imagen en formato binario
             categoria_id INTEGER, -- Si es NULL, el enlace se muestra suelto en la raíz.
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE
         );
 
-        -- 3. TABLA DE ETIQUETAS (Los Tags)
-        CREATE TABLE IF NOT EXISTS Tags (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL UNIQUE -- El UNIQUE evita que guardemos "#React" dos veces
-        );
 
         -- 4. TABLA INTERMEDIA (Relación Muchos a Muchos)
         -- Empareja un Marcador con un Tag
