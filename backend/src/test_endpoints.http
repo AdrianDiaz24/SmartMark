@@ -1,0 +1,150 @@
+### SmartMark API - Test Endpoints
+
+# Ruta base
+GET http://localhost:3000
+
+### ============ TAGS ============
+
+# Obtener todos los tags
+GET http://localhost:3000/api/tags
+
+### Crear un nuevo tag
+POST http://localhost:3000/api/tags
+Content-Type: application/json
+
+{
+  "nombre": "React",
+  "color": "#FF5733"
+}
+
+### Crear otro tag
+POST http://localhost:3000/api/tags
+Content-Type: application/json
+
+{
+  "nombre": "JavaScript",
+  "color": "#51986C"
+}
+
+### Crear un tercer tag
+POST http://localhost:3000/api/tags
+Content-Type: application/json
+
+{
+  "nombre": "CSS",
+  "color": "#593DF9"
+}
+
+### Obtener un tag específico (ID 1)
+GET http://localhost:3000/api/tags/1
+
+### Actualizar un tag
+PUT http://localhost:3000/api/tags/1
+Content-Type: application/json
+
+{
+  "nombre": "React.js",
+  "color": "#FFE943"
+}
+
+### ============ CATEGORÍAS ============
+
+# Obtener todas las categorías
+GET http://localhost:3000/api/categories
+
+### Crear una categoría raíz
+POST http://localhost:3000/api/categories
+Content-Type: application/json
+
+{
+  "nombre": "Frontend",
+  "padre_id": null
+}
+
+### Crear una subcategoría
+POST http://localhost:3000/api/categories
+Content-Type: application/json
+
+{
+  "nombre": "Frameworks",
+  "padre_id": 1
+}
+
+### Obtener una categoría específica
+GET http://localhost:3000/api/categories/1
+
+### Actualizar una categoría
+PUT http://localhost:3000/api/categories/1
+Content-Type: application/json
+
+{
+  "nombre": "Frontend Development"
+}
+
+### ============ MARCADORES ============
+
+# Obtener todos los marcadores
+GET http://localhost:3000/api/links
+
+### Crear un marcador
+POST http://localhost:3000/api/links
+Content-Type: application/json
+
+{
+  "titulo": "React Official",
+  "url": "https://react.dev",
+  "descripcion": "Documentación oficial de React",
+  "categoria_id": 2,
+  "tags": [1]
+}
+
+### Crear otro marcador
+POST http://localhost:3000/api/links
+Content-Type: application/json
+
+{
+  "titulo": "MDN Web Docs",
+  "url": "https://developer.mozilla.org",
+  "descripcion": "Documentación web completa",
+  "categoria_id": 1,
+  "tags": [2, 3]
+}
+
+### Obtener un marcador específico
+GET http://localhost:3000/api/links/1
+
+### Obtener marcadores por categoría
+GET http://localhost:3000/api/links?categoria_id=1
+
+### Obtener marcadores por tag
+GET http://localhost:3000/api/links?tag_id=1
+
+### Actualizar un marcador
+PUT http://localhost:3000/api/links/1
+Content-Type: application/json
+
+{
+  "titulo": "React - A JavaScript Library",
+  "descripcion": "La mejor librería para interfaces de usuario"
+}
+
+### Agregar tags a un marcador
+POST http://localhost:3000/api/links/1/tags
+Content-Type: application/json
+
+{
+  "tag_ids": [2, 3]
+}
+
+### Remover un tag de un marcador
+DELETE http://localhost:3000/api/links/1/tags/3
+
+### Eliminar un marcador
+DELETE http://localhost:3000/api/links/1
+
+### Eliminar una categoría (sin eliminar marcadores)
+DELETE http://localhost:3000/api/categories/1?deleteBookmarks=false
+
+### Eliminar un tag
+DELETE http://localhost:3000/api/tags/1
+
