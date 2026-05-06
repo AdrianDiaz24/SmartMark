@@ -35,9 +35,7 @@ async function createTag(db, nombre, color) {
         if (!color || !/^#?[0-9A-Fa-f]{6}$/.test(color)) {
             throw new Error('El color debe ser un valor hexadecimal válido (ej: #FF5733 o FF5733)');
         }
-
-        // Asegurar que el color tenga el formato #XXXXXX
-        const colorFormato = color.startsWith('#') ? color : `#${color}`;
+        const colorFormato = color.startsWith('#') ? color.substring(1) : color;
 
         // Verificar que el nombre sea único
         const existe = await db.get(`
@@ -73,15 +71,17 @@ async function updateTag(db, id, nombre, color) {
         }
 
         const nombreFinal = nombre || tag.nombre;
-        const colorFinal = color || tag.color;
+        let colorFinal = color || tag.color;
 
         // Validar color si se proporciona
         if (color && !/^#?[0-9A-Fa-f]{6}$/.test(color)) {
             throw new Error('El color debe ser un valor hexadecimal válido (ej: #FF5733 o FF5733)');
         }
 
-        // Asegurar que el color tenga el formato #XXXXXX
-        const colorFormato = colorFinal.startsWith('#') ? colorFinal : `#${colorFinal}`;
+        // Asegurar que el color NO tenga el # (guardar sin #)
+        if (color) {
+            colorFinal = color.startsWith('#') ? color.substring(1) : color;
+        }
 
         // Si cambio el nombre, verificar que sea único
         if (nombre && nombre !== tag.nombre) {
@@ -95,7 +95,7 @@ async function updateTag(db, id, nombre, color) {
 
         await db.run(`
             UPDATE Tags SET nombre = ?, color = ? WHERE id = ?
-        `, [nombreFinal, colorFormato, id]);
+        `, [nombreFinal, colorFinal, id]);
 
         return getTagById(db, id);
     } catch (error) {

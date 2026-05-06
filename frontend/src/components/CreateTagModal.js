@@ -7,32 +7,42 @@ const TAG_COLORS = [
     'FFE943', 'F93DDD', '33DCCB', '616060'
 ];
 
-function CreateTagModal({ isOpen, onClose }) {
+function CreateTagModal({ isOpen, onClose, onCreateTag }) {
 
     const [tagName, setTagName] = useState('');
     const [selectedColor, setSelectedColor] = useState(TAG_COLORS[0]); // Por defecto el primero (rojo)
+    const [isLoading, setIsLoading] = useState(false);
 
     if (!isOpen) return null;
 
 
-    const handleSubmit = (e) => {
-        e.preventDefault(); // Evita que se recargue la página
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
         if (tagName.trim() === '') {
             alert('Por favor, introduce un nombre para el tag.');
             return;
         }
 
+        setIsLoading(true);
 
-        console.log("Creando Tag:", {
-            nombre: tagName,
-            color: selectedColor
-        });
+        try {
+            if (onCreateTag) {
+                await onCreateTag({
+                    nombre: tagName.trim(),
+                    color: selectedColor
+                });
+            }
 
-
-        setTagName('');
-        setSelectedColor(TAG_COLORS[0]);
-        onClose();
+            // Limpiar formulario
+            setTagName('');
+            setSelectedColor(TAG_COLORS[0]);
+        } catch (error) {
+            console.error('Error creando tag:', error);
+            alert('Error al crear el tag: ' + error.message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -77,7 +87,13 @@ function CreateTagModal({ isOpen, onClose }) {
 
                     {}
                     <div className="modal__actions modal__actions--right">
-                        <button type="submit" className="modal__submit-btn">Crear</button>
+                        <button 
+                            type="submit" 
+                            className="modal__submit-btn"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Creando...' : 'Crear'}
+                        </button>
                     </div>
 
                 </form>

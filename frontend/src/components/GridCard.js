@@ -17,14 +17,23 @@ function GridCard({ bookmark }) {
             <div className="grid-card__image"></div>
 
             <div className="grid-card__content">
-                <h3 className="grid-card__title">{bookmark?.title || 'Lorem ipsum'}</h3>
+                <h3 className="grid-card__title">{bookmark?.titulo || 'Lorem ipsum'}</h3>
                 <p className="grid-card__description">
-                    {bookmark?.description || 'Lorem ipsum dolor sit amet consectetur adipiscing elit...'}
+                    {bookmark?.descripcion || 'Lorem ipsum dolor sit amet consectetur adipiscing elit...'}
                 </p>
 
                 <div className="grid-card__tags">
-                    <TagBadge texto="tag 1" colorHex="51986C" />
-                    <TagBadge texto="tag 3" colorHex="616060" />
+                    {bookmark?.tags && bookmark.tags.length > 0 ? (
+                        bookmark.tags.map(tag => (
+                            <TagBadge 
+                                key={tag.id}
+                                texto={tag.nombre}
+                                colorHex={tag.color}
+                            />
+                        ))
+                    ) : (
+                        <span style={{ fontSize: '12px', color: '#999' }}>Sin tags</span>
+                    )}
                 </div>
             </div>
 

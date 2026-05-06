@@ -13,7 +13,7 @@ function ManageSidebarTag({ title, items, selectedId, onSelect, onAdd }) {
                 {items.map(item => (
                     <div key={item.id} className="manage-sidebar-tag__item-wrapper">
                         <TagBadge
-                            texto={item.name}
+                            texto={item.nombre}
                             colorHex={item.color}
                             isSelected={selectedId === item.id}
                             onClick={() => onSelect(item)}

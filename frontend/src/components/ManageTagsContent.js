@@ -1,39 +1,139 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ManageSidebarTag from './ManageSidebarTag';
 import ManageTagCenter from './ManageTagCenter';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteTagModal from './DeleteTagModal';
-import './ManageFoldersContent.css'; // Reutilizamos el layout general que ya teníamos perfecto!
-
-const MOCK_TAGS_DATA = [
-    { id: '1', name: 'tag 1', color: '51986C', foldersTagged: 0, bookmarksTagged: 10, date: '26/03/2026' },
-    { id: '2', name: 'tag 2', color: 'FF4343', foldersTagged: 2, bookmarksTagged: 25, date: '15/01/2026' },
-    { id: '3', name: 'tag 3: lorem ipsum', color: '616060', foldersTagged: 1, bookmarksTagged: 8, date: '10/02/2026' }
-];
+import CreateTagModal from './CreateTagModal';
+import { tagsService } from '../services/tagsService';
+import './ManageFoldersContent.css';
 
 function ManageTagsContent() {
-    const [selectedTag, setSelectedTag] = useState(MOCK_TAGS_DATA[2]); // Empezamos con el tag 3 como en tu foto
-    const [editedTag, setEditedTag] = useState(MOCK_TAGS_DATA[2]);
+    const [tags, setTags] = useState([]);
+    const [selectedTag, setSelectedTag] = useState(null);
+    const [editedTag, setEditedTag] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
+
+    // Cargar tags al montar el componente
+    useEffect(() => {
+        loadTags();
+    }, []);
+
+    // Seleccionar primer tag cuando se carguen
+    useEffect(() => {
+        if (tags.length > 0 && !selectedTag) {
+            setSelectedTag(tags[0]);
+            setEditedTag(tags[0]);
+        }
+    }, [tags]);
+
+    const loadTags = async () => {
+        try {
+            setLoading(true);
+            const data = await tagsService.getAll();
+            setTags(data || []);
+            if (error) setError(null);
+        } catch (err) {
+            console.error('Error cargando tags:', err);
+            setError(err.message);
+            setTags([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSelectTag = (tag) => {
         setSelectedTag(tag);
-        setEditedTag(tag);
+        setEditedTag({ ...tag });
     };
 
     const handleInputChange = (field, value) => {
         setEditedTag({ ...editedTag, [field]: value });
     };
 
-    const handleUpdate = () => {
-        alert(`Tag actualizado:\nNombre: ${editedTag.name}\nColor: ${editedTag.color}`);
+    const handleUpdate = async () => {
+        try {
+            if (!editedTag.nombre || editedTag.nombre.trim() === '') {
+                alert('El nombre del tag no puede estar vacío');
+                return;
+            }
+
+            await tagsService.update(editedTag.id, {
+                nombre: editedTag.nombre,
+                color: editedTag.color
+            });
+
+            // Actualizar la lista
+            const updatedTags = tags.map(t => 
+                t.id === editedTag.id ? editedTag : t
+            );
+            setTags(updatedTags);
+            setSelectedTag(editedTag);
+            
+            alert('Tag actualizado correctamente');
+        } catch (err) {
+            console.error('Error actualizando tag:', err);
+            alert(`Error al actualizar: ${err.message}`);
+        }
     };
 
     const handleViewContent = () => {
-        navigate(`/todos?tag=${selectedTag.name}`);
+        if (selectedTag) {
+            navigate(`/todos?tag=${selectedTag.id}`);
+        }
     };
+
+    const handleDelete = async () => {
+        try {
+            await tagsService.delete(selectedTag.id);
+            
+            // Eliminar de la lista
+            const updatedTags = tags.filter(t => t.id !== selectedTag.id);
+            setTags(updatedTags);
+            
+            // Seleccionar otro tag o limpiar
+            if (updatedTags.length > 0) {
+                setSelectedTag(updatedTags[0]);
+                setEditedTag(updatedTags[0]);
+            } else {
+                setSelectedTag(null);
+                setEditedTag(null);
+            }
+
+            setIsDeleteModalOpen(false);
+            alert('Tag eliminado correctamente');
+        } catch (err) {
+            console.error('Error eliminando tag:', err);
+            alert(`Error al eliminar: ${err.message}`);
+        }
+    };
+
+    const handleCreateTag = async (tagData) => {
+        try {
+            const newTag = await tagsService.create(tagData);
+            setTags([...tags, newTag]);
+            setIsCreateModalOpen(false);
+            alert('Tag creado correctamente');
+        } catch (err) {
+            console.error('Error creando tag:', err);
+            alert(`Error al crear: ${err.message}`);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="manage-page-layout">
+                <div className="manage-header">
+                    <h2>Gestiona tus tags</h2>
+                </div>
+                <p style={{ padding: '20px' }}>Cargando tags...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="manage-page-layout">
@@ -41,32 +141,49 @@ function ManageTagsContent() {
                 <h2>Gestiona tus tags</h2>
             </div>
 
+            {error && (
+                <div style={{ color: 'red', padding: '20px', backgroundColor: '#ffebee', margin: '10px' }}>
+                    Error: {error}
+                </div>
+            )}
+
             <div className="manage-content">
                 <ManageSidebarTag
                     title="Tags"
-                    items={MOCK_TAGS_DATA}
-                    selectedId={selectedTag.id}
+                    items={tags}
+                    selectedId={selectedTag?.id}
                     onSelect={handleSelectTag}
-                    onAdd={() => console.log('Añadir tag')}
+                    onAdd={() => setIsCreateModalOpen(true)}
                 />
 
-                <ManageTagCenter
-                    tag={editedTag}
-                    onChange={handleInputChange}
-                />
+                {selectedTag && editedTag && (
+                    <>
+                        <ManageTagCenter
+                            tag={editedTag}
+                            onChange={handleInputChange}
+                        />
 
-                <QuickActionsPanel
-                    viewButtonText="Ver contenido"
-                    onUpdate={handleUpdate}
-                    onView={handleViewContent}
-                    onDelete={() => setIsDeleteModalOpen(true)}
-                />
+                        <QuickActionsPanel
+                            viewButtonText="Ver contenido"
+                            onUpdate={handleUpdate}
+                            onView={handleViewContent}
+                            onDelete={() => setIsDeleteModalOpen(true)}
+                        />
+                    </>
+                )}
             </div>
 
             <DeleteTagModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
-                tagName={selectedTag.name}
+                tagName={selectedTag?.nombre || 'sin nombre'}
+                onConfirmDelete={handleDelete}
+            />
+
+            <CreateTagModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onCreateTag={handleCreateTag}
             />
         </div>
     );

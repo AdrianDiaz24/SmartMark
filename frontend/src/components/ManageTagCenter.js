@@ -9,6 +9,17 @@ const TAG_COLORS = [
 function ManageTagCenter({ tag, onChange }) {
     if (!tag) return null;
 
+    // Formatear la fecha de creación
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-ES');
+        } catch {
+            return 'N/A';
+        }
+    };
+
     return (
         <section className="manage-center">
             <div className="manage-card">
@@ -17,8 +28,8 @@ function ManageTagCenter({ tag, onChange }) {
                     <input
                         type="text"
                         className="manage-card__input"
-                        value={tag.name}
-                        onChange={(e) => onChange('name', e.target.value)}
+                        value={tag.nombre || ''}
+                        onChange={(e) => onChange('nombre', e.target.value)}
                     />
                 </div>
 
@@ -40,19 +51,11 @@ function ManageTagCenter({ tag, onChange }) {
             </div>
 
             <div className="manage-card">
-                <h3 className="manage-card__title">Informacion adicional</h3>
+                <h3 className="manage-card__title">Información adicional</h3>
                 <div className="manage-info-grid">
                     <div className="info-box">
-                        <span className="info-box__label">Carpetas<br/>tagueadas</span>
-                        <span className="info-box__value">{tag.foldersTagged}</span>
-                    </div>
-                    <div className="info-box">
-                        <span className="info-box__label">Marcadores<br/>tagueados</span>
-                        <span className="info-box__value">{tag.bookmarksTagged}</span>
-                    </div>
-                    <div className="info-box">
-                        <span className="info-box__label">Fecha de<br/>creacion</span>
-                        <span className="info-box__value info-box__value--small">{tag.date}</span>
+                        <span className="info-box__label">Fecha de<br/>creación</span>
+                        <span className="info-box__value info-box__value--small">{formatDate(tag.fecha_creacion)}</span>
                     </div>
                 </div>
             </div>
