@@ -39,6 +39,7 @@ async function initDB() {
             portada BLOB, -- Almacena la imagen en formato binario
             categoria_id INTEGER, -- Si es NULL, el enlace se muestra suelto en la raíz.
             fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+            ultima_apertura DATETIME, -- Registra cuándo se abrió el marcador por última vez
             FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE
         );
 

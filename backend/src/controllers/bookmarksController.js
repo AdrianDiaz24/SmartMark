@@ -5,7 +5,7 @@ async function getAllBookmarks(db, filters = {}) {
     try {
         let query = `
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
-                   m.categoria_id, m.fecha_creacion
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
             FROM Marcadores m
             WHERE 1=1
         `;
@@ -54,7 +54,7 @@ async function getBookmarkById(db, id) {
     try {
         const bookmark = await db.get(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
-                   m.categoria_id, m.fecha_creacion
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
             FROM Marcadores m
             WHERE m.id = ?
         `, [id]);
@@ -286,7 +286,7 @@ async function getBookmarksByTag(db, tagId, filters = {}) {
     try {
         let query = `
             SELECT DISTINCT m.id, m.titulo, m.url, m.descripcion, m.portada, 
-                   m.categoria_id, m.fecha_creacion
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
             FROM Marcadores m
             INNER JOIN Marcadores_Tags mt ON m.id = mt.marcador_id
             WHERE mt.tag_id = ?
@@ -323,6 +323,64 @@ async function getBookmarksByTag(db, tagId, filters = {}) {
     }
 }
 
+// Registrar la apertura de un marcador (actualiza ultima_apertura)
+async function recordBookmarkAccess(db, bookmarkId) {
+    try {
+        const bookmark = await db.get(`SELECT id FROM Marcadores WHERE id = ?`, [bookmarkId]);
+        if (!bookmark) {
+            throw new Error('Marcador no encontrado');
+        }
+
+        await db.run(`
+            UPDATE Marcadores 
+            SET ultima_apertura = CURRENT_TIMESTAMP
+            WHERE id = ?
+        `, [bookmarkId]);
+
+        return getBookmarkById(db, bookmarkId);
+    } catch (error) {
+        throw new Error(`Error al registrar acceso al marcador: ${error.message}`);
+    }
+}
+
+// Obtener marcadores visitados en la última semana
+async function getBookmarksVisitedLastWeek(db) {
+    try {
+        const bookmarks = await db.all(`
+            SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
+            FROM Marcadores m
+            WHERE m.ultima_apertura IS NOT NULL
+            AND m.ultima_apertura >= datetime('now', '-7 days')
+            ORDER BY m.ultima_apertura DESC
+        `);
+
+        for (let bookmark of bookmarks) {
+            bookmark.tags = await getTagsByBookmark(db, bookmark.id);
+        }
+
+        return bookmarks;
+    } catch (error) {
+        throw new Error(`Error al obtener marcadores visitados la última semana: ${error.message}`);
+    }
+}
+
+// Contar marcadores visitados en la última semana
+async function countBookmarksVisitedLastWeek(db) {
+    try {
+        const result = await db.get(`
+            SELECT COUNT(*) as count
+            FROM Marcadores m
+            WHERE m.ultima_apertura IS NOT NULL
+            AND m.ultima_apertura >= datetime('now', '-7 days')
+        `);
+
+        return result.count || 0;
+    } catch (error) {
+        throw new Error(`Error al contar marcadores visitados: ${error.message}`);
+    }
+}
+
 module.exports = {
     getAllBookmarks,
     getBookmarkById,
@@ -332,6 +390,9 @@ module.exports = {
     getTagsByBookmark,
     addTagsToBookmark,
     removeTagFromBookmark,
-    getBookmarksByTag
+    getBookmarksByTag,
+    recordBookmarkAccess,
+    getBookmarksVisitedLastWeek,
+    countBookmarksVisitedLastWeek
 };
 

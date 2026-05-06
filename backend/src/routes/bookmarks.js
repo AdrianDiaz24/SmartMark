@@ -9,7 +9,10 @@ const {
     deleteBookmark,
     addTagsToBookmark,
     removeTagFromBookmark,
-    getBookmarksByTag
+    getBookmarksByTag,
+    recordBookmarkAccess,
+    getBookmarksVisitedLastWeek,
+    countBookmarksVisitedLastWeek
 } = require('../controllers/bookmarksController');
 
 let db;
@@ -143,6 +146,37 @@ router.delete('/:id/tags/:tag_id', async (req, res, next) => {
         const { id, tag_id } = req.params;
         const result = await removeTagFromBookmark(db, id, tag_id);
         res.json(result);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// POST /api/links/:id/access - Registrar que se abrió el marcador
+router.post('/:id/access', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const bookmark = await recordBookmarkAccess(db, id);
+        res.json(bookmark);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// GET /api/links/stats/last-week - Obtener marcadores visitados última semana
+router.get('/stats/last-week', async (req, res, next) => {
+    try {
+        const bookmarks = await getBookmarksVisitedLastWeek(db);
+        res.json(bookmarks);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// GET /api/links/stats/count-last-week - Contar marcadores visitados última semana
+router.get('/stats/count-last-week', async (req, res, next) => {
+    try {
+        const count = await countBookmarksVisitedLastWeek(db);
+        res.json({ count });
     } catch (error) {
         next(error);
     }
