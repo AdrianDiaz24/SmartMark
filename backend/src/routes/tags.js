@@ -6,7 +6,8 @@ const {
     getTagById,
     createTag,
     updateTag,
-    deleteTag
+    deleteTag,
+    getTagStats
 } = require('../controllers/tagsController');
 
 let db;
@@ -36,6 +37,11 @@ router.get('/:id', async (req, res, next) => {
         if (!tag) {
             return res.status(404).json({ error: 'Tag no encontrado' });
         }
+
+        // Obtener estadísticas del tag
+        const stats = await getTagStats(db, id);
+        tag.bookmarks = stats.bookmarks;
+        tag.categories = stats.categories;
 
         res.json(tag);
     } catch (error) {

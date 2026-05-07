@@ -26,8 +26,7 @@ function ManageTagsContent() {
     // Seleccionar primer tag cuando se carguen
     useEffect(() => {
         if (tags.length > 0 && !selectedTag) {
-            setSelectedTag(tags[0]);
-            setEditedTag(tags[0]);
+            handleSelectTag(tags[0]);
         }
     }, [tags]);
 
@@ -46,9 +45,16 @@ function ManageTagsContent() {
         }
     };
 
-    const handleSelectTag = (tag) => {
+    const handleSelectTag = async (tag) => {
         setSelectedTag(tag);
-        setEditedTag({ ...tag });
+        try {
+            // Cargar el tag con estadísticas
+            const tagWithStats = await tagsService.getById(tag.id);
+            setEditedTag(tagWithStats);
+        } catch (error) {
+            console.error('Error cargando estadísticas del tag:', error);
+            setEditedTag({ ...tag });
+        }
     };
 
     const handleInputChange = (field, value) => {

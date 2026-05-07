@@ -143,12 +143,35 @@ async function getTagsByBookmark(db, bookmarkId) {
     }
 }
 
+// Obtener estadísticas de un tag
+async function getTagStats(db, tagId) {
+    try {
+        // Contar marcadores con este tag
+        const bookmarksResult = await db.get(`
+            SELECT COUNT(*) as count FROM Marcadores_Tags WHERE tag_id = ?
+        `, [tagId]);
+
+        // Contar carpetas con este tag
+        const categoriesResult = await db.get(`
+            SELECT COUNT(*) as count FROM Categorias_Tags WHERE tag_id = ?
+        `, [tagId]);
+
+        return {
+            bookmarks: bookmarksResult?.count || 0,
+            categories: categoriesResult?.count || 0
+        };
+    } catch (error) {
+        throw new Error(`Error al obtener estadísticas del tag: ${error.message}`);
+    }
+}
+
 module.exports = {
     getAllTags,
     getTagById,
     createTag,
     updateTag,
     deleteTag,
-    getTagsByBookmark
+    getTagsByBookmark,
+    getTagStats
 };
 

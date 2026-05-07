@@ -54,6 +54,14 @@ function ManageTagCenter({ tag, onChange }) {
                 <h3 className="manage-card__title">Información adicional</h3>
                 <div className="manage-info-grid">
                     <div className="info-box">
+                        <span className="info-box__label">Marcadores<br/>tagueados</span>
+                        <span className="info-box__value">{tag.bookmarks || 0}</span>
+                    </div>
+                    <div className="info-box">
+                        <span className="info-box__label">Carpetas<br/>tagueadas</span>
+                        <span className="info-box__value">{tag.categories || 0}</span>
+                    </div>
+                    <div className="info-box">
                         <span className="info-box__label">Fecha de<br/>creación</span>
                         <span className="info-box__value info-box__value--small">{formatDate(tag.fecha_creacion)}</span>
                     </div>
