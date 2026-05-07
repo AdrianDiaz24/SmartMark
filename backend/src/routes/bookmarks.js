@@ -28,18 +28,9 @@ router.get('/', async (req, res, next) => {
     try {
         const { categoria_id, tag_id, search, limit, offset } = req.query;
 
-        if (tag_id) {
-            // Si se filtra por tag, usar la función específica
-            const bookmarks = await getBookmarksByTag(db, tag_id, {
-                search,
-                limit: limit ? parseInt(limit) : null,
-                offset: offset ? parseInt(offset) : null
-            });
-            return res.json(bookmarks);
-        }
-
         const bookmarks = await getAllBookmarks(db, {
             categoria_id: categoria_id ? parseInt(categoria_id) : null,
+            tag_id: tag_id ? parseInt(tag_id) : null,
             search,
             limit: limit ? parseInt(limit) : null,
             offset: offset ? parseInt(offset) : null

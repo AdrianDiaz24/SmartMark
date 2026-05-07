@@ -66,6 +66,12 @@ function BookmarksPage() {
         }
     };
 
+    const filterFoldersByTag = (folders, tagId) => {
+        return folders.filter(folder => 
+            folder.tags && folder.tags.some(tag => tag.id === parseInt(tagId))
+        );
+    };
+
     const loadFolders = async () => {
         try {
             const allCategories = await categoriesService.getAll();
@@ -75,14 +81,14 @@ function BookmarksPage() {
                 // Si hay un filtro de carpeta activo, mostrar solo las subcarpetas
                 const parentCategory = await categoriesService.getById(activeFolder);
                 displayFolders = parentCategory?.children || [];
-            } else if (activeTag) {
-                // Si hay un filtro de tag, mostrar solo las carpetas de primer nivel que tengan ese tag
-                displayFolders = (allCategories || []).filter(folder => 
-                    folder.tags && folder.tags.some(tag => tag.id === parseInt(activeTag))
-                );
             } else {
-                // Si no hay filtro, mostrar solo las carpetas de primer nivel
+                // Si no hay filtro de carpeta, mostrar carpetas de primer nivel
                 displayFolders = allCategories || [];
+            }
+
+            // Si hay un filtro de tag, aplicarlo a las carpetas que se mostrarán
+            if (activeTag) {
+                displayFolders = filterFoldersByTag(displayFolders, activeTag);
             }
 
             setFolders(displayFolders);
@@ -97,14 +103,21 @@ function BookmarksPage() {
             setLoading(true);
             let data;
             
+            // Construir filtros basados en los parámetros
+            const filters = {};
+            
+            if (activeFolder && activeFolder !== 'todas') {
+                filters.categoria_id = activeFolder;
+            }
+            
             if (activeTag) {
-                // Si hay un tag seleccionado, filtrar por tag
-                data = await bookmarksService.getByTag(activeTag);
-            } else if (activeFolder && activeFolder !== 'todas') {
-                // Si hay una carpeta, filtrar por carpeta (usar categoria_id)
-                data = await bookmarksService.getAll({ categoria_id: activeFolder });
+                filters.tag_id = activeTag;
+            }
+            
+            // Si hay filtros, aplicarlos; si no, obtener todos
+            if (Object.keys(filters).length > 0) {
+                data = await bookmarksService.getAll(filters);
             } else {
-                // Si no hay filtros, obtener todos
                 data = await bookmarksService.getAll({});
             }
             
@@ -120,13 +133,15 @@ function BookmarksPage() {
     };
 
     const clearFolderFilter = () => {
-        if (activeTag) navigate(`/todos?tag=${activeTag}`);
-        else navigate('/todos');
+        const params = new URLSearchParams();
+        if (activeTag) params.set('tag', activeTag);
+        navigate(`/todos?${params.toString()}` || '/todos');
     };
 
     const clearTagFilter = () => {
-        if (activeFolder) navigate(`/todos?carpeta=${activeFolder}`);
-        else navigate('/todos');
+        const params = new URLSearchParams();
+        if (activeFolder) params.set('carpeta', activeFolder);
+        navigate(`/todos?${params.toString()}` || '/todos');
     };
 
     return (

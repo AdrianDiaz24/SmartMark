@@ -4,9 +4,10 @@
 async function getAllBookmarks(db, filters = {}) {
     try {
         let query = `
-            SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
+            SELECT DISTINCT m.id, m.titulo, m.url, m.descripcion, m.portada, 
                    m.categoria_id, m.fecha_creacion, m.ultima_apertura
             FROM Marcadores m
+            LEFT JOIN Marcadores_Tags mt ON m.id = mt.marcador_id
             WHERE 1=1
         `;
         const params = [];
@@ -15,6 +16,12 @@ async function getAllBookmarks(db, filters = {}) {
         if (filters.categoria_id) {
             query += ` AND m.categoria_id = ?`;
             params.push(filters.categoria_id);
+        }
+
+        // Filtrar por tag
+        if (filters.tag_id) {
+            query += ` AND mt.tag_id = ?`;
+            params.push(filters.tag_id);
         }
 
         // Filtrar por búsqueda (título o descripción)

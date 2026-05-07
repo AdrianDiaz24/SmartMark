@@ -59,7 +59,18 @@ function Sidebar() {
     };
 
     const handleFilter = (tipo, valor) => {
-        navigate(`/todos?${tipo}=${valor}`);
+        // Obtener los parámetros actuales de la URL
+        const currentParams = new URLSearchParams(window.location.search);
+        
+        if (tipo === 'carpeta' && valor === 'todas') {
+            // Si selecciona "todas", remover el filtro de carpeta pero mantener el tag
+            currentParams.delete('carpeta');
+        } else {
+            // Mantener otros parámetros y actualizar/agregar el nuevo
+            currentParams.set(tipo, valor);
+        }
+        
+        navigate(`/todos?${currentParams.toString()}`);
     };
 
     const handleCreateFolder = async (folderData) => {
