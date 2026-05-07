@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import './CreateTagModal.css';
 
 
@@ -45,9 +46,8 @@ function CreateTagModal({ isOpen, onClose, onCreateTag }) {
         }
     };
 
-    return (
+    const modalContent = (
         <div className="modal-overlay" onClick={(e) => { e.stopPropagation(); onClose(); }}>
-            {}
             <section className="modal-content modal-content--tag" onClick={(e) => e.stopPropagation()}>
 
                 <h2 className="modal__title">Crear tag</h2>
@@ -100,6 +100,8 @@ function CreateTagModal({ isOpen, onClose, onCreateTag }) {
             </section>
         </div>
     );
+
+    return ReactDOM.createPortal(modalContent, document.body);
 }
 
 export default CreateTagModal;

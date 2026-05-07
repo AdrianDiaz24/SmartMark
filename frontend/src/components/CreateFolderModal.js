@@ -1,25 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import TagBadge from './TagBadge';
 import TagPopover from './TagPopover';
+import { tagsService } from '../services/tagsService';
+import { categoriesService } from '../services/categoriesService';
 import './CreateFolderModal.css';
 
-// Datos de prueba
-const MOCK_TAGS = [
-    { id: 1, name: 'tag 1', color: '51986C' },
-    { id: 2, name: 'tag 2', color: 'FF4343' },
-    { id: 3, name: 'tag 3: lorem ipsum', color: '616060' }
-];
-
-function CreateFolderModal({ isOpen, onClose }) {
+function CreateFolderModal({ isOpen, onClose, onCreateFolder }) {
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const [selectedTagIds, setSelectedTagIds] = useState([]);
+    const [tags, setTags] = useState([]);
+    const [folders, setFolders] = useState([]);
+    const [folderName, setFolderName] = useState('');
+    const [parentFolderId, setParentFolderId] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    if (!isOpen) return null;
+    // Cargar tags y carpetas cuando se abre el modal
+    useEffect(() => {
+        if (isOpen) {
+            loadTags();
+            loadFolders();
+        }
+    }, [isOpen]);
+
+    const loadTags = async () => {
+        try {
+            const data = await tagsService.getAll();
+            setTags(data || []);
+        } catch (error) {
+            console.error('Error cargando tags:', error);
+            setTags([]);
+        }
+    };
+
+    const loadFolders = async () => {
+        try {
+            const data = await categoriesService.getAll();
+            setFolders(data || []);
+        } catch (error) {
+            console.error('Error cargando carpetas:', error);
+            setFolders([]);
+        }
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Creando carpeta con tags:", selectedTagIds);
-        onClose();
+        
+        if (!folderName.trim()) {
+            alert('El nombre de la carpeta es requerido');
+            return;
+        }
+
+        const folderData = {
+            nombre: folderName.trim(),
+            padre_id: parentFolderId || null,
+            tags: selectedTagIds  // Incluir tags
+        };
+
+        if (onCreateFolder) {
+            onCreateFolder(folderData);
+            setFolderName('');
+            setParentFolderId('');
+            setSelectedTagIds([]);
+        } else {
+            console.log("Creando carpeta:", folderData);
+            onClose();
+        }
     };
 
     const handleToggleTag = (tagId) => {
@@ -32,7 +78,20 @@ function CreateFolderModal({ isOpen, onClose }) {
         });
     };
 
-    return (
+    const flattenFolders = (foldersList) => {
+        let result = [];
+        foldersList.forEach(folder => {
+            result.push(folder);
+            if (folder.children && folder.children.length > 0) {
+                result = result.concat(flattenFolders(folder.children));
+            }
+        });
+        return result;
+    };
+
+    if (!isOpen) return null;
+
+    const modalContent = (
         <div className="modal-overlay" onClick={onClose}>
             <section className="modal-content" onClick={(e) => e.stopPropagation()} aria-labelledby="modal-title">
                 <h2 id="modal-title" className="modal__title">Crear carpeta</h2>
@@ -41,35 +100,48 @@ function CreateFolderModal({ isOpen, onClose }) {
 
                     <div className="modal__field">
                         <label htmlFor="folder-name">Nombre</label>
-                        <input id="folder-name" type="text" placeholder="Introduzca el nombre de la carpeta" className="modal__input" />
+                        <input 
+                            id="folder-name" 
+                            type="text" 
+                            placeholder="Introduzca el nombre de la carpeta" 
+                            className="modal__input"
+                            value={folderName}
+                            onChange={(e) => setFolderName(e.target.value)}
+                        />
                     </div>
 
                     <div className="modal__field">
                         <label htmlFor="parent-folder">Carpeta padre</label>
-                        <select id="parent-folder" className="modal__select" defaultValue="">
-                            <option value="" disabled>Seleccione la carpeta padre</option>
-                            <option value="general">General</option>
+                        <select 
+                            id="parent-folder" 
+                            className="modal__select"
+                            value={parentFolderId}
+                            onChange={(e) => setParentFolderId(e.target.value)}
+                        >
+                            <option value="">-- Sin carpeta padre (raíz) --</option>
+                            {folders.length > 0 && flattenFolders(folders).map(folder => (
+                                <option key={folder.id} value={folder.id}>
+                                    {folder.nombre}
+                                </option>
+                            ))}
                         </select>
                         <span className="modal__help-text">Por defecto la carpeta padre sera la general</span>
                     </div>
 
-                    {}
-                    {}
                     <div className="modal__field modal__field--inline">
                         <label>Tags:</label>
 
-                        {}
                         <div className="modal__selected-tags">
                             {selectedTagIds.map(id => {
-                                const tagData = MOCK_TAGS.find(t => t.id === id);
-                                return (
+                                const tagData = tags.find(t => t.id === id);
+                                return tagData ? (
                                     <TagBadge
                                         key={tagData.id}
-                                        texto={tagData.name}
+                                        texto={tagData.nombre}
                                         colorHex={tagData.color}
                                         isSelected={false}
                                     />
-                                );
+                                ) : null;
                             })}
                         </div>
 
@@ -84,20 +156,25 @@ function CreateFolderModal({ isOpen, onClose }) {
                         <TagPopover
                             isOpen={isPopoverOpen}
                             onClose={() => setIsPopoverOpen(false)}
-                            availableTags={MOCK_TAGS}
+                            availableTags={tags.map(t => ({ id: t.id, name: t.nombre, color: t.color }))}
                             selectedTags={selectedTagIds}
                             onToggleTag={handleToggleTag}
                         />
                     </div>
 
                     <div className="modal__actions">
-                        <button type="submit" className="modal__submit-btn">Crear</button>
+                        <button type="submit" className="modal__submit-btn" disabled={isLoading}>
+                            {isLoading ? 'Creando...' : 'Crear'}
+                        </button>
                     </div>
 
                 </form>
             </section>
         </div>
     );
+
+    return ReactDOM.createPortal(modalContent, document.body);
 }
+
 
 export default CreateFolderModal;

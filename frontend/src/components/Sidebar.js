@@ -5,6 +5,7 @@ import CreateFolderModal from './CreateFolderModal';
 import CreateTagModal from './CreateTagModal';
 import TagBadge from './TagBadge';
 import { tagsService } from '../services/tagsService';
+import { categoriesService } from '../services/categoriesService';
 import './Sidebar.css';
 
 import iconoAñadir from '../assets/Img/añadir_carpeta.png';
@@ -16,6 +17,8 @@ function Sidebar() {
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
     const [tags, setTags] = useState([]);
     const [tagsLoading, setTagsLoading] = useState(true);
+    const [folders, setFolders] = useState([]);
+    const [foldersLoading, setFoldersLoading] = useState(true);
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -23,9 +26,10 @@ function Sidebar() {
     const activeFolder = searchParams.get('carpeta');
     const activeTag = searchParams.get('tag');
 
-    // Cargar tags al montar
+    // Cargar tags y carpetas al montar
     useEffect(() => {
         loadTags();
+        loadFolders();
     }, []);
 
     const loadTags = async () => {
@@ -41,8 +45,32 @@ function Sidebar() {
         }
     };
 
+    const loadFolders = async () => {
+        try {
+            setFoldersLoading(true);
+            const data = await categoriesService.getAll();
+            setFolders(data || []);
+        } catch (error) {
+            console.error('Error cargando carpetas:', error);
+            setFolders([]);
+        } finally {
+            setFoldersLoading(false);
+        }
+    };
+
     const handleFilter = (tipo, valor) => {
         navigate(`/todos?${tipo}=${valor}`);
+    };
+
+    const handleCreateFolder = async (folderData) => {
+        try {
+            await categoriesService.create(folderData);
+            await loadFolders(); // Recargar carpetas
+            setIsFolderModalOpen(false);
+        } catch (error) {
+            console.error('Error creando carpeta:', error);
+            alert('Error al crear carpeta: ' + error.message);
+        }
     };
 
     const handleCreateTag = async (tagData) => {
@@ -54,6 +82,30 @@ function Sidebar() {
             console.error('Error creando tag:', error);
             alert('Error al crear tag: ' + error.message);
         }
+    };
+
+    const renderFolders = (foldersList) => {
+        return foldersList.map(folder => (
+            <div 
+                key={folder.id} 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleFilter('carpeta', folder.id);
+                }} 
+                style={{ opacity: activeFolder === String(folder.id) ? 1 : 0.6, cursor: 'pointer' }}
+            >
+                <FolderItem 
+                    icono={iconoCarpeta} 
+                    titulo={folder.nombre} 
+                    contador={folder.bookmarks || 0}
+                />
+                {folder.children && folder.children.length > 0 && (
+                    <div style={{ marginLeft: '20px' }}>
+                        {renderFolders(folder.children)}
+                    </div>
+                )}
+            </div>
+        ));
     };
 
     return (
@@ -78,15 +130,13 @@ function Sidebar() {
                     <div onClick={() => handleFilter('carpeta', 'todas')} style={{ opacity: activeFolder === 'todas' ? 1 : 0.6, cursor: 'pointer' }}>
                         <FolderItem icono={iconoArchivador} titulo="Todos los marcadores" contador="" />
                     </div>
-                    <div onClick={() => handleFilter('carpeta', 'carpeta1')} style={{ opacity: activeFolder === 'carpeta1' ? 1 : 0.6, cursor: 'pointer' }}>
-                        <FolderItem icono={iconoCarpeta} titulo="Carpeta 1" contador="" subcarpetas={["Subcarpeta 1", "Subcarpeta 2"]} />
-                    </div>
-                    <div onClick={() => handleFilter('carpeta', 'carpeta2')} style={{ opacity: activeFolder === 'carpeta2' ? 1 : 0.6, cursor: 'pointer' }}>
-                        <FolderItem icono={iconoCarpeta} titulo="Carpeta 2" contador="" />
-                    </div>
-                    <div onClick={() => handleFilter('carpeta', 'carpeta3')} style={{ opacity: activeFolder === 'carpeta3' ? 1 : 0.6, cursor: 'pointer' }}>
-                        <FolderItem icono={iconoCarpeta} titulo="Carpeta 3" contador="" />
-                    </div>
+                    {foldersLoading ? (
+                        <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Cargando carpetas...</p>
+                    ) : folders.length > 0 ? (
+                        renderFolders(folders)
+                    ) : (
+                        <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Sin carpetas</p>
+                    )}
                 </div>
             </div>
 
@@ -123,7 +173,11 @@ function Sidebar() {
                 </div>
             </div>
 
-            <CreateFolderModal isOpen={isFolderModalOpen} onClose={() => setIsFolderModalOpen(false)} />
+            <CreateFolderModal 
+                isOpen={isFolderModalOpen} 
+                onClose={() => setIsFolderModalOpen(false)}
+                onCreateFolder={handleCreateFolder}
+            />
             <CreateTagModal 
                 isOpen={isTagModalOpen} 
                 onClose={() => setIsTagModalOpen(false)}

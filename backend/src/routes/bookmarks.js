@@ -51,6 +51,26 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+// GET /api/links/stats/last-week - Obtener marcadores visitados última semana
+router.get('/stats/last-week', async (req, res, next) => {
+    try {
+        const bookmarks = await getBookmarksVisitedLastWeek(db);
+        res.json(bookmarks);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// GET /api/links/stats/count-last-week - Contar marcadores visitados última semana
+router.get('/stats/count-last-week', async (req, res, next) => {
+    try {
+        const count = await countBookmarksVisitedLastWeek(db);
+        res.json({ count });
+    } catch (error) {
+        next(error);
+    }
+});
+
 // GET /api/links/:id - Obtener un marcador específico
 router.get('/:id', async (req, res, next) => {
     try {
@@ -162,25 +182,25 @@ router.post('/:id/access', async (req, res, next) => {
     }
 });
 
-// GET /api/links/stats/last-week - Obtener marcadores visitados última semana
-router.get('/stats/last-week', async (req, res, next) => {
-    try {
-        const bookmarks = await getBookmarksVisitedLastWeek(db);
-        res.json(bookmarks);
-    } catch (error) {
-        next(error);
-    }
-});
+// GET /api/links/stats/last-week - Obtener marcadores visitados última semana (DUPLICADA - se mantiene abajo para mayor especificidad)
+// router.get('/stats/last-week', async (req, res, next) => {
+//     try {
+//         const bookmarks = await getBookmarksVisitedLastWeek(db);
+//         res.json(bookmarks);
+//     } catch (error) {
+//         next(error);
+//     }
+// });
 
-// GET /api/links/stats/count-last-week - Contar marcadores visitados última semana
-router.get('/stats/count-last-week', async (req, res, next) => {
-    try {
-        const count = await countBookmarksVisitedLastWeek(db);
-        res.json({ count });
-    } catch (error) {
-        next(error);
-    }
-});
+// GET /api/links/stats/count-last-week - Contar marcadores visitados última semana (DUPLICADA)
+// router.get('/stats/count-last-week', async (req, res, next) => {
+//     try {
+//         const count = await countBookmarksVisitedLastWeek(db);
+//         res.json({ count });
+//     } catch (error) {
+//         next(error);
+//     }
+// });
 
 module.exports = router;
 

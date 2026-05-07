@@ -35,7 +35,7 @@ app.get('/', (req, res) => {
   res.send('¡Hola Mundo desde el backend de SmartMark!');
 });
 
-// Middleware de manejo de errores (debe estar al final)
+// Middleware de manejo de errores
 app.use(errorHandler);
 
 // ARRANQUE DEL SERVIDOR

@@ -14,6 +14,7 @@ async function getAllCategories(db) {
             const stats = await getCategoryStats(db, cat.id);
             cat.subfolders = stats.subfolders;
             cat.bookmarks = stats.bookmarks;
+            cat.tags = await getTagsByCategory(db, cat.id);
         }
 
         return categories;
@@ -35,6 +36,7 @@ async function getSubcategories(db, parentId) {
             const stats = await getCategoryStats(db, subcat.id);
             subcat.subfolders = stats.subfolders;
             subcat.bookmarks = stats.bookmarks;
+            subcat.tags = await getTagsByCategory(db, subcat.id);
         }
 
         return subcats;
@@ -78,6 +80,7 @@ async function getCategoryById(db, id) {
         const stats = await getCategoryStats(db, id);
         category.subfolders = stats.subfolders;
         category.bookmarks = stats.bookmarks;
+        category.tags = await getTagsByCategory(db, id);
 
         return category;
     } catch (error) {
@@ -86,7 +89,7 @@ async function getCategoryById(db, id) {
 }
 
 // Crear una nueva categoría
-async function createCategory(db, nombre, padre_id = null) {
+async function createCategory(db, nombre, padre_id = null, tags = []) {
     try {
         if (!nombre || nombre.trim() === '') {
             throw new Error('El nombre de la categoría es requerido');
@@ -97,14 +100,30 @@ async function createCategory(db, nombre, padre_id = null) {
             VALUES (?, ?, CURRENT_TIMESTAMP)
         `, [nombre.trim(), padre_id || null]);
 
+        const categoryId = resultado.lastID;
+
+        // Agregar tags si se proporcionan
+        if (tags && tags.length > 0) {
+            for (let tagId of tags) {
+                const tag = await db.get(`SELECT id FROM Tags WHERE id = ?`, [tagId]);
+                if (tag) {
+                    await db.run(`
+                        INSERT INTO Categorias_Tags (categoria_id, tag_id)
+                        VALUES (?, ?)
+                    `, [categoryId, tagId]);
+                }
+            }
+        }
+
         return {
-            id: resultado.lastID,
+            id: categoryId,
             nombre: nombre.trim(),
             padre_id: padre_id || null,
             fecha_creacion: new Date().toISOString(),
             children: [],
             subfolders: 0,
-            bookmarks: 0
+            bookmarks: 0,
+            tags: []
         };
     } catch (error) {
         throw new Error(`Error al crear categoría: ${error.message}`);
@@ -207,6 +226,78 @@ async function deleteAllBookmarksInCategory(db, categoryId) {
     }
 }
 
+// Obtener tags de una categoría
+async function getTagsByCategory(db, categoryId) {
+    try {
+        const tags = await db.all(`
+            SELECT t.id, t.nombre, t.color, t.fecha_creacion
+            FROM Tags t
+            INNER JOIN Categorias_Tags ct ON t.id = ct.tag_id
+            WHERE ct.categoria_id = ?
+            ORDER BY t.fecha_creacion DESC
+        `, [categoryId]);
+        return tags;
+    } catch (error) {
+        throw new Error(`Error al obtener tags de la categoría: ${error.message}`);
+    }
+}
+
+// Agregar tags a una categoría
+async function addTagsToCategory(db, categoryId, tagIds) {
+    try {
+        const category = await db.get(`SELECT id FROM Categorias WHERE id = ?`, [categoryId]);
+        if (!category) {
+            throw new Error('Categoría no encontrada');
+        }
+
+        for (let tagId of tagIds) {
+            const tag = await db.get(`SELECT id FROM Tags WHERE id = ?`, [tagId]);
+            if (!tag) {
+                throw new Error(`El tag con ID ${tagId} no existe`);
+            }
+
+            // Verificar que no esté ya agregado
+            const existe = await db.get(`
+                SELECT * FROM Categorias_Tags WHERE categoria_id = ? AND tag_id = ?
+            `, [categoryId, tagId]);
+
+            if (!existe) {
+                await db.run(`
+                    INSERT INTO Categorias_Tags (categoria_id, tag_id)
+                    VALUES (?, ?)
+                `, [categoryId, tagId]);
+            }
+        }
+
+        return getTagsByCategory(db, categoryId);
+    } catch (error) {
+        throw new Error(`Error al agregar tags: ${error.message}`);
+    }
+}
+
+// Remover un tag de una categoría
+async function removeTagFromCategory(db, categoryId, tagId) {
+    try {
+        const category = await db.get(`SELECT id FROM Categorias WHERE id = ?`, [categoryId]);
+        if (!category) {
+            throw new Error('Categoría no encontrada');
+        }
+
+        const tag = await db.get(`SELECT id FROM Tags WHERE id = ?`, [tagId]);
+        if (!tag) {
+            throw new Error('Tag no encontrado');
+        }
+
+        await db.run(`
+            DELETE FROM Categorias_Tags WHERE categoria_id = ? AND tag_id = ?
+        `, [categoryId, tagId]);
+
+        return { mensaje: 'Tag removido exitosamente' };
+    } catch (error) {
+        throw new Error(`Error al remover tag: ${error.message}`);
+    }
+}
+
 module.exports = {
     getAllCategories,
     getCategoryById,
@@ -214,6 +305,9 @@ module.exports = {
     updateCategory,
     deleteCategory,
     getSubcategories,
-    getCategoryStats
+    getCategoryStats,
+    getTagsByCategory,
+    addTagsToCategory,
+    removeTagFromCategory
 };
 

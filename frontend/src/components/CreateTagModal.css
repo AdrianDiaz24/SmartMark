@@ -50,5 +50,5 @@
 }
 
 .modal-overlay {
-    z-index: 2000 !important;
+    z-index: 9999;
 }

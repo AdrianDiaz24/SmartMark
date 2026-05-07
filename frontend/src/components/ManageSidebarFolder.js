@@ -8,6 +8,8 @@ function ManageSidebarFolder({ title, items, selectedId, onSelect, onAdd }) {
 
     const renderItem = (item, isSubfolder = false) => {
         const isActive = selectedId === item.id;
+        // Mapear tanto 'name' (mockeados) como 'nombre' (backend)
+        const itemName = item.name || item.nombre;
 
         return (
             <React.Fragment key={item.id}>
@@ -20,7 +22,7 @@ function ManageSidebarFolder({ title, items, selectedId, onSelect, onAdd }) {
                     {!isSubfolder && (
                         <img src={iconoCarpeta} alt="Carpeta" className="manage-sidebar-folder__icon" />
                     )}
-                    <span>{item.name}</span>
+                    <span>{itemName}</span>
                 </div>
 
 

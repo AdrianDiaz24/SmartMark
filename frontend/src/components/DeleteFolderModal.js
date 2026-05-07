@@ -1,10 +1,18 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import './DeleteModal.css';
 
-function DeleteFolderModal({ isOpen, onClose, folderName }) {
+function DeleteFolderModal({ isOpen, onClose, folderName, onDelete }) {
     if (!isOpen) return null;
 
-    return (
+    const handleDelete = () => {
+        if (onDelete) {
+            onDelete();
+        }
+        onClose();
+    };
+
+    const modalContent = (
         <div className="modal-overlay" onClick={onClose}>
             <section className="modal-content modal-content--delete" onClick={(e) => e.stopPropagation()}>
                 <h2 className="modal__title">Eliminar carpeta</h2>
@@ -16,10 +24,10 @@ function DeleteFolderModal({ isOpen, onClose, folderName }) {
                 </p>
 
                 <div className="delete-modal__actions">
-                    <button className="delete-modal__btn delete-modal__btn--danger">
+                    <button className="delete-modal__btn delete-modal__btn--danger" onClick={handleDelete}>
                         Eliminar carpeta y marcadores
                     </button>
-                    <button className="delete-modal__btn delete-modal__btn--danger">
+                    <button className="delete-modal__btn delete-modal__btn--danger" onClick={handleDelete}>
                         Eliminar carpeta
                     </button>
                     <button className="delete-modal__btn delete-modal__btn--cancel" onClick={onClose}>
@@ -29,6 +37,8 @@ function DeleteFolderModal({ isOpen, onClose, folderName }) {
             </section>
         </div>
     );
+
+    return ReactDOM.createPortal(modalContent, document.body);
 }
 
 export default DeleteFolderModal;

@@ -53,6 +53,16 @@ async function initDB() {
             FOREIGN KEY (marcador_id) REFERENCES Marcadores(id) ON DELETE CASCADE,
             FOREIGN KEY (tag_id) REFERENCES Tags(id) ON DELETE CASCADE
         );
+
+        -- 5. TABLA INTERMEDIA (Relación Muchos a Muchos)
+        -- Empareja una Categoría con un Tag
+        CREATE TABLE IF NOT EXISTS Categorias_Tags (
+            categoria_id INTEGER,
+            tag_id INTEGER,
+            PRIMARY KEY (categoria_id, tag_id),
+            FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE,
+            FOREIGN KEY (tag_id) REFERENCES Tags(id) ON DELETE CASCADE
+        );
     `);
 
     console.log('Tablas creadas correctamente');

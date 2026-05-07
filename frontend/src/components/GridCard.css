@@ -16,6 +16,26 @@
     height: 180px;
     background-color: #CCCCCC;
     border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.grid-card__image--folder {
+    background-color: transparent;
+}
+
+.grid-card__icon {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+}
+
+.grid-card__logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
 }
 
 .grid-card__content {

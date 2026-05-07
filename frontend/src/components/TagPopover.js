@@ -31,7 +31,7 @@ function TagPopover({ isOpen, onClose, availableTags, selectedTags, onToggleTag 
                     {availableTags.map(tag => (
                         <TagBadge
                             key={tag.id}
-                            texto={tag.name}
+                            texto={tag.nombre || tag.name}
                             colorHex={tag.color}
                             isSelected={selectedTags.includes(tag.id)}
                             onClick={() => onToggleTag(tag.id)}

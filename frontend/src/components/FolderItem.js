@@ -2,12 +2,15 @@ import React from "react";
 import "./FolderItem.css";
 
 function FolderItem({ icono, titulo, contador, subcarpetas }) {
+    // Mostrar el contador solo si es un número, no una string vacía
+    const displayCount = contador === "" ? "" : (contador || 0);
+
     return (
         <div className={"folder-item"}>
             <img src={icono} alt="Icono de carpeta" className={"folder-item__icon"}/>
             <div className={"folder-item__info"}>
                 <span className={"folder-item__title"}>{titulo}</span>
-                <span className={"folder-item__count"}>{contador}</span>
+                {displayCount !== "" && <span className={"folder-item__count"}>{displayCount}</span>}
 
                 {subcarpetas && subcarpetas.length > 0 && (
                     <div className={"folder-item__subcarpetas"}>

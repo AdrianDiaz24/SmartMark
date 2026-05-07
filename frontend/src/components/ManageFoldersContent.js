@@ -1,43 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ManageSidebarFolder from './ManageSidebarFolder';
 import ManageFolderCenter from './ManageFolderCenter';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteFolderModal from './DeleteFolderModal';
+import { categoriesService } from '../services/categoriesService';
+import { tagsService } from '../services/tagsService';
 import './ManageFoldersContent.css';
 
-const MOCK_FOLDERS_DATA = [
-    {
-        id: '2', name: 'Carpeta 1', parent: 'General', subfolders: 2, bookmarks: 45, date: '12/01/2026',
-        children: [
-            { id: '1a', name: 'Subcarpeta 1', parent: 'Carpeta 1', subfolders: 0, bookmarks: 10, date: '26/03/2026' },
-            { id: '1b', name: 'Subcarpeta 2', parent: 'Carpeta 1', subfolders: 0, bookmarks: 5, date: '27/03/2026' }
-        ]
-    },
-    { id: '3', name: 'Carpeta 2', parent: 'General', subfolders: 0, bookmarks: 5, date: '05/02/2026' },
-    { id: '4', name: 'Carpeta 3', parent: 'General', subfolders: 0, bookmarks: 2, date: '06/02/2026' }
-];
-
-const getFlatFolders = (folders) => {
-    let result = [];
-    folders.forEach(folder => {
-        result.push(folder);
-        if (folder.children) {
-            result = result.concat(getFlatFolders(folder.children));
-        }
-    });
-    return result;
-};
-
 function ManageFoldersContent() {
-    const [selectedFolder, setSelectedFolder] = useState(MOCK_FOLDERS_DATA[0].children[0]);
-    const [editedFolder, setEditedFolder] = useState(MOCK_FOLDERS_DATA[0].children[0]);
+    const [folders, setFolders] = useState([]);
+    const [selectedFolder, setSelectedFolder] = useState(null);
+    const [editedFolder, setEditedFolder] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [tags, setTags] = useState([]);
     const navigate = useNavigate();
+
+    // Cargar carpetas al montar
+    useEffect(() => {
+        loadFolders();
+        loadTags();
+    }, []);
+
+    // Seleccionar la primera carpeta cuando se cargan
+    useEffect(() => {
+        if (folders.length > 0 && !selectedFolder) {
+            const firstFolder = getAllFolders(folders)[0];
+            if (firstFolder) {
+                handleSelectFolder(firstFolder);
+            }
+        }
+    }, [folders]);
+
+    const loadFolders = async () => {
+        try {
+            setIsLoading(true);
+            const data = await categoriesService.getAll();
+            setFolders(data || []);
+        } catch (error) {
+            console.error('Error cargando carpetas:', error);
+            setFolders([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const loadTags = async () => {
+        try {
+            const data = await tagsService.getAll();
+            setTags(data || []);
+        } catch (error) {
+            console.error('Error cargando tags:', error);
+            setTags([]);
+        }
+    };
+
+    const getAllFolders = (foldersList) => {
+        let result = [];
+        foldersList.forEach(folder => {
+            result.push(folder);
+            if (folder.children && folder.children.length > 0) {
+                result = result.concat(getAllFolders(folder.children));
+            }
+        });
+        return result;
+    };
 
     const handleSelectFolder = (folder) => {
         setSelectedFolder(folder);
-        setEditedFolder(folder);
+        // Transformar datos del backend al formato esperado por ManageFolderCenter
+        const folderData = {
+            ...folder,
+            name: folder.nombre,
+            parentId: folder.padre_id || null, // Guardar el ID del padre
+            subfolders: folder.subfolders || 0,
+            bookmarks: folder.bookmarks || 0,
+            date: folder.fecha_creacion ? new Date(folder.fecha_creacion).toLocaleDateString('es-ES') : 'N/A'
+        };
+        setEditedFolder(folderData);
     };
 
     const handleInputChange = (field, value) => {
@@ -47,21 +88,82 @@ function ManageFoldersContent() {
         });
     };
 
-    const handleUpdate = () => {
-        console.log("Guardando los nuevos datos de la carpeta:", editedFolder);
-        alert(`Se ha actualizado la carpeta a:\nNombre: ${editedFolder.name}\nPadre: ${editedFolder.parent}`);
+    const handleUpdate = async () => {
+        try {
+            // Preparar datos para enviar al backend
+            const updateData = {
+                nombre: editedFolder.name,
+                padre_id: editedFolder.parentId || null
+            };
+            await categoriesService.update(selectedFolder.id, updateData);
+            alert(`Se ha actualizado la carpeta a:\nNombre: ${editedFolder.name}`);
+            await loadFolders();
+        } catch (error) {
+            console.error('Error actualizando carpeta:', error);
+            alert('Error al actualizar: ' + error.message);
+        }
     };
 
     const handleViewContent = () => {
-        navigate(`/todos?carpeta=${selectedFolder.name}`);
+        navigate(`/todos?carpeta=${selectedFolder.id}`);
     };
 
     const handleAddFolder = () => {
         console.log("Abrir modal de crear carpeta");
     };
 
-    const allFolders = getFlatFolders(MOCK_FOLDERS_DATA);
-    const availableParents = allFolders.filter(f => f.id !== editedFolder.id);
+    const handleDeleteFolder = async () => {
+        try {
+            await categoriesService.delete(selectedFolder.id);
+            await loadFolders();
+            setIsDeleteModalOpen(false);
+        } catch (error) {
+            console.error('Error eliminando carpeta:', error);
+            alert('Error al eliminar: ' + error.message);
+        }
+    };
+
+    const handleToggleTag = async (tagId) => {
+        try {
+            if (!selectedFolder) return;
+
+            const tagExists = editedFolder.tags?.some(t => t.id === tagId);
+            
+            if (tagExists) {
+                // Remover tag
+                await categoriesService.removeTag(selectedFolder.id, tagId);
+            } else {
+                // Agregar tag
+                await categoriesService.addTags(selectedFolder.id, [tagId]);
+            }
+
+            // Recargar la carpeta para actualizar los tags
+            const updatedCategory = await categoriesService.getById(selectedFolder.id);
+            setEditedFolder({
+                ...editedFolder,
+                tags: updatedCategory.tags || []
+            });
+        } catch (error) {
+            console.error('Error toggling tag:', error);
+            alert('Error al cambiar tag: ' + error.message);
+        }
+    };
+
+    const allFolders = getAllFolders(folders);
+    const availableParents = allFolders.filter(f => f.id !== editedFolder?.id);
+
+    if (isLoading) {
+        return (
+            <div className="manage-page-layout">
+                <div className="manage-header">
+                    <h2>Gestiona tus carpetas</h2>
+                </div>
+                <div className="manage-content">
+                    <p>Cargando carpetas...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="manage-page-layout">
@@ -72,8 +174,8 @@ function ManageFoldersContent() {
             <div className="manage-content">
                 <ManageSidebarFolder
                     title="Carpetas"
-                    items={MOCK_FOLDERS_DATA}
-                    selectedId={selectedFolder.id}
+                    items={folders}
+                    selectedId={selectedFolder?.id}
                     onSelect={handleSelectFolder}
                     onAdd={handleAddFolder}
                 />
@@ -82,6 +184,8 @@ function ManageFoldersContent() {
                     folder={editedFolder}
                     onChange={handleInputChange}
                     availableParents={availableParents}
+                    availableTags={tags}
+                    onToggleTag={handleToggleTag}
                 />
 
                 <QuickActionsPanel
@@ -95,7 +199,8 @@ function ManageFoldersContent() {
             <DeleteFolderModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
-                folderName={selectedFolder.name}
+                folderName={selectedFolder?.nombre || selectedFolder?.name}
+                onDelete={handleDeleteFolder}
             />
         </div>
     );

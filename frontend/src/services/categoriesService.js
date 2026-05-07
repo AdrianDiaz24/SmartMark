@@ -25,6 +25,19 @@ export const categoriesService = {
     delete: (id, deleteBookmarks = false) =>
         apiCall(`/categories/${id}?deleteBookmarks=${deleteBookmarks}`, {
             method: 'DELETE'
+        }),
+
+    // Agregar tags a una categoría
+    addTags: (id, tagIds) =>
+        apiCall(`/categories/${id}/tags`, {
+            method: 'POST',
+            body: { tag_ids: tagIds }
+        }),
+
+    // Remover un tag de una categoría
+    removeTag: (id, tagId) =>
+        apiCall(`/categories/${id}/tags/${tagId}`, {
+            method: 'DELETE'
         })
 };
 
