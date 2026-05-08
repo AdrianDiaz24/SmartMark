@@ -28,6 +28,10 @@
 
 .filter-pill:hover { opacity: 0.8; }
 
+.search-pill {
+    background-color: #51986C;
+}
+
 .filter-search {
     background-color: #666666;
     border: none;
@@ -61,3 +65,4 @@
     background-color: #666666;
     color: white;
 }
+

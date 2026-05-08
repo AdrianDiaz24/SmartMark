@@ -1,8 +1,15 @@
 import React from 'react';
 import './DeleteModal.css';
 
-function DeleteBookmarkModal({ isOpen, onClose, bookmarkName }) {
+function DeleteBookmarkModal({ isOpen, onClose, bookmarkName, onDelete }) {
     if (!isOpen) return null;
+
+    const handleDelete = () => {
+        if (onDelete) {
+            onDelete();
+        }
+        onClose();
+    };
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -15,7 +22,7 @@ function DeleteBookmarkModal({ isOpen, onClose, bookmarkName }) {
                 </p>
 
                 <div className="delete-modal__actions">
-                    <button className="delete-modal__btn delete-modal__btn--danger">
+                    <button className="delete-modal__btn delete-modal__btn--danger" onClick={handleDelete}>
                         Eliminar marcador
                     </button>
                     <button className="delete-modal__btn delete-modal__btn--cancel" onClick={onClose}>

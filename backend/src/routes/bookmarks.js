@@ -16,10 +16,12 @@ const {
 } = require('../controllers/bookmarksController');
 
 let db;
+let upload;
 
-// Middleware para inyectar la conexión a la BD
+// Middleware para inyectar la conexión a la BD y multer
 router.use((req, res, next) => {
     db = req.app.locals.db;
+    upload = req.app.locals.upload;
     next();
 });
 
@@ -81,23 +83,59 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/links - Crear un nuevo marcador
 router.post('/', async (req, res, next) => {
     try {
-        const { titulo, url, descripcion, portada, categoria_id, tags } = req.body;
+        // Obtener upload del middleware
+        const uploadSingle = upload.single('portada');
+        
+        uploadSingle(req, res, async (err) => {
+            if (err) {
+                return next(err);
+            }
 
-        if (!titulo || !url) {
-            return res.status(400).json({ error: 'El título y URL son requeridos' });
-        }
+            try {
+                // Extraer campos del body o del query/form fields
+                let { titulo, url, descripcion, categoria_id, tags } = req.body;
 
-        const newBookmark = await createBookmark(db, {
-            titulo,
-            url,
-            descripcion,
-            portada,
-            categoria_id,
-            tags: tags || []
+                if (!titulo || !url) {
+                    return res.status(400).json({ error: 'El título y URL son requeridos' });
+                }
+
+                // Si se subió un archivo, guardar la ruta
+                let portada = null;
+                if (req.file) {
+                    portada = `/uploads/${req.file.filename}`;
+                }
+
+                // Parsear tags - pueden venir como JSON string
+                let parsedTags = [];
+                if (tags) {
+                    try {
+                        parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+                    } catch (e) {
+                        parsedTags = [];
+                    }
+                }
+                
+                const parsedCategoryId = categoria_id ? parseInt(categoria_id) : null;
+
+                console.log('Creando bookmark:', { titulo, url, descripcion, parsedCategoryId, parsedTags });
+
+                const newBookmark = await createBookmark(db, {
+                    titulo,
+                    url,
+                    descripcion,
+                    portada,
+                    categoria_id: parsedCategoryId,
+                    tags: parsedTags || []
+                });
+
+                res.status(201).json(newBookmark);
+            } catch (error) {
+                console.error('Error en POST /links:', error);
+                next(error);
+            }
         });
-
-        res.status(201).json(newBookmark);
     } catch (error) {
+        console.error('Error en POST /links (outer):', error);
         next(error);
     }
 });
@@ -105,20 +143,53 @@ router.post('/', async (req, res, next) => {
 // PUT /api/links/:id - Actualizar un marcador
 router.put('/:id', async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const { titulo, url, descripcion, portada, categoria_id, tags } = req.body;
+        // Obtener upload del middleware
+        const uploadSingle = upload.single('portada');
+        
+        uploadSingle(req, res, async (err) => {
+            if (err) {
+                return next(err);
+            }
 
-        const updatedBookmark = await updateBookmark(db, id, {
-            titulo,
-            url,
-            descripcion,
-            portada,
-            categoria_id,
-            tags
+            try {
+                const { id } = req.params;
+                let { titulo, url, descripcion, categoria_id, tags } = req.body;
+
+                // Si se subió un archivo, guardar la ruta
+                let portada = undefined;
+                if (req.file) {
+                    portada = `/uploads/${req.file.filename}`;
+                }
+
+                // Parsear tags - pueden venir como JSON string
+                let parsedTags = undefined;
+                if (tags) {
+                    try {
+                        parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+                    } catch (e) {
+                        parsedTags = undefined;
+                    }
+                }
+                
+                const parsedCategoryId = categoria_id ? parseInt(categoria_id) : undefined;
+
+                const updatedBookmark = await updateBookmark(db, id, {
+                    titulo,
+                    url,
+                    descripcion,
+                    portada,
+                    categoria_id: parsedCategoryId,
+                    tags: parsedTags
+                });
+
+                res.json(updatedBookmark);
+            } catch (error) {
+                console.error('Error en PUT /links/:id:', error);
+                next(error);
+            }
         });
-
-        res.json(updatedBookmark);
     } catch (error) {
+        console.error('Error en PUT /links/:id (outer):', error);
         next(error);
     }
 });

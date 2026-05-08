@@ -1,23 +1,27 @@
 import React from 'react';
 import './FilterBar.css';
 
-function FilterBar({ activeFolder, activeTag, clearFolderFilter, clearTagFilter, viewMode, setViewMode }) {
+function FilterBar({ activeFolder, activeTag, clearFolderFilter, clearTagFilter, viewMode, setViewMode, activeSearch, clearSearchFilter }) {
     return (
         <div className="filter-bar-container">
             <div className="filter-bar__left">
                 {activeFolder && activeFolder !== 'todas' && (
                     <span className="filter-pill folder-pill" onClick={clearFolderFilter}>
-            Carpeta: {activeFolder}
-          </span>
+                        Carpeta: {activeFolder}
+                    </span>
                 )}
 
                 {activeTag && (
                     <span className="filter-pill tag-pill" onClick={clearTagFilter}>
-            Tag: {activeTag}
-          </span>
+                        Tag: {activeTag}
+                    </span>
                 )}
 
-                <input type="text" placeholder="Buscar tags" className="filter-search" />
+                {activeSearch && (
+                    <span className="filter-pill search-pill" onClick={clearSearchFilter}>
+                        Búsqueda: {activeSearch}
+                    </span>
+                )}
             </div>
 
             <div className="filter-bar__right">

@@ -3,7 +3,7 @@ import TagBadge from './TagBadge';
 import TagPopover from './TagPopover';
 import './ManageBookmark.css';
 
-function ManageBookmark({ bookmark, onChange, availableFolders = [], systemTags = [], onToggleTag }) {
+function ManageBookmark({ bookmark, onChange, onFileChange, availableFolders = [], systemTags = [], onToggleTag }) {
     const fileInputRef = useRef(null);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -16,7 +16,9 @@ function ManageBookmark({ bookmark, onChange, availableFolders = [], systemTags 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            console.log("Archivo seleccionado:", file.name);
+            if (onFileChange) {
+                onFileChange(file);
+            }
         }
     };
 
@@ -24,7 +26,22 @@ function ManageBookmark({ bookmark, onChange, availableFolders = [], systemTags 
         <section className="manage-center">
             <div className="manage-card manage-card--full-form">
 
-                <div className="manage-card__image-placeholder"></div>
+                <div className={`manage-card__image-placeholder ${(bookmark.portada && bookmark.portada.trim && bookmark.portada.trim() !== '') ? 'manage-card__image-placeholder--has-image' : ''}`}>
+                    {bookmark.portada && bookmark.portada.trim && bookmark.portada.trim() !== '' && (
+                        <img 
+                            src={
+                                typeof bookmark.portada === 'string' && !bookmark.portada.startsWith('http')
+                                    ? `${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}${bookmark.portada.startsWith('/') ? bookmark.portada : '/' + bookmark.portada}`
+                                    : bookmark.portada
+                            }
+                            alt="Portada actual"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }}
+                            onError={(e) => {
+                                e.target.style.display = 'none';
+                            }}
+                        />
+                    )}
+                </div>
 
                 <div className="manage-card__field">
                     <label>URL</label>
@@ -41,8 +58,8 @@ function ManageBookmark({ bookmark, onChange, availableFolders = [], systemTags 
                     <input
                         type="text"
                         className="manage-card__input"
-                        value={bookmark.name || ''}
-                        onChange={(e) => onChange('name', e.target.value)}
+                        value={bookmark.titulo || ''}
+                        onChange={(e) => onChange('titulo', e.target.value)}
                     />
                 </div>
 
@@ -50,8 +67,8 @@ function ManageBookmark({ bookmark, onChange, availableFolders = [], systemTags 
                     <label>Descripcion</label>
                     <textarea
                         className="manage-card__textarea"
-                        value={bookmark.description || ''}
-                        onChange={(e) => onChange('description', e.target.value)}
+                        value={bookmark.descripcion || ''}
+                        onChange={(e) => onChange('descripcion', e.target.value)}
                         rows="4"
                     />
                 </div>
@@ -78,12 +95,12 @@ function ManageBookmark({ bookmark, onChange, availableFolders = [], systemTags 
                     <div className="carpeta-actions">
                         <select
                             className="manage-card__input manage-card__input--select"
-                            value={bookmark.folder || 'General'}
-                            onChange={(e) => onChange('folder', e.target.value)}
+                            value={bookmark.categoria_id || ''}
+                            onChange={(e) => onChange('categoria_id', e.target.value)}
                         >
-                            <option value="General">General</option>
+                            <option value="">Sección general</option>
                             {availableFolders.map(folder => (
-                                <option key={folder} value={folder}>{folder}</option>
+                                <option key={folder.id} value={folder.id}>{folder.nombre}</option>
                             ))}
                         </select>
                         <p>Por defecto, el marcador se guardara en la seccion general</p>
@@ -94,7 +111,7 @@ function ManageBookmark({ bookmark, onChange, availableFolders = [], systemTags 
                     <label>Tags:</label>
                     <div className="manage-card__tags">
                         {bookmark.tags && bookmark.tags.map(tag => (
-                            <TagBadge key={tag.id} texto={tag.name} colorHex={tag.color} isSelected={false} />
+                            <TagBadge key={tag.id} texto={tag.nombre} colorHex={tag.color} isSelected={false} />
                         ))}
 
                         <button

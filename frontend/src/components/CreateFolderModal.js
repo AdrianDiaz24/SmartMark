@@ -26,7 +26,12 @@ function CreateFolderModal({ isOpen, onClose, onCreateFolder }) {
     const loadTags = async () => {
         try {
             const data = await tagsService.getAll();
-            setTags(data || []);
+            // Asegurar que los IDs de los tags sean números
+            const tagsWithNumericIds = (data || []).map(tag => ({
+                ...tag,
+                id: parseInt(tag.id, 10)
+            }));
+            setTags(tagsWithNumericIds);
         } catch (error) {
             console.error('Error cargando tags:', error);
             setTags([]);

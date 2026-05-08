@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import FilterBar from '../components/FilterBar';
 import GridCard from '../components/GridCard';
 import LinkCard from '../components/LinkCard';
+import CreateBookmarkModal from '../components/CreateBookmarkModal';
 import { bookmarksService } from '../services/bookmarksService';
 import { tagsService } from '../services/tagsService';
 import { categoriesService } from '../services/categoriesService';
@@ -18,12 +19,15 @@ function BookmarksPage() {
     const [error, setError] = useState(null);
     const [tagName, setTagName] = useState(null);
     const [folderName, setFolderName] = useState(null);
+    const [isCreateBookmarkModalOpen, setIsCreateBookmarkModalOpen] = useState(false);
 
     const activeFolder = searchParams.get('carpeta');
     const activeTag = searchParams.get('tag');
+    const searchTerm = searchParams.get('search');
     const [viewMode, setViewMode] = useState('grid');
+    const [searchName, setSearchName] = useState(null);
 
-    // Cargar nombre del tag y carpeta si hay filtros activos
+    // Cargar nombre del tag, carpeta y búsqueda si hay filtros activos
     useEffect(() => {
         if (activeTag) {
             loadTagName();
@@ -36,13 +40,19 @@ function BookmarksPage() {
         } else {
             setFolderName(null);
         }
-    }, [activeFolder, activeTag]);
+
+        if (searchTerm) {
+            setSearchName(searchTerm);
+        } else {
+            setSearchName(null);
+        }
+    }, [activeFolder, activeTag, searchTerm]);
 
     // Cargar marcadores al cambiar filtros
     useEffect(() => {
         loadBookmarks();
         loadFolders();
-    }, [activeFolder, activeTag]);
+    }, [activeFolder, activeTag, searchTerm]);
 
     const loadTagName = async () => {
         try {
@@ -72,6 +82,14 @@ function BookmarksPage() {
         );
     };
 
+    const filterFoldersBySearch = (folders, search) => {
+        const lowerSearch = search.toLowerCase();
+        return folders.filter(folder => 
+            folder.nombre.toLowerCase().includes(lowerSearch) ||
+            (folder.tags && folder.tags.some(tag => tag.nombre.toLowerCase().includes(lowerSearch)))
+        );
+    };
+
     const loadFolders = async () => {
         try {
             const allCategories = await categoriesService.getAll();
@@ -89,6 +107,11 @@ function BookmarksPage() {
             // Si hay un filtro de tag, aplicarlo a las carpetas que se mostrarán
             if (activeTag) {
                 displayFolders = filterFoldersByTag(displayFolders, activeTag);
+            }
+
+            // Si hay búsqueda, aplicarla a las carpetas que se mostrarán
+            if (searchTerm) {
+                displayFolders = filterFoldersBySearch(displayFolders, searchTerm);
             }
 
             setFolders(displayFolders);
@@ -113,6 +136,10 @@ function BookmarksPage() {
             if (activeTag) {
                 filters.tag_id = activeTag;
             }
+
+            if (searchTerm) {
+                filters.search = searchTerm;
+            }
             
             // Si hay filtros, aplicarlos; si no, obtener todos
             if (Object.keys(filters).length > 0) {
@@ -135,13 +162,29 @@ function BookmarksPage() {
     const clearFolderFilter = () => {
         const params = new URLSearchParams();
         if (activeTag) params.set('tag', activeTag);
+        if (searchTerm) params.set('search', searchTerm);
         navigate(`/todos?${params.toString()}` || '/todos');
     };
 
     const clearTagFilter = () => {
         const params = new URLSearchParams();
         if (activeFolder) params.set('carpeta', activeFolder);
+        if (searchTerm) params.set('search', searchTerm);
         navigate(`/todos?${params.toString()}` || '/todos');
+    };
+
+    const clearSearchFilter = () => {
+        const params = new URLSearchParams();
+        if (activeFolder) params.set('carpeta', activeFolder);
+        if (activeTag) params.set('tag', activeTag);
+        navigate(`/todos?${params.toString()}` || '/todos');
+    };
+
+    const handleBookmarkCreated = (newBookmark) => {
+        // Recargar la lista de marcadores para asegurar que todo está sincronizado
+        loadBookmarks();
+        // Cerrar el modal
+        setIsCreateBookmarkModalOpen(false);
     };
 
     return (
@@ -154,6 +197,8 @@ function BookmarksPage() {
                 clearTagFilter={clearTagFilter}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
+                activeSearch={searchTerm}
+                clearSearchFilter={clearSearchFilter}
             />
 
             <main className="app-layout">
@@ -195,6 +240,12 @@ function BookmarksPage() {
                     )}
                 </section>
             </main>
+
+            <CreateBookmarkModal
+                isOpen={isCreateBookmarkModalOpen}
+                onClose={() => setIsCreateBookmarkModalOpen(false)}
+                onBookmarkCreated={handleBookmarkCreated}
+            />
 
         </div>
     );

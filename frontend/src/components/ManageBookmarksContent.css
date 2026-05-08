@@ -18,12 +18,10 @@
     color: #333;
 }
 
-
 .manage-content--2-cols {
     display: flex;
     gap: 30px;
     padding: 0 40px 50px 40px;
-
     width: 100%;
     box-sizing: border-box;
     align-items: flex-start;

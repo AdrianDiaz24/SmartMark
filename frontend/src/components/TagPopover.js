@@ -9,6 +9,9 @@ function TagPopover({ isOpen, onClose, availableTags, selectedTags, onToggleTag 
 
     if (!isOpen) return null;
 
+    // Convertir selectedTags a números para comparación consistente
+    const selectedTagNumbers = selectedTags.map(id => parseInt(id, 10));
+
     return (
         <>
             {}
@@ -33,7 +36,7 @@ function TagPopover({ isOpen, onClose, availableTags, selectedTags, onToggleTag 
                             key={tag.id}
                             texto={tag.nombre || tag.name}
                             colorHex={tag.color}
-                            isSelected={selectedTags.includes(tag.id)}
+                            isSelected={selectedTagNumbers.includes(parseInt(tag.id, 10))}
                             onClick={() => onToggleTag(tag.id)}
                         />
                     ))}

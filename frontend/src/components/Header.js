@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import CreateBookmarkModal from "./CreateBookmarkModal";
 import './Header.css';
 
@@ -8,7 +8,33 @@ import Mas from '../assets/Img/mas_negro.png';
 
 function Header() {
     const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
-    const navigate = useNavigate(); //
+    const [searchTerm, setSearchTerm] = useState('');
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchTerm.trim()) {
+            // Preservar filtros existentes
+            const params = new URLSearchParams();
+            const existingFolder = searchParams.get('carpeta');
+            const existingTag = searchParams.get('tag');
+            
+            if (existingFolder) params.set('carpeta', existingFolder);
+            if (existingTag) params.set('tag', existingTag);
+            params.set('search', searchTerm.trim());
+            
+            // Navegar a BookmarksPage con el parámetro de búsqueda
+            navigate(`/todos?${params.toString()}`);
+            setSearchTerm('');
+        }
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch(e);
+        }
+    };
 
     return(
         <header className="header">
@@ -17,13 +43,20 @@ function Header() {
                 <img src={Logo} alt="SmartMark" className="header__logo-img"/>
             </section>
 
-            <section className={"header__search"}>
+            <form className={"header__search"} onSubmit={handleSearch}>
                 <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" stroke="white" strokeWidth="2" fill="none">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type={"text"} className={"header__search-input"} placeholder={"Buscar marcadores, dominios o tags"}/>
-            </section>
+                <input 
+                    type="text" 
+                    className="header__search-input" 
+                    placeholder="Buscar marcadores, dominios o tags"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                />
+            </form>
 
             <section className={"header__add"}>
                 <button className={"header__add-btn"} onClick={() => setIsBookmarkModalOpen(true)}>

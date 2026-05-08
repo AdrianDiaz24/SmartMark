@@ -30,25 +30,57 @@ function GridCard({ bookmark, folder }) {
             } else {
                 navigate(`/todos?carpeta=${folder.id}`);
             }
+        } else if (bookmark) {
+            // Si es un bookmark, visitar la URL
+            let url = bookmark.url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            window.open(url, '_blank', 'noopener,noreferrer');
         }
     };
 
+    const getImageSrc = () => {
+        if (isFolder) {
+            return iconoCarpeta;
+        }
+        // Para bookmarks: si hay portada, mostrarla; si no, mostrar logo de SmartMark
+        if (bookmark?.portada) {
+            // Si portada es una ruta, construir la URL completa
+            if (typeof bookmark.portada === 'string' && !bookmark.portada.startsWith('http')) {
+                return `${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}${bookmark.portada.startsWith('/') ? bookmark.portada : '/' + bookmark.portada}`;
+            }
+            return bookmark.portada;
+        }
+        return logoSmartMark;
+    };
+
+    // Verificar si el bookmark tiene una portada customizada (no es undefined, null o string vacío)
+    const hasCustomPortada = !!(
+        bookmark?.portada && 
+        typeof bookmark.portada === 'string' && 
+        bookmark.portada.trim() !== ''
+    ) && !isFolder;
+
     return (
-        <div className="grid-card" onClick={isFolder ? handleFolderClick : null} style={{ cursor: isFolder ? 'pointer' : 'default' }}>
-            <div className={`grid-card__image ${isFolder ? 'grid-card__image--folder' : ''}`}>
-                {isFolder ? (
-                    <img src={iconoCarpeta} alt="Carpeta" className="grid-card__icon" />
-                ) : (
-                    <img src={bookmark?.portada || logoSmartMark} alt="Marcador" className="grid-card__logo" />
-                )}
+        <div className="grid-card" onClick={handleFolderClick} style={{ cursor: isFolder || bookmark ? 'pointer' : 'default' }}>
+            <div className={`grid-card__image ${isFolder ? 'grid-card__image--folder' : ''} ${!hasCustomPortada && !isFolder ? 'grid-card__image--logo' : ''}`}>
+                <img 
+                    src={getImageSrc()} 
+                    alt={isFolder ? 'Carpeta' : 'Marcador'} 
+                    className={`${isFolder ? 'grid-card__icon' : hasCustomPortada ? 'grid-card__logo' : 'grid-card__logo-smartmark'}`}
+                    onError={(e) => {
+                        e.target.src = isFolder ? iconoCarpeta : logoSmartMark;
+                    }}
+                />
             </div>
 
             <div className="grid-card__content">
                 <h3 className="grid-card__title">
-                    {isFolder ? folder?.nombre : bookmark?.titulo || 'Lorem ipsum'}
+                    {isFolder ? folder?.nombre : bookmark?.titulo || 'Sin título'}
                 </h3>
                 <p className="grid-card__description">
-                    {isFolder ? `${folder?.bookmarks || 0} marcadores` : (bookmark?.descripcion || 'Lorem ipsum dolor sit amet consectetur adipiscing elit...')}
+                    {isFolder ? `${folder?.bookmarks || 0} marcadores` : (bookmark?.descripcion || 'Sin descripción')}
                 </p>
 
                 <div className="grid-card__tags">

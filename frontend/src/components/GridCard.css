@@ -25,6 +25,10 @@
     background-color: transparent;
 }
 
+.grid-card__image--logo {
+    background-color: transparent;
+}
+
 .grid-card__icon {
     width: 80px;
     height: 80px;
@@ -36,6 +40,12 @@
     height: 100%;
     object-fit: cover;
     border-radius: 10px;
+}
+
+.grid-card__logo-smartmark {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
 }
 
 .grid-card__content {

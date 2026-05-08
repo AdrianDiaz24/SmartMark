@@ -11,18 +11,52 @@ export const bookmarksService = {
     getById: (id) => apiCall(`/links/${id}`),
 
     // Crear un nuevo marcador
-    create: (bookmarkData) =>
-        apiCall('/links', {
+    create: (bookmarkData) => {
+        // Si hay archivo, usar FormData para enviar la imagen
+        if (bookmarkData instanceof FormData) {
+            return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links`, {
+                method: 'POST',
+                body: bookmarkData
+            }).then(res => {
+                if (!res.ok) {
+                    throw new Error(`Error ${res.status}: ${res.statusText}`);
+                }
+                return res.json();
+            }).then(data => {
+                if (!data || !data.id) {
+                    throw new Error('Respuesta inválida del servidor');
+                }
+                return data;
+            });
+        }
+        
+        return apiCall('/links', {
             method: 'POST',
-            body: bookmarkData
-        }),
+            body: JSON.stringify(bookmarkData),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    },
 
     // Actualizar un marcador
-    update: (id, bookmarkData) =>
-        apiCall(`/links/${id}`, {
+    update: (id, bookmarkData) => {
+        // Si hay archivo, usar FormData para enviar la imagen
+        if (bookmarkData instanceof FormData) {
+            return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/${id}`, {
+                method: 'PUT',
+                body: bookmarkData
+            }).then(res => res.json());
+        }
+        
+        return apiCall(`/links/${id}`, {
             method: 'PUT',
-            body: bookmarkData
-        }),
+            body: JSON.stringify(bookmarkData),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    },
 
     // Eliminar un marcador
     delete: (id) =>

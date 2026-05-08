@@ -87,9 +87,7 @@ function MainContent() {
                         bookmarks.map(bookmark => (
                             <LinkCard
                                 key={bookmark.id}
-                                titulo={bookmark.titulo}
-                                descripcion={bookmark.descripcion || 'Sin descripción'}
-                                tags={bookmark.tags || []}
+                                bookmark={bookmark}
                             />
                         ))
                     ) : (

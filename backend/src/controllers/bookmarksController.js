@@ -8,6 +8,7 @@ async function getAllBookmarks(db, filters = {}) {
                    m.categoria_id, m.fecha_creacion, m.ultima_apertura
             FROM Marcadores m
             LEFT JOIN Marcadores_Tags mt ON m.id = mt.marcador_id
+            LEFT JOIN Tags t ON mt.tag_id = t.id
             WHERE 1=1
         `;
         const params = [];
@@ -24,11 +25,11 @@ async function getAllBookmarks(db, filters = {}) {
             params.push(filters.tag_id);
         }
 
-        // Filtrar por búsqueda (título o descripción)
+        // Filtrar por búsqueda (título, descripción o tags)
         if (filters.search) {
-            query += ` AND (m.titulo LIKE ? OR m.descripcion LIKE ?)`;
+            query += ` AND (m.titulo LIKE ? OR m.descripcion LIKE ? OR t.nombre LIKE ?)`;
             const searchTerm = `%${filters.search}%`;
-            params.push(searchTerm, searchTerm);
+            params.push(searchTerm, searchTerm, searchTerm);
         }
 
         query += ` ORDER BY m.fecha_creacion DESC`;
