@@ -26,6 +26,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
 }
 
 .manage-card__image-placeholder::after {
@@ -38,7 +39,7 @@
 }
 
 .manage-card__image-placeholder--has-image {
-    background-color: transparent;
+    background-color: #1a1a1a;
 }
 
 .manage-card__image-placeholder--has-image::after {
