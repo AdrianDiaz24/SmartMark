@@ -19,37 +19,47 @@ function MainContent() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                
-                // Cargar todos los datos en paralelo
-                const [bookmarksData, categoriesData, tagsData, countLastWeek] = await Promise.all([
-                    bookmarksService.getAll({ limit: 3 }),
-                    categoriesService.getAll(),
-                    tagsService.getAll(),
-                    bookmarksService.countVisitedLastWeek()
-                ]);
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            
+            // Cargar todos los datos en paralelo
+            const [bookmarksData, categoriesData, tagsData, countLastWeek] = await Promise.all([
+                bookmarksService.getAll({ limit: 3 }),
+                categoriesService.getAll(),
+                tagsService.getAll(),
+                bookmarksService.countVisitedLastWeek()
+            ]);
 
-                setBookmarks(bookmarksData || []);
-                setStats({
-                    totalBookmarks: Array.isArray(bookmarksData) ? bookmarksData.length : 0,
-                    totalCategories: Array.isArray(categoriesData) ? categoriesData.length : 0,
-                    totalTags: Array.isArray(tagsData) ? tagsData.length : 0,
-                    visitedLastWeek: countLastWeek?.count || 0
-                });
-            } catch (err) {
-                console.error('Error cargando datos:', err);
-                setError(err.message);
-                // Mantener datos por defecto si hay error
-                setBookmarks([]);
-            } finally {
-                setLoading(false);
-            }
+            setBookmarks(bookmarksData || []);
+            setStats({
+                totalBookmarks: Array.isArray(bookmarksData) ? bookmarksData.length : 0,
+                totalCategories: Array.isArray(categoriesData) ? categoriesData.length : 0,
+                totalTags: Array.isArray(tagsData) ? tagsData.length : 0,
+                visitedLastWeek: countLastWeek?.count || 0
+            });
+        } catch (err) {
+            console.error('Error cargando datos:', err);
+            setError(err.message);
+            // Mantener datos por defecto si hay error
+            setBookmarks([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    // Recargar datos cuando la ventana vuelve a estar en foco
+    useEffect(() => {
+        const handleFocus = () => {
+            loadData();
         };
 
-        loadData();
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
     return (

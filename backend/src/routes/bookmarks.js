@@ -14,6 +14,9 @@ const {
     getBookmarksVisitedLastWeek,
     countBookmarksVisitedLastWeek
 } = require('../controllers/bookmarksController');
+const {
+    scrapeUrl
+} = require('../controllers/scrapingController');
 
 let db;
 let upload;
@@ -23,6 +26,23 @@ router.use((req, res, next) => {
     db = req.app.locals.db;
     upload = req.app.locals.upload;
     next();
+});
+
+// POST /api/links/scrape - Hacer web scraping de una URL
+router.post('/scrape', async (req, res, next) => {
+    try {
+        const { url } = req.body;
+
+        if (!url || !url.trim()) {
+            return res.status(400).json({ error: 'URL es requerida' });
+        }
+
+        const scrapedData = await scrapeUrl(url);
+        res.json(scrapedData);
+    } catch (error) {
+        console.error('Error en POST /scrape:', error);
+        next(error);
+    }
 });
 
 // GET /api/links - Obtener todos los marcadores (con filtros opcionales)

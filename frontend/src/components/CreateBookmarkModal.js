@@ -13,6 +13,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [scrapingUrl, setScrapingUrl] = useState(null);
     
     const [formData, setFormData] = useState({
         url: '',
@@ -29,6 +30,37 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
             loadCategories();
         }
     }, [isOpen]);
+
+    // Web scraping
+    useEffect(() => {
+        const debounceTimer = setTimeout(() => {
+            if (formData.url.trim() && formData.url.startsWith('http')) {
+                performScrape(formData.url.trim());
+            }
+        }, 1500); // Espera 1.5 segundos después de que el usuario deje de escribir
+
+        return () => clearTimeout(debounceTimer);
+    }, [formData.url]);
+
+    const performScrape = async (url) => {
+        try {
+            setScrapingUrl(url);
+            const result = await bookmarksService.scrapeUrl(url);
+            
+            if (result.success) {
+
+                setFormData(prev => ({
+                    ...prev,
+                    titulo: result.titulo,
+                    descripcion: result.descripcion
+                }));
+            }
+        } catch (err) {
+            console.error('Error en scraping:', err);
+        } finally {
+            setScrapingUrl(null);
+        }
+    };
 
     const loadTags = async () => {
         try {

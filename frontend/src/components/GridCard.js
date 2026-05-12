@@ -4,6 +4,7 @@ import iconoEditar from '../assets/Img/editar.svg';
 import iconoCarpeta from '../assets/Img/carpeta.png';
 import logoSmartMark from '../assets/Img/Logo_SmartMark.png';
 import TagBadge from './TagBadge';
+import { bookmarksService } from '../services/bookmarksService';
 import './GridCard.css';
 
 function GridCard({ bookmark, folder }) {
@@ -31,6 +32,11 @@ function GridCard({ bookmark, folder }) {
                 navigate(`/todos?carpeta=${folder.id}`);
             }
         } else if (bookmark) {
+            // Registrar el acceso al marcador
+            bookmarksService.recordAccess(bookmark.id).catch(err => {
+                console.error('Error registrando acceso:', err);
+            });
+            
             // Si es un bookmark, visitar la URL
             let url = bookmark.url;
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
