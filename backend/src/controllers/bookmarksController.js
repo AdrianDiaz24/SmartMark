@@ -104,11 +104,25 @@ async function createBookmark(db, { titulo, url, descripcion, portada, categoria
             }
         }
 
+        // Procesar portada - puede ser base64 string, buffer, o null
+        let portadaBase64 = null;
+        if (portada) {
+            if (Buffer.isBuffer(portada)) {
+                portadaBase64 = portada.toString('base64');
+            } else if (typeof portada === 'string' && portada.startsWith('data:')) {
+                // Si ya es un data URI, extraer solo la parte base64
+                portadaBase64 = portada.split(',')[1];
+            } else if (typeof portada === 'string') {
+                // Si es string pero no es data URI, es posiblemente base64 ya
+                portadaBase64 = portada;
+            }
+        }
+
         // Insertar el marcador
         const resultado = await db.run(`
             INSERT INTO Marcadores (titulo, url, descripcion, portada, categoria_id, fecha_creacion)
             VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        `, [titulo.trim(), url.trim(), descripcion || null, portada || null, categoria_id || null]);
+        `, [titulo.trim(), url.trim(), descripcion || null, portadaBase64, categoria_id || null]);
 
         const bookmarkId = resultado.lastID;
 
@@ -159,6 +173,27 @@ async function updateBookmark(db, id, { titulo, url, descripcion, portada, categ
             }
         }
 
+        // Procesar portada - puede ser base64 string, buffer, undefined, o null
+        let portadaFinal;
+        if (portada !== undefined) {
+            if (portada === null) {
+                // Eliminar portada
+                portadaFinal = null;
+            } else if (Buffer.isBuffer(portada)) {
+                portadaFinal = portada.toString('base64');
+            } else if (typeof portada === 'string' && portada.startsWith('data:')) {
+                // Si es un data URI, extraer solo la parte base64
+                portadaFinal = portada.split(',')[1];
+            } else if (typeof portada === 'string') {
+                // Si es string, usarlo como está (ya es base64)
+                portadaFinal = portada;
+            } else {
+                portadaFinal = bookmark.portada;
+            }
+        } else {
+            portadaFinal = bookmark.portada;
+        }
+
         await db.run(`
             UPDATE Marcadores 
             SET titulo = ?, url = ?, descripcion = ?, portada = ?, categoria_id = ?
@@ -167,7 +202,7 @@ async function updateBookmark(db, id, { titulo, url, descripcion, portada, categ
             titulo || bookmark.titulo,
             url || bookmark.url,
             descripcion !== undefined ? descripcion : bookmark.descripcion,
-            portada !== undefined ? portada : bookmark.portada,
+            portadaFinal,
             categoria_id !== undefined ? categoria_id : bookmark.categoria_id,
             id
         ]);

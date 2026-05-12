@@ -30,8 +30,21 @@ function ManageBookmark({ bookmark, onChange, onFileChange, availableFolders = [
                     {bookmark.portada && bookmark.portada.trim && bookmark.portada.trim() !== '' && (
                         <img 
                             src={
-                                typeof bookmark.portada === 'string' && !bookmark.portada.startsWith('http')
-                                    ? `${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}${bookmark.portada.startsWith('/') ? bookmark.portada : '/' + bookmark.portada}`
+                                typeof bookmark.portada === 'string'
+                                    ? (() => {
+                                        // Si ya es un data URI, devolverlo tal cual
+                                        if (bookmark.portada.startsWith('data:')) {
+                                            return bookmark.portada;
+                                        }
+                                        // Si es base64 puro, convertir a data URI
+                                        let mimeType = 'image/png'; // Por defecto
+                                        if (bookmark.portada.startsWith('/9j/')) {
+                                            mimeType = 'image/jpeg';
+                                        } else if (bookmark.portada.startsWith('PHN2')) {
+                                            mimeType = 'image/svg+xml';
+                                        }
+                                        return `data:${mimeType};base64,${bookmark.portada}`;
+                                      })()
                                     : bookmark.portada
                             }
                             alt="Portada actual"

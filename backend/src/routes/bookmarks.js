@@ -99,10 +99,12 @@ router.post('/', async (req, res, next) => {
                     return res.status(400).json({ error: 'El título y URL son requeridos' });
                 }
 
-                // Si se subió un archivo, guardar la ruta
+                // Si se subió un archivo, convertir a base64
                 let portada = null;
                 if (req.file) {
-                    portada = `/uploads/${req.file.filename}`;
+                    // Convertir el buffer a base64
+                    portada = req.file.buffer.toString('base64');
+                    console.log(`Archivo recibido: ${req.file.originalname}, tamaño: ${req.file.size} bytes`);
                 }
 
                 // Parsear tags - pueden venir como JSON string
@@ -117,7 +119,7 @@ router.post('/', async (req, res, next) => {
                 
                 const parsedCategoryId = categoria_id ? parseInt(categoria_id) : null;
 
-                console.log('Creando bookmark:', { titulo, url, descripcion, parsedCategoryId, parsedTags });
+                console.log('Creando bookmark:', { titulo, url, descripcion, parsedCategoryId, parsedTags, tienePortada: !!portada });
 
                 const newBookmark = await createBookmark(db, {
                     titulo,
@@ -155,10 +157,12 @@ router.put('/:id', async (req, res, next) => {
                 const { id } = req.params;
                 let { titulo, url, descripcion, categoria_id, tags } = req.body;
 
-                // Si se subió un archivo, guardar la ruta
+                // Si se subió un archivo, convertir a base64
                 let portada = undefined;
                 if (req.file) {
-                    portada = `/uploads/${req.file.filename}`;
+                    // Convertir el buffer a base64
+                    portada = req.file.buffer.toString('base64');
+                    console.log(`Archivo recibido para actualización: ${req.file.originalname}, tamaño: ${req.file.size} bytes`);
                 }
 
                 // Parsear tags - pueden venir como JSON string

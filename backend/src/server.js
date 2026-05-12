@@ -20,16 +20,8 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Configurar multer para guardar archivos
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadsDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'portada-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
+// Configurar multer para almacenar en memoria (ya que guardaremos en BD como BLOB)
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage: storage,
@@ -51,8 +43,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir archivos estáticos de uploads
-app.use('/uploads', express.static(uploadsDir));
 
 // Variable que guarda la conexión a la BD
 let db;

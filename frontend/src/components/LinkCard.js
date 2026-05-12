@@ -46,9 +46,21 @@ function LinkCard({ bookmark, folder }) {
         }
         // Para bookmarks: si hay portada, mostrarla; si no, mostrar logo de SmartMark
         if (bookmark?.portada) {
-            // Si portada es una ruta, construir la URL completa
-            if (typeof bookmark.portada === 'string' && !bookmark.portada.startsWith('http')) {
-                return `${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}${bookmark.portada.startsWith('/') ? bookmark.portada : '/' + bookmark.portada}`;
+            // Si portada es base64, convertir a data URI
+            if (typeof bookmark.portada === 'string' && bookmark.portada) {
+                // Si ya es un data URI, devolverlo tal cual
+                if (bookmark.portada.startsWith('data:')) {
+                    return bookmark.portada;
+                }
+                // Si es base64, convertir a data URI
+                // Intentar detectar tipo de imagen por el contenido
+                let mimeType = 'image/png'; // Por defecto
+                if (bookmark.portada.startsWith('/9j/')) {
+                    mimeType = 'image/jpeg'; // JPEG
+                } else if (bookmark.portada.startsWith('PHN2')) {
+                    mimeType = 'image/svg+xml'; // SVG (codificado en base64)
+                }
+                return `data:${mimeType};base64,${bookmark.portada}`;
             }
             return bookmark.portada;
         }
