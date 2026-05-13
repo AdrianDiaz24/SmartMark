@@ -17,6 +17,9 @@ async function getAllBookmarks(db, filters = {}) {
         if (filters.categoria_id) {
             query += ` AND m.categoria_id = ?`;
             params.push(filters.categoria_id);
+        } else {
+            // Si NO hay filtro de categoría, mostrar solo marcadores sin categoría (sección general)
+            query += ` AND m.categoria_id IS NULL`;
         }
 
         // Filtrar por tag
@@ -387,12 +390,14 @@ async function recordBookmarkAccess(db, bookmarkId) {
 }
 
 // Obtener los últimos 10 marcadores más recientemente abiertos (o creados si no han sido abiertos)
+// Solo devuelve marcadores de la sección general (sin carpeta padre)
 async function getRecentBookmarks(db) {
     try {
         const bookmarks = await db.all(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
                    m.categoria_id, m.fecha_creacion, m.ultima_apertura
             FROM Marcadores m
+            WHERE m.categoria_id IS NULL
             ORDER BY COALESCE(m.ultima_apertura, m.fecha_creacion) DESC
             LIMIT 10
         `);
@@ -429,6 +434,20 @@ async function getBookmarksVisitedLastWeek(db) {
     }
 }
 
+// Contar todos los marcadores (incluyendo los de carpetas)
+async function countAllBookmarks(db) {
+    try {
+        const result = await db.get(`
+            SELECT COUNT(*) as count
+            FROM Marcadores
+        `);
+
+        return result.count || 0;
+    } catch (error) {
+        throw new Error(`Error al contar todos los marcadores: ${error.message}`);
+    }
+}
+
 // Contar marcadores visitados en la última semana
 async function countBookmarksVisitedLastWeek(db) {
     try {
@@ -458,6 +477,7 @@ module.exports = {
     recordBookmarkAccess,
     getRecentBookmarks,
     getBookmarksVisitedLastWeek,
+    countAllBookmarks,
     countBookmarksVisitedLastWeek
 };
 

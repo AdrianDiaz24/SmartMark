@@ -29,6 +29,21 @@ function ManageBookmark({ bookmark, onChange, onFileChange, availableFolders = [
         }
     };
 
+    // Función para aplanar las carpetas y mostrar todas incluyendo subcarpetas
+    const flattenFolders = (folders, prefix = '') => {
+        let result = [];
+        (folders || []).forEach(folder => {
+            result.push({
+                ...folder,
+                displayName: prefix + folder.nombre
+            });
+            if (folder.children && folder.children.length > 0) {
+                result = result.concat(flattenFolders(folder.children, prefix + '  '));
+            }
+        });
+        return result;
+    };
+
     return (
         <section className="manage-center">
             <div className="manage-card manage-card--full-form">
@@ -127,8 +142,8 @@ function ManageBookmark({ bookmark, onChange, onFileChange, availableFolders = [
                             onChange={(e) => onChange('categoria_id', e.target.value)}
                         >
                             <option value="">Sección general</option>
-                            {availableFolders.map(folder => (
-                                <option key={folder.id} value={folder.id}>{folder.nombre}</option>
+                            {flattenFolders(availableFolders).map(folder => (
+                                <option key={folder.id} value={folder.id}>{folder.displayName}</option>
                             ))}
                         </select>
                         <p>Por defecto, el marcador se guardara en la seccion general</p>

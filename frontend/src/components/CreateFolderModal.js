@@ -4,9 +4,11 @@ import TagBadge from './TagBadge';
 import TagPopover from './TagPopover';
 import { tagsService } from '../services/tagsService';
 import { categoriesService } from '../services/categoriesService';
+import { useToast } from '../hooks/useToast';
 import './CreateFolderModal.css';
 
 function CreateFolderModal({ isOpen, onClose, onCreateFolder }) {
+    const toast = useToast();
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const [selectedTagIds, setSelectedTagIds] = useState([]);
     const [tags, setTags] = useState([]);

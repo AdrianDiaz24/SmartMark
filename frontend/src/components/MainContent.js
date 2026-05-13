@@ -24,16 +24,17 @@ function MainContent() {
             setLoading(true);
             
             // Cargar todos los datos en paralelo
-            const [bookmarksData, categoriesData, tagsData, countLastWeek] = await Promise.all([
+            const [bookmarksData, categoriesData, tagsData, countLastWeek, countAll] = await Promise.all([
                 bookmarksService.getRecentBookmarks(),
                 categoriesService.getAll(),
                 tagsService.getAll(),
-                bookmarksService.countVisitedLastWeek()
+                bookmarksService.countVisitedLastWeek(),
+                bookmarksService.countAllBookmarks()
             ]);
 
             setBookmarks(bookmarksData || []);
             setStats({
-                totalBookmarks: Array.isArray(bookmarksData) ? bookmarksData.length : 0,
+                totalBookmarks: countAll?.count || 0,
                 totalCategories: Array.isArray(categoriesData) ? categoriesData.length : 0,
                 totalTags: Array.isArray(tagsData) ? tagsData.length : 0,
                 visitedLastWeek: countLastWeek?.count || 0

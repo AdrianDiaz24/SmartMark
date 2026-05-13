@@ -6,9 +6,11 @@ import QuickActionsPanel from './QuickActionsPanel';
 import DeleteFolderModal from './DeleteFolderModal';
 import { categoriesService } from '../services/categoriesService';
 import { tagsService } from '../services/tagsService';
+import { useToast } from '../hooks/useToast';
 import './ManageFoldersContent.css';
 
 function ManageFoldersContent() {
+    const toast = useToast();
     const [folders, setFolders] = useState([]);
     const [selectedFolder, setSelectedFolder] = useState(null);
     const [editedFolder, setEditedFolder] = useState(null);
@@ -96,11 +98,11 @@ function ManageFoldersContent() {
                 padre_id: editedFolder.parentId || null
             };
             await categoriesService.update(selectedFolder.id, updateData);
-            alert(`Se ha actualizado la carpeta a:\nNombre: ${editedFolder.name}`);
+            toast.success(`Se ha actualizado la carpeta: ${editedFolder.name}`);
             await loadFolders();
         } catch (error) {
             console.error('Error actualizando carpeta:', error);
-            alert('Error al actualizar: ' + error.message);
+            toast.error('Error al actualizar: ' + error.message);
         }
     };
 
@@ -117,9 +119,10 @@ function ManageFoldersContent() {
             await categoriesService.delete(selectedFolder.id);
             await loadFolders();
             setIsDeleteModalOpen(false);
+            toast.success('Carpeta eliminada correctamente');
         } catch (error) {
             console.error('Error eliminando carpeta:', error);
-            alert('Error al eliminar: ' + error.message);
+            toast.error('Error al eliminar: ' + error.message);
         }
     };
 
@@ -143,9 +146,10 @@ function ManageFoldersContent() {
                 ...editedFolder,
                 tags: updatedCategory.tags || []
             });
+            toast.success('Tags actualizados correctamente');
         } catch (error) {
             console.error('Error toggling tag:', error);
-            alert('Error al cambiar tag: ' + error.message);
+            toast.error('Error al cambiar tag: ' + error.message);
         }
     };
 

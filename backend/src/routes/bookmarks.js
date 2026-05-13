@@ -13,6 +13,7 @@ const {
     recordBookmarkAccess,
     getRecentBookmarks,
     getBookmarksVisitedLastWeek,
+    countAllBookmarks,
     countBookmarksVisitedLastWeek
 } = require('../controllers/bookmarksController');
 const {
@@ -89,6 +90,16 @@ router.get('/stats/last-week', async (req, res, next) => {
 router.get('/stats/count-last-week', async (req, res, next) => {
     try {
         const count = await countBookmarksVisitedLastWeek(db);
+        res.json({ count });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// GET /api/links/stats/count-all - Contar todos los marcadores
+router.get('/stats/count-all', async (req, res, next) => {
+    try {
+        const count = await countAllBookmarks(db);
         res.json({ count });
     } catch (error) {
         next(error);
@@ -210,7 +221,20 @@ router.put('/:id', async (req, res, next) => {
                     }
                 }
                 
-                const parsedCategoryId = categoria_id ? parseInt(categoria_id) : undefined;
+                // Parsear categoria_id - puede ser: número > 0, string vacía (sección general), o undefined (no cambiar)
+                let parsedCategoryId = undefined;
+                if (categoria_id !== undefined && categoria_id !== null) {
+                    if (categoria_id === '' || categoria_id === '0' || categoria_id === 0) {
+                        // String vacía = sección general (null)
+                        parsedCategoryId = null;
+                    } else {
+                        // Convertir a número
+                        const intId = parseInt(categoria_id);
+                        if (!isNaN(intId)) {
+                            parsedCategoryId = intId;
+                        }
+                    }
+                }
 
                 const updatedBookmark = await updateBookmark(db, id, {
                     titulo,

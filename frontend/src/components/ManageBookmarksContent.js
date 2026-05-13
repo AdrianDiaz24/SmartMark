@@ -6,10 +6,12 @@ import DeleteBookmarkModal from './DeleteBookmarkModal';
 import { bookmarksService } from '../services/bookmarksService';
 import { categoriesService } from '../services/categoriesService';
 import { tagsService } from '../services/tagsService';
+import { useToast } from '../hooks/useToast';
 import './ManageBookmarksContent.css';
 
 function ManageBookmarksContent() {
     const [searchParams] = useSearchParams();
+    const toast = useToast();
     const [bookmarks, setBookmarks] = useState([]);
     const [editedBookmark, setEditedBookmark] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -28,18 +30,14 @@ function ManageBookmarksContent() {
 
     // Seleccionar el bookmark según el parámetro de URL o el primero si no hay
     useEffect(() => {
-        if (bookmarks.length > 0 && !editedBookmark) {
-            const bookmarkIdFromUrl = searchParams.get('id');
-            if (bookmarkIdFromUrl) {
-                const selectedBookmark = bookmarks.find(b => b.id === parseInt(bookmarkIdFromUrl, 10));
-                if (selectedBookmark) {
-                    setEditedBookmark(selectedBookmark);
-                } else {
-                    setEditedBookmark(bookmarks[0]);
-                }
-            } else {
-                setEditedBookmark(bookmarks[0]);
-            }
+        const bookmarkIdFromUrl = searchParams.get('id');
+        
+        if (bookmarkIdFromUrl) {
+            // Si hay un ID en la URL, cargar ese marcador específico
+            loadSpecificBookmark(parseInt(bookmarkIdFromUrl, 10));
+        } else if (bookmarks.length > 0 && !editedBookmark) {
+            // Si no hay ID en URL, seleccionar el primer marcador de la lista
+            setEditedBookmark(bookmarks[0]);
         }
     }, [bookmarks, searchParams]);
 
@@ -55,6 +53,27 @@ function ManageBookmarksContent() {
             setBookmarks([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadSpecificBookmark = async (bookmarkId) => {
+        try {
+            // Cargar el marcador específico por ID
+            const bookmark = await bookmarksService.getById(bookmarkId);
+            if (bookmark) {
+                setEditedBookmark(bookmark);
+            } else {
+                // Si no existe, usar el primero de la lista
+                if (bookmarks.length > 0) {
+                    setEditedBookmark(bookmarks[0]);
+                }
+            }
+        } catch (err) {
+            console.error('Error cargando marcador específico:', err);
+            // Fallback: usar el primero de la lista
+            if (bookmarks.length > 0) {
+                setEditedBookmark(bookmarks[0]);
+            }
         }
     };
 
@@ -113,7 +132,7 @@ function ManageBookmarksContent() {
     const handleUpdate = async () => {
         try {
             if (!editedBookmark.titulo || editedBookmark.titulo.trim() === '') {
-                alert('El nombre del marcador no puede estar vacío');
+                toast.error('El nombre del marcador no puede estar vacío');
                 return;
             }
 
@@ -129,9 +148,8 @@ function ManageBookmarksContent() {
                 submitData.append('portada', editedBookmark.portadaFile);
             }
             
-            if (editedBookmark.categoria_id) {
-                submitData.append('categoria_id', editedBookmark.categoria_id);
-            }
+            // Siempre enviar categoria_id, incluso si es vacío/null (para sección general)
+            submitData.append('categoria_id', editedBookmark.categoria_id || '');
 
             // Agregar tags
             const tagIds = editedBookmark.tags?.map(t => t.id) || [];
@@ -148,10 +166,10 @@ function ManageBookmarksContent() {
             setBookmarks(updatedBookmarks);
             setEditedBookmark(updatedBookmark);
             
-            alert('Marcador actualizado correctamente');
+            toast.success('Marcador actualizado correctamente');
         } catch (err) {
             console.error('Error actualizando marcador:', err);
-            alert(`Error al actualizar: ${err.message}`);
+            toast.error(`Error al actualizar: ${err.message}`);
         } finally {
             setUpdating(false);
         }
@@ -181,10 +199,10 @@ function ManageBookmarksContent() {
             }
 
             setIsDeleteModalOpen(false);
-            alert('Marcador eliminado correctamente');
+            toast.success('Marcador eliminado correctamente');
         } catch (err) {
             console.error('Error eliminando marcador:', err);
-            alert(`Error al eliminar: ${err.message}`);
+            toast.error(`Error al eliminar: ${err.message}`);
         }
     };
 
@@ -225,10 +243,10 @@ function ManageBookmarksContent() {
             setBookmarks(updatedBookmarks);
             setEditedBookmark(updatedBookmark);
             
-            alert('Portada eliminada correctamente');
+            toast.success('Portada eliminada correctamente');
         } catch (err) {
             console.error('Error eliminando portada:', err);
-            alert(`Error al eliminar portada: ${err.message}`);
+            toast.error(`Error al eliminar portada: ${err.message}`);
             // Revertir el cambio en caso de error
             loadBookmarks();
         } finally {

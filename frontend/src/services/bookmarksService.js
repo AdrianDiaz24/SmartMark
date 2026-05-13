@@ -104,6 +104,9 @@ export const bookmarksService = {
     // Obtener los últimos 10 marcadores más recientemente abiertos
     getRecentBookmarks: () => apiCall('/links/stats/recent'),
 
+    // Contar todos los marcadores (incluyendo los de carpetas)
+    countAllBookmarks: () => apiCall('/links/stats/count-all'),
+
     // Contar marcadores visitados en última semana
     countVisitedLastWeek: () => apiCall('/links/stats/count-last-week')
 };

@@ -4,9 +4,11 @@ import TagPopover from './TagPopover';
 import { bookmarksService } from '../services/bookmarksService';
 import { tagsService } from '../services/tagsService';
 import { categoriesService } from '../services/categoriesService';
+import { useToast } from '../hooks/useToast';
 import './CreateBookmarkModal.css';
 
 function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
+    const toast = useToast();
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const [selectedTagIds, setSelectedTagIds] = useState([]);
     const [tags, setTags] = useState([]);
@@ -85,6 +87,21 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
         }
     };
 
+    // Función para aplanar las carpetas y mostrar todas incluyendo subcarpetas
+    const flattenCategories = (cats, prefix = '') => {
+        let result = [];
+        (cats || []).forEach(cat => {
+            result.push({
+                ...cat,
+                displayName: prefix + cat.nombre
+            });
+            if (cat.children && cat.children.length > 0) {
+                result = result.concat(flattenCategories(cat.children, prefix + '  '));
+            }
+        });
+        return result;
+    };
+
     if (!isOpen) return null;
 
     const handleInputChange = (e) => {
@@ -114,7 +131,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
         e.preventDefault();
         
         if (!formData.url.trim() || !formData.titulo.trim()) {
-            setError('URL y nombre son requeridos');
+            toast.error('URL y nombre son requeridos');
             return;
         }
 
@@ -165,10 +182,11 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
                 onBookmarkCreated(newBookmark);
             }
             
+            toast.success('Marcador creado correctamente');
             onClose();
         } catch (err) {
             console.error('Error creando marcador:', err);
-            setError(err.message || 'Error al crear el marcador');
+            toast.error(err.message || 'Error al crear el marcador');
         } finally {
             setLoading(false);
         }
@@ -262,9 +280,9 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
                                 onChange={handleInputChange}
                             >
                                 <option value="">Sección general</option>
-                                {categories.map(cat => (
+                                {flattenCategories(categories).map(cat => (
                                     <option key={cat.id} value={cat.id}>
-                                        {cat.nombre}
+                                        {cat.displayName}
                                     </option>
                                 ))}
                             </select>

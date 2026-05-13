@@ -6,9 +6,11 @@ import QuickActionsPanel from './QuickActionsPanel';
 import DeleteTagModal from './DeleteTagModal';
 import CreateTagModal from './CreateTagModal';
 import { tagsService } from '../services/tagsService';
+import { useToast } from '../hooks/useToast';
 import './ManageFoldersContent.css';
 
 function ManageTagsContent() {
+    const toast = useToast();
     const [tags, setTags] = useState([]);
     const [selectedTag, setSelectedTag] = useState(null);
     const [editedTag, setEditedTag] = useState(null);
@@ -80,10 +82,10 @@ function ManageTagsContent() {
             setTags(updatedTags);
             setSelectedTag(editedTag);
             
-            alert('Tag actualizado correctamente');
+            toast.success('Tag actualizado correctamente');
         } catch (err) {
             console.error('Error actualizando tag:', err);
-            alert(`Error al actualizar: ${err.message}`);
+            toast.error(`Error al actualizar: ${err.message}`);
         }
     };
 
@@ -111,10 +113,10 @@ function ManageTagsContent() {
             }
 
             setIsDeleteModalOpen(false);
-            alert('Tag eliminado correctamente');
+            toast.success('Tag eliminado correctamente');
         } catch (err) {
             console.error('Error eliminando tag:', err);
-            alert(`Error al eliminar: ${err.message}`);
+            toast.error(`Error al eliminar: ${err.message}`);
         }
     };
 
@@ -123,10 +125,10 @@ function ManageTagsContent() {
             const newTag = await tagsService.create(tagData);
             setTags([...tags, newTag]);
             setIsCreateModalOpen(false);
-            alert('Tag creado correctamente');
+            toast.success('Tag creado correctamente');
         } catch (err) {
             console.error('Error creando tag:', err);
-            alert(`Error al crear: ${err.message}`);
+            toast.error(`Error al crear: ${err.message}`);
         }
     };
 
