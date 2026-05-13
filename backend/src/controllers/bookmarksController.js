@@ -173,10 +173,10 @@ async function updateBookmark(db, id, { titulo, url, descripcion, portada, categ
             }
         }
 
-        // Procesar portada - puede ser base64 string, buffer, undefined, o null
+        // Procesar portada - puede ser base64 string, buffer, undefined, null, o string vacía
         let portadaFinal;
         if (portada !== undefined) {
-            if (portada === null) {
+            if (portada === null || portada === '') {
                 // Eliminar portada
                 portadaFinal = null;
             } else if (Buffer.isBuffer(portada)) {

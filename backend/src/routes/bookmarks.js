@@ -175,7 +175,7 @@ router.put('/:id', async (req, res, next) => {
 
             try {
                 const { id } = req.params;
-                let { titulo, url, descripcion, categoria_id, tags } = req.body;
+                let { titulo, url, descripcion, categoria_id, tags, portada: bodyPortada } = req.body;
 
                 // Si se subió un archivo, convertir a base64
                 let portada = undefined;
@@ -183,6 +183,10 @@ router.put('/:id', async (req, res, next) => {
                     // Convertir el buffer a base64
                     portada = req.file.buffer.toString('base64');
                     console.log(`Archivo recibido para actualización: ${req.file.originalname}, tamaño: ${req.file.size} bytes`);
+                } else if (bodyPortada === '') {
+                    // Si la portada es una string vacía, significa que queremos eliminarla
+                    portada = null;
+                    console.log('Eliminando portada del bookmark');
                 }
 
                 // Parsear tags - pueden venir como JSON string

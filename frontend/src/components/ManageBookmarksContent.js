@@ -188,6 +188,54 @@ function ManageBookmarksContent() {
         }
     };
 
+    const handleRemovePortada = async () => {
+        try {
+            setUpdating(true);
+            
+            // Limpiar inmediatamente en el frontend
+            const cleanedBookmark = {
+                ...editedBookmark,
+                portada: null
+            };
+            setEditedBookmark(cleanedBookmark);
+            
+            // Preparar datos para actualizar sin portada
+            const submitData = new FormData();
+            submitData.append('titulo', editedBookmark.titulo.trim());
+            submitData.append('url', editedBookmark.url || '');
+            submitData.append('descripcion', editedBookmark.descripcion || '');
+            submitData.append('portada', ''); // Vaciar portada
+            
+            if (editedBookmark.categoria_id) {
+                submitData.append('categoria_id', editedBookmark.categoria_id);
+            }
+
+            // Agregar tags
+            const tagIds = editedBookmark.tags?.map(t => t.id) || [];
+            if (tagIds.length > 0) {
+                submitData.append('tags', JSON.stringify(tagIds));
+            }
+
+            const updatedBookmark = await bookmarksService.update(editedBookmark.id, submitData);
+
+            // Actualizar la lista con los datos del servidor
+            const updatedBookmarks = bookmarks.map(b => 
+                b.id === editedBookmark.id ? updatedBookmark : b
+            );
+            setBookmarks(updatedBookmarks);
+            setEditedBookmark(updatedBookmark);
+            
+            alert('Portada eliminada correctamente');
+        } catch (err) {
+            console.error('Error eliminando portada:', err);
+            alert(`Error al eliminar portada: ${err.message}`);
+            // Revertir el cambio en caso de error
+            loadBookmarks();
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="manage-page-layout">
@@ -231,6 +279,7 @@ function ManageBookmarksContent() {
                         availableFolders={folders}
                         systemTags={allTags}
                         onToggleTag={handleToggleTag}
+                        onRemovePortada={handleRemovePortada}
                     />
 
                     <QuickActionsPanel

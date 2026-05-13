@@ -3,7 +3,7 @@ import TagBadge from './TagBadge';
 import TagPopover from './TagPopover';
 import './ManageBookmark.css';
 
-function ManageBookmark({ bookmark, onChange, onFileChange, availableFolders = [], systemTags = [], onToggleTag }) {
+function ManageBookmark({ bookmark, onChange, onFileChange, availableFolders = [], systemTags = [], onToggleTag, onRemovePortada }) {
     const fileInputRef = useRef(null);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -22,12 +22,27 @@ function ManageBookmark({ bookmark, onChange, onFileChange, availableFolders = [
         }
     };
 
+    const handleRemovePortada = (e) => {
+        e.stopPropagation();
+        if (onRemovePortada) {
+            onRemovePortada();
+        }
+    };
+
     return (
         <section className="manage-center">
             <div className="manage-card manage-card--full-form">
 
-                <div className={`manage-card__image-placeholder ${(bookmark.portada && bookmark.portada.trim && bookmark.portada.trim() !== '') ? 'manage-card__image-placeholder--has-image' : ''}`}>
-                    {bookmark.portada && bookmark.portada.trim && bookmark.portada.trim() !== '' && (
+                {bookmark.portada && bookmark.portada.trim && bookmark.portada.trim() !== '' && (
+                    <div className="manage-card__image-placeholder manage-card__image-placeholder--has-image">
+                        <button 
+                            className="manage-card__image-delete-btn"
+                            onClick={handleRemovePortada}
+                            title="Borrar imagen"
+                            type="button"
+                        >
+                            ✕
+                        </button>
                         <img 
                             src={
                                 typeof bookmark.portada === 'string'
@@ -53,8 +68,8 @@ function ManageBookmark({ bookmark, onChange, onFileChange, availableFolders = [
                                 e.target.style.display = 'none';
                             }}
                         />
-                    )}
-                </div>
+                    </div>
+                )}
 
                 <div className="manage-card__field">
                     <label>URL</label>

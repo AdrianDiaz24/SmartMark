@@ -29,6 +29,29 @@
     overflow: hidden;
 }
 
+.manage-card__image-delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: background-color 0.2s ease;
+}
+
+.manage-card__image-delete-btn:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
 .manage-card__image-placeholder::after {
     content: "";
     position: absolute;
