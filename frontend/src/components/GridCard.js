@@ -19,7 +19,7 @@ function GridCard({ bookmark, folder }) {
         if (isFolder) {
             navigate('/gestionar-carpetas');
         } else {
-            navigate('/gestionar-marcadores');
+            navigate(`/gestionar-marcadores?id=${bookmark.id}`);
         }
     };
 

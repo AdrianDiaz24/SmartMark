@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ManageBookmark from './ManageBookmark';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteBookmarkModal from './DeleteBookmarkModal';
@@ -8,6 +9,7 @@ import { tagsService } from '../services/tagsService';
 import './ManageBookmarksContent.css';
 
 function ManageBookmarksContent() {
+    const [searchParams] = useSearchParams();
     const [bookmarks, setBookmarks] = useState([]);
     const [editedBookmark, setEditedBookmark] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -24,12 +26,22 @@ function ManageBookmarksContent() {
         loadTags();
     }, []);
 
-    // Seleccionar el primer bookmark si no hay uno seleccionado
+    // Seleccionar el bookmark según el parámetro de URL o el primero si no hay
     useEffect(() => {
         if (bookmarks.length > 0 && !editedBookmark) {
-            setEditedBookmark(bookmarks[0]);
+            const bookmarkIdFromUrl = searchParams.get('id');
+            if (bookmarkIdFromUrl) {
+                const selectedBookmark = bookmarks.find(b => b.id === parseInt(bookmarkIdFromUrl, 10));
+                if (selectedBookmark) {
+                    setEditedBookmark(selectedBookmark);
+                } else {
+                    setEditedBookmark(bookmarks[0]);
+                }
+            } else {
+                setEditedBookmark(bookmarks[0]);
+            }
         }
-    }, [bookmarks]);
+    }, [bookmarks, searchParams]);
 
     const loadBookmarks = async () => {
         try {
