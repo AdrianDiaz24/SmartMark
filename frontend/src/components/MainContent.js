@@ -25,7 +25,7 @@ function MainContent() {
             
             // Cargar todos los datos en paralelo
             const [bookmarksData, categoriesData, tagsData, countLastWeek] = await Promise.all([
-                bookmarksService.getAll({ limit: 3 }),
+                bookmarksService.getRecentBookmarks(),
                 categoriesService.getAll(),
                 tagsService.getAll(),
                 bookmarksService.countVisitedLastWeek()

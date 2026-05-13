@@ -386,6 +386,27 @@ async function recordBookmarkAccess(db, bookmarkId) {
     }
 }
 
+// Obtener los últimos 10 marcadores más recientemente abiertos (o creados si no han sido abiertos)
+async function getRecentBookmarks(db) {
+    try {
+        const bookmarks = await db.all(`
+            SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
+            FROM Marcadores m
+            ORDER BY COALESCE(m.ultima_apertura, m.fecha_creacion) DESC
+            LIMIT 10
+        `);
+
+        for (let bookmark of bookmarks) {
+            bookmark.tags = await getTagsByBookmark(db, bookmark.id);
+        }
+
+        return bookmarks;
+    } catch (error) {
+        throw new Error(`Error al obtener marcadores recientes: ${error.message}`);
+    }
+}
+
 // Obtener marcadores visitados en la última semana
 async function getBookmarksVisitedLastWeek(db) {
     try {
@@ -435,6 +456,7 @@ module.exports = {
     removeTagFromBookmark,
     getBookmarksByTag,
     recordBookmarkAccess,
+    getRecentBookmarks,
     getBookmarksVisitedLastWeek,
     countBookmarksVisitedLastWeek
 };

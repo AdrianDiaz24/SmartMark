@@ -11,6 +11,7 @@ const {
     removeTagFromBookmark,
     getBookmarksByTag,
     recordBookmarkAccess,
+    getRecentBookmarks,
     getBookmarksVisitedLastWeek,
     countBookmarksVisitedLastWeek
 } = require('../controllers/bookmarksController');
@@ -41,6 +42,16 @@ router.post('/scrape', async (req, res, next) => {
         res.json(scrapedData);
     } catch (error) {
         console.error('Error en POST /scrape:', error);
+        next(error);
+    }
+});
+
+// GET /api/links/stats/recent - Obtener los últimos 10 marcadores más recientemente abiertos
+router.get('/stats/recent', async (req, res, next) => {
+    try {
+        const bookmarks = await getRecentBookmarks(db);
+        res.json(bookmarks);
+    } catch (error) {
         next(error);
     }
 });
