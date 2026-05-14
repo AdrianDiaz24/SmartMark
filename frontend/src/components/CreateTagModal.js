@@ -47,8 +47,8 @@ function CreateTagModal({ isOpen, onClose, onCreateTag }) {
     };
 
     const modalContent = (
-        <div className="modal-overlay" onClick={(e) => { e.stopPropagation(); onClose(); }}>
-            <section className="modal-content modal-content--tag" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onMouseDown={(e) => { e.stopPropagation(); onClose(); }}>
+            <section className="modal-content modal-content--tag" onMouseDown={(e) => e.stopPropagation()}>
 
                 <h2 className="modal__title">Crear tag</h2>
 

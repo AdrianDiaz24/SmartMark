@@ -98,7 +98,7 @@ function LinkCard({ bookmark, folder }) {
                     {isFolder ? folder?.nombre : bookmark?.titulo || 'Sin título'}
                 </h3>
                 <p className="link-card__description">
-                    {isFolder ? `${folder?.bookmarks || 0} marcadores` : (bookmark?.descripcion || 'Sin descripción')}
+                    {isFolder ? `Marcadores: ${folder?.bookmarks || 0}` : (bookmark?.descripcion || 'Sin descripción')}
                 </p>
 
                 <div className="link-card__tags">

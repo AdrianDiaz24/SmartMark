@@ -11,7 +11,7 @@
 
 /* Esta clase se activa solo cuando el tag está seleccionado */
 .tag-badge--selected {
-    border-color: white;
+    border-color: #FFFFFF;
     /* Un pequeño resplandor para que destaque más */
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }

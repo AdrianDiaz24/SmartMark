@@ -143,12 +143,16 @@ function ManageFoldersContent() {
         }
     };
 
-    const handleDeleteFolder = async () => {
+    const handleDeleteFolder = async (deleteBookmarks = false) => {
         try {
-            await categoriesService.delete(selectedFolder.id);
+            await categoriesService.delete(selectedFolder.id, deleteBookmarks);
             await loadFolders();
             setIsDeleteModalOpen(false);
-            toast.success('Carpeta eliminada correctamente');
+            if (deleteBookmarks) {
+                toast.success('Carpeta y marcadores eliminados correctamente');
+            } else {
+                toast.success('Carpeta eliminada. Los marcadores se movieron a la carpeta padre');
+            }
         } catch (error) {
             console.error('Error eliminando carpeta:', error);
             toast.error('Error al eliminar: ' + error.message);

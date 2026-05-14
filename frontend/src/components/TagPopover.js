@@ -15,7 +15,7 @@ function TagPopover({ isOpen, onClose, availableTags, selectedTags, onToggleTag 
     return (
         <>
             {}
-            <div className="tag-popover-overlay" onClick={onClose}></div>
+            <div className="tag-popover-overlay" onMouseDown={onClose}></div>
 
             <div className="tag-popover">
                 <header className="tag-popover__header">

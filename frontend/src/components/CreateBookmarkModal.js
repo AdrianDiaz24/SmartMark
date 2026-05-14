@@ -50,12 +50,30 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
             const result = await bookmarksService.scrapeUrl(url);
             
             if (result.success) {
-
+                // Actualizar título y descripción
                 setFormData(prev => ({
                     ...prev,
                     titulo: result.titulo,
                     descripcion: result.descripcion
                 }));
+
+                // Aplicar tags automáticos si los hay
+                if (result.autoTags && result.autoTags.length > 0) {
+                    console.log('[Frontend] Tags detectados automáticamente:', result.autoTags);
+                    setSelectedTagIds(result.autoTags);
+                    // Mostrar notificación de tags detectados (solo si tags ya está cargado)
+                    if (tags && tags.length > 0) {
+                        const tagsNombres = tags
+                            .filter(t => result.autoTags.includes(t.id))
+                            .map(t => t.nombre)
+                            .join(', ');
+                        if (tagsNombres) {
+                            console.log(`[Frontend] Tags aplicados: ${tagsNombres}`);
+                        }
+                    }
+                } else {
+                    console.log('[Frontend] No se detectaron tags automáticamente');
+                }
             }
         } catch (err) {
             console.error('Error en scraping:', err);
@@ -177,6 +195,9 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
             });
             setSelectedTagIds([]);
             
+            // Disparar evento global para notificar que se creó un marcador
+            window.dispatchEvent(new CustomEvent('bookmarkCreated', { detail: newBookmark }));
+            
             // Notificar al padre
             if (onBookmarkCreated) {
                 onBookmarkCreated(newBookmark);
@@ -195,8 +216,8 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
     const selectedTags = tags.filter(tag => selectedTagIds.includes(tag.id));
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <section className="modal-content modal-content--large" onClick={(e) => e.stopPropagation()} aria-labelledby="bookmark-modal-title">
+        <div className="modal-overlay" onMouseDown={onClose}>
+            <section className="modal-content modal-content--large" onMouseDown={(e) => e.stopPropagation()} aria-labelledby="bookmark-modal-title">
 
                 <h2 id="bookmark-modal-title" className="visually-hidden">Crear nuevo marcador</h2>
 
@@ -291,18 +312,28 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
                     </div>
 
                     <div className="modal__field modal__field--inline">
-                        <label>Tags:</label>
+                         <label>Tags: 
+                             {selectedTagIds.length > 0 && (
+                                 <span style={{ fontSize: '12px', color: '#666', marginLeft: '8px' }}>
+                                     ({selectedTagIds.length} seleccionado{selectedTagIds.length !== 1 ? 's' : ''})
+                                 </span>
+                             )}
+                         </label>
 
-                        <div className="modal__selected-tags">
-                            {selectedTags.map(tag => (
-                                <TagBadge 
-                                    key={tag.id} 
-                                    texto={tag.nombre} 
-                                    colorHex={tag.color} 
-                                    isSelected={false} 
-                                />
-                            ))}
-                        </div>
+                         <div className="modal__selected-tags">
+                             {selectedTags.length > 0 ? (
+                                 selectedTags.map(tag => (
+                                     <TagBadge 
+                                         key={tag.id} 
+                                         texto={tag.nombre} 
+                                         colorHex={tag.color} 
+                                         isSelected={false} 
+                                     />
+                                 ))
+                             ) : (
+                                 <span style={{ fontSize: '13px', color: '#999' }}>Sin tags seleccionados</span>
+                             )}
+                         </div>
 
                         <button 
                             type="button" 

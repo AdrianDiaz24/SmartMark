@@ -98,7 +98,7 @@ function GridCard({ bookmark, folder }) {
                     {isFolder ? folder?.nombre : bookmark?.titulo || 'Sin título'}
                 </h3>
                 <p className="grid-card__description">
-                    {isFolder ? `${folder?.bookmarks || 0} marcadores` : (bookmark?.descripcion || 'Sin descripción')}
+                    {isFolder ? `Marcadores: ${folder?.bookmarks || 0}` : (bookmark?.descripcion || 'Sin descripción')}
                 </p>
 
                 <div className="grid-card__tags">

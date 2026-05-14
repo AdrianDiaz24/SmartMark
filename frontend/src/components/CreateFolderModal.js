@@ -99,8 +99,8 @@ function CreateFolderModal({ isOpen, onClose, onCreateFolder }) {
     if (!isOpen) return null;
 
     const modalContent = (
-        <div className="modal-overlay" onClick={onClose}>
-            <section className="modal-content" onClick={(e) => e.stopPropagation()} aria-labelledby="modal-title">
+        <div className="modal-overlay" onMouseDown={onClose}>
+            <section className="modal-content" onMouseDown={(e) => e.stopPropagation()} aria-labelledby="modal-title">
                 <h2 id="modal-title" className="modal__title">Crear carpeta</h2>
 
                 <form onSubmit={handleSubmit}>

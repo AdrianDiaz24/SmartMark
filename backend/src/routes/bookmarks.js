@@ -17,7 +17,8 @@ const {
     countBookmarksVisitedLastWeek
 } = require('../controllers/bookmarksController');
 const {
-    scrapeUrl
+    scrapeUrl,
+    autotagBookmark
 } = require('../controllers/scrapingController');
 
 let db;
@@ -40,6 +41,13 @@ router.post('/scrape', async (req, res, next) => {
         }
 
         const scrapedData = await scrapeUrl(url);
+        
+        // Si el scraping fue exitoso, hacer autotagging
+        if (scrapedData.success) {
+            const autoTags = await autotagBookmark(db, scrapedData.titulo, scrapedData.descripcion, url);
+            scrapedData.autoTags = autoTags; // Retornar IDs de tags encontrados
+        }
+
         res.json(scrapedData);
     } catch (error) {
         console.error('Error en POST /scrape:', error);

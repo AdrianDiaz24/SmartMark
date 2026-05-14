@@ -27,7 +27,8 @@ async function initDB() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL UNIQUE, 
             color TEXT NOT NULL, 
-            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+            es_default BOOLEAN DEFAULT 0
         );
 
         -- 3. TABLA DE MARCADORES (Tus enlaces guardados)
@@ -67,7 +68,64 @@ async function initDB() {
 
     console.log('Tablas creadas correctamente');
 
+    // 3. Insertar tags por defecto (solo si no existen)
+    await insertDefaultTags(db);
+
     return db;
+}
+
+async function insertDefaultTags(db) {
+    const defaultTags = [
+        // Lenguajes de Programación
+        { nombre: 'JavaScript', color: 'FFE943' },    // Amarillo (característico de JS)
+        { nombre: 'TypeScript', color: '33A4DC' },    // Azul claro
+        { nombre: 'Python', color: '33A4DC' },        // Azul claro
+        { nombre: 'Java', color: '33A4DC' },          // Azul claro
+        { nombre: 'C#', color: '51986C' },            // Verde
+        { nombre: 'Go', color: '33A4DC' },            // Azul claro
+        { nombre: 'Rust', color: 'FF4343' },          // Rojo
+        { nombre: 'PHP', color: '593DF9' },           // Púrpura
+        { nombre: 'Kotlin', color: '593DF9' },        // Púrpura (característico de Kotlin)
+        { nombre: 'C++', color: '616060' },           // Gris
+        { nombre: 'Ruby', color: 'FF4343' },          // Rojo
+        { nombre: 'SQL', color: '33A4DC' },           // Azul claro
+
+        // Frameworks y Librerías
+        { nombre: 'React', color: '33DCCB' },         // Turquesa (característico de React)
+        { nombre: 'Vue', color: '51986C' },           // Verde
+        { nombre: 'Angular', color: 'FF4343' },       // Rojo (característico de Angular)
+        { nombre: 'Node.js', color: '51986C' },       // Verde (característico de Node)
+        { nombre: 'Django', color: '51986C' },        // Verde
+        { nombre: 'FastAPI', color: '51986C' },       // Verde
+        { nombre: 'Spring', color: '51986C' },        // Verde
+
+        // Herramientas y Plataformas
+        { nombre: 'Docker', color: '33A4DC' },        // Azul (característico de Docker)
+        { nombre: 'GitHub', color: '616060' },        // Gris
+        { nombre: 'GitLab', color: 'FFE943' },        // Amarillo
+        { nombre: 'AWS', color: 'FFE943' },           // Amarillo
+        { nombre: 'Firebase', color: 'FFE943' },      // Amarillo
+        { nombre: 'Kubernetes', color: '33A4DC' },    // Azul claro
+        { nombre: 'Git', color: 'FF4343' },           // Rojo
+        { nombre: 'npm', color: 'FF4343' },           // Rojo (característico de npm)
+        { nombre: 'Docker Compose', color: '33A4DC' }  // Azul claro
+    ];
+
+    try {
+        for (let tag of defaultTags) {
+            // Verificar si el tag ya existe
+            const existe = await db.get('SELECT id FROM Tags WHERE nombre = ?', [tag.nombre]);
+            if (!existe) {
+                await db.run(
+                    'INSERT INTO Tags (nombre, color, es_default) VALUES (?, ?, 1)',
+                    [tag.nombre, tag.color]
+                );
+                console.log(`Tag por defecto agregado: ${tag.nombre} (${tag.color})`);
+            }
+        }
+    } catch (error) {
+        console.error('Error insertando tags por defecto:', error.message);
+    }
 }
 
 module.exports = initDB;

@@ -63,6 +63,16 @@ function MainContent() {
         return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
+    // Recargar datos cuando se crea un marcador
+    useEffect(() => {
+        const handleBookmarkCreated = () => {
+            loadData();
+        };
+
+        window.addEventListener('bookmarkCreated', handleBookmarkCreated);
+        return () => window.removeEventListener('bookmarkCreated', handleBookmarkCreated);
+    }, []);
+
     return (
         <section className="main-content">
 

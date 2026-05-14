@@ -69,7 +69,108 @@ async function scrapeUrl(url) {
     }
 }
 
+// Función para extraer el dominio de una URL
+function extractDomainFromUrl(urlString) {
+    try {
+        let url;
+        
+        // Si no tiene protocolo, añadirlo para que new URL() funcione correctamente
+        if (!urlString.includes('://')) {
+            url = new URL(`https://${urlString}`);
+        } else {
+            url = new URL(urlString);
+        }
+        
+        let hostname = url.hostname; // ej: "www.google.com" o "github.com"
+        
+        // Remover 'www.' si existe
+        hostname = hostname.replace(/^www\./, '');
+        
+        // Sacar la parte antes del primer punto
+        // ej: "google.com" -> "google", "github.io" -> "github"
+        const domainName = hostname.split('.')[0];
+        
+        return domainName.toLowerCase();
+    } catch (error) {
+        return '';
+    }
+}
+
+// Función para dividir texto en palabras y comparar con tags
+function findMatchingTagsInText(text, tags) {
+    const matchedTags = [];
+    
+    if (!text || text.length === 0) return matchedTags;
+    
+    // Dividir el texto por espacios y caracteres de puntuación
+    const palabras = text.toLowerCase()
+        .split(/[\s\-,;:.!?'"()\/\[\]{}@#$%^&*]+/)
+        .filter(palabra => palabra.length > 0);
+    
+    console.log(`[Autotagging] Palabras encontradas: ${palabras.join(', ')}`);
+    
+    // Por cada tag, comprobar si existe como palabra exacta
+    for (let tag of tags) {
+        const nombreTagLower = tag.nombre.toLowerCase();
+        
+        if (palabras.includes(nombreTagLower)) {
+            matchedTags.push(tag.id);
+            console.log(`[Autotagging] ✓ Tag encontrado: "${tag.nombre}" en palabras (ID: ${tag.id})`);
+        }
+    }
+    
+    return matchedTags;
+}
+
+// Función para autotagging: encuentra coincidencias entre título/descripción/URL y nombres de tags
+async function autotagBookmark(db, titulo, descripcion, url = '') {
+    try {
+        // Obtener todos los tags de la BD
+        const allTags = await db.all('SELECT id, nombre FROM Tags');
+        
+        if (!allTags || allTags.length === 0) {
+            console.log('[Autotagging] No hay tags disponibles en la base de datos');
+            return [];
+        }
+
+        console.log(`[Autotagging] Iniciando búsqueda...`);
+        console.log(`[Autotagging] Título: "${titulo}"`);
+        console.log(`[Autotagging] Descripción: "${descripcion}"`);
+        console.log(`[Autotagging] URL: "${url}"`);
+        console.log(`[Autotagging] Tags disponibles: ${allTags.map(t => t.nombre).join(', ')}`);
+
+        const tagsEncontrados = new Set(); // Usar Set para evitar duplicados
+        
+        // 1. Buscar en el título
+        console.log(`\n[Autotagging] --- Buscando en TÍTULO ---`);
+        const tagsEnTitulo = findMatchingTagsInText(titulo, allTags);
+        tagsEnTitulo.forEach(id => tagsEncontrados.add(id));
+        
+        // 2. Buscar en la descripción
+        console.log(`\n[Autotagging] --- Buscando en DESCRIPCIÓN ---`);
+        const tagsEnDescripcion = findMatchingTagsInText(descripcion, allTags);
+        tagsEnDescripcion.forEach(id => tagsEncontrados.add(id));
+        
+        // 3. Buscar en el dominio de la URL
+        console.log(`\n[Autotagging] --- Buscando en URL ---`);
+        const dominio = extractDomainFromUrl(url);
+        if (dominio) {
+            console.log(`[Autotagging] Dominio extraído: "${dominio}"`);
+            const tagsEnUrl = findMatchingTagsInText(dominio, allTags);
+            tagsEnUrl.forEach(id => tagsEncontrados.add(id));
+        }
+
+        const resultado = Array.from(tagsEncontrados);
+        console.log(`\n[Autotagging] Total de tags encontrados: ${resultado.length}`);
+        return resultado;
+    } catch (error) {
+        console.error('Error en autotagging:', error.message);
+        return [];
+    }
+}
+
 module.exports = {
-    scrapeUrl
+    scrapeUrl,
+    autotagBookmark
 };
 

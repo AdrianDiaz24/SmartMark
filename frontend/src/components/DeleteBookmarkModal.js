@@ -12,8 +12,8 @@ function DeleteBookmarkModal({ isOpen, onClose, bookmarkName, onDelete }) {
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <section className="modal-content modal-content--delete" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onMouseDown={onClose}>
+            <section className="modal-content modal-content--delete" onMouseDown={(e) => e.stopPropagation()}>
                 <h2 className="modal__title">Eliminar marcador</h2>
 
                 <p className="delete-modal__text">

@@ -5,16 +5,23 @@ import './DeleteModal.css';
 function DeleteFolderModal({ isOpen, onClose, folderName, onDelete }) {
     if (!isOpen) return null;
 
-    const handleDelete = () => {
+    const handleDeleteFolderOnly = () => {
         if (onDelete) {
-            onDelete();
+            onDelete(false);
+        }
+        onClose();
+    };
+
+    const handleDeleteFolderAndBookmarks = () => {
+        if (onDelete) {
+            onDelete(true);
         }
         onClose();
     };
 
     const modalContent = (
-        <div className="modal-overlay" onClick={onClose}>
-            <section className="modal-content modal-content--delete" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onMouseDown={onClose}>
+            <section className="modal-content modal-content--delete" onMouseDown={(e) => e.stopPropagation()}>
                 <h2 className="modal__title">Eliminar carpeta</h2>
 
                 <p className="delete-modal__text">
@@ -24,10 +31,10 @@ function DeleteFolderModal({ isOpen, onClose, folderName, onDelete }) {
                 </p>
 
                 <div className="delete-modal__actions">
-                    <button className="delete-modal__btn delete-modal__btn--danger" onClick={handleDelete}>
+                    <button className="delete-modal__btn delete-modal__btn--danger" onClick={handleDeleteFolderAndBookmarks}>
                         Eliminar carpeta y marcadores
                     </button>
-                    <button className="delete-modal__btn delete-modal__btn--danger" onClick={handleDelete}>
+                    <button className="delete-modal__btn delete-modal__btn--danger" onClick={handleDeleteFolderOnly}>
                         Eliminar carpeta
                     </button>
                     <button className="delete-modal__btn delete-modal__btn--cancel" onClick={onClose}>

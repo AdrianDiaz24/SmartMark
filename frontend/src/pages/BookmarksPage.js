@@ -54,6 +54,17 @@ function BookmarksPage() {
         loadFolders();
     }, [activeFolder, activeTag, searchTerm]);
 
+    // Recargar datos cuando la ventana vuelve a estar en foco
+    useEffect(() => {
+        const handleFocus = () => {
+            loadBookmarks();
+            loadFolders();
+        };
+
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, []);
+
     const loadTagName = async () => {
         try {
             const tag = await tagsService.getById(activeTag);
@@ -181,8 +192,9 @@ function BookmarksPage() {
     };
 
     const handleBookmarkCreated = (newBookmark) => {
-        // Recargar la lista de marcadores para asegurar que todo está sincronizado
+        // Recargar tanto marcadores como carpetas para asegurar que todo está sincronizado
         loadBookmarks();
+        loadFolders();
         // Cerrar el modal
         setIsCreateBookmarkModalOpen(false);
     };
