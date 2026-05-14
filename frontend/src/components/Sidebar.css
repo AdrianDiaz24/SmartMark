@@ -1,80 +1,147 @@
-
-.sidebar__list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-
 .sidebar-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    width: 260px;
+    gap: 20px;
+    width: 280px;
     flex-shrink: 0;
     position: sticky;
-
+    top: 20px;
 }
 
-
-.sidebar-block {
+/* SECCIÓN DE CARPETAS */
+.sidebar-folder {
     background-color: #2B2A2A;
-    border-radius: 20px;
-    padding: 20px;
+    border-radius: 15px;
+    padding: 25px;
     color: white;
+    box-sizing: border-box;
 }
 
-
-.sidebar__add-icon {
-    width: 14px;
-    height: 14px;
-    object-fit: contain;
-}
-
-
-.sidebar__header {
+.sidebar-folder__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
 
-.sidebar__title {
+.sidebar-folder__header h3 {
     margin: 0;
     font-size: 20px;
 }
 
-
-.sidebar__add-btn {
-    background-color: #E4E4E4;
-    color: #333;
+.sidebar-folder__add-btn {
+    background: none;
     border: none;
-    border-radius: 20px;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+}
+
+.sidebar-folder__add-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: invert(1);
+}
+
+.sidebar-folder__add-btn:hover .sidebar-folder__add-icon {
+    opacity: 0.7;
+}
+
+.sidebar-folder__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-folder__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    font-size: 16px;
     cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    border-radius: 8px;
 }
 
-.sidebar__add-btn:hover {
-    background-color: #cccccc;
+.sidebar-folder__item:hover,
+.sidebar-folder__item.active {
+    opacity: 1;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.08);
 }
 
-.sidebar__title {
+.sidebar-folder__icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    opacity: 0.8;
+}
+
+.sidebar-folder__sublist {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-left: 22px;
+    padding-left: 12px;
+    border-left: 1px solid #555;
+    margin-top: 2px;
+    margin-bottom: 6px;
+}
+
+.sidebar-folder__item--sub {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 0;
+}
+
+/* SECCIÓN DE TAGS */
+.sidebar-tags {
+    background-color: #2B2A2A;
+    border-radius: 15px;
+    padding: 25px;
+    color: white;
+    box-sizing: border-box;
+}
+
+.sidebar-tags__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.sidebar-tags__header h3 {
     margin: 0;
     font-size: 20px;
-    color: white;
 }
 
-.sidebar__title--clickable {
+.sidebar-tags__add-btn {
+    background: none;
+    border: none;
     cursor: pointer;
-    transition: opacity 0.2s ease;
+    padding: 0;
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: opacity 0.2s;
 }
 
-.sidebar__title--clickable:hover {
-    opacity: 0.8;
+.sidebar-tags__add-btn:hover {
+    opacity: 0.7;
+}
+
+.sidebar-tags__list {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 

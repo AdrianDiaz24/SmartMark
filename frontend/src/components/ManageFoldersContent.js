@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ManageSidebarFolder from './ManageSidebarFolder';
 import ManageFolderCenter from './ManageFolderCenter';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteFolderModal from './DeleteFolderModal';
+import CreateFolderModal from './CreateFolderModal';
 import { categoriesService } from '../services/categoriesService';
 import { tagsService } from '../services/tagsService';
 import { useToast } from '../hooks/useToast';
@@ -11,13 +12,18 @@ import './ManageFoldersContent.css';
 
 function ManageFoldersContent() {
     const toast = useToast();
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    
     const [folders, setFolders] = useState([]);
     const [selectedFolder, setSelectedFolder] = useState(null);
     const [editedFolder, setEditedFolder] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [tags, setTags] = useState([]);
-    const navigate = useNavigate();
+
+    const folderId = searchParams.get('id');
 
     // Cargar carpetas al montar
     useEffect(() => {
@@ -25,15 +31,26 @@ function ManageFoldersContent() {
         loadTags();
     }, []);
 
-    // Seleccionar la primera carpeta cuando se cargan
+    // Seleccionar la carpeta según el parámetro `id` o la primera carpeta
     useEffect(() => {
-        if (folders.length > 0 && !selectedFolder) {
-            const firstFolder = getAllFolders(folders)[0];
-            if (firstFolder) {
-                handleSelectFolder(firstFolder);
+        if (folders.length > 0) {
+            let folderToSelect = null;
+
+            if (folderId) {
+                // Si hay un ID en la URL, buscar esa carpeta
+                folderToSelect = getAllFolders(folders).find(f => f.id === parseInt(folderId));
+            }
+
+            // Si no encontramos la carpeta por ID o no hay ID, seleccionar la primera
+            if (!folderToSelect) {
+                folderToSelect = getAllFolders(folders)[0];
+            }
+
+            if (folderToSelect) {
+                handleSelectFolder(folderToSelect);
             }
         }
-    }, [folders]);
+    }, [folders, folderId]);
 
     const loadFolders = async () => {
         try {
@@ -111,7 +128,19 @@ function ManageFoldersContent() {
     };
 
     const handleAddFolder = () => {
-        console.log("Abrir modal de crear carpeta");
+        setIsCreateFolderModalOpen(true);
+    };
+
+    const handleCreateFolder = async (folderData) => {
+        try {
+            await categoriesService.create(folderData);
+            toast.success(`Carpeta "${folderData.nombre}" creada correctamente`);
+            await loadFolders();
+            setIsCreateFolderModalOpen(false);
+        } catch (error) {
+            console.error('Error creando carpeta:', error);
+            toast.error('Error al crear carpeta: ' + error.message);
+        }
     };
 
     const handleDeleteFolder = async () => {
@@ -205,6 +234,12 @@ function ManageFoldersContent() {
                 onClose={() => setIsDeleteModalOpen(false)}
                 folderName={selectedFolder?.nombre || selectedFolder?.name}
                 onDelete={handleDeleteFolder}
+            />
+
+            <CreateFolderModal
+                isOpen={isCreateFolderModalOpen}
+                onClose={() => setIsCreateFolderModalOpen(false)}
+                onCreateFolder={handleCreateFolder}
             />
         </div>
     );

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import FolderItem from './FolderItem';
 import CreateFolderModal from './CreateFolderModal';
 import CreateTagModal from './CreateTagModal';
 import TagBadge from './TagBadge';
 import { tagsService } from '../services/tagsService';
 import { categoriesService } from '../services/categoriesService';
+import { useToast } from '../hooks/useToast';
 import './Sidebar.css';
 
 import iconoAñadir from '../assets/Img/añadir_carpeta.png';
@@ -13,12 +13,14 @@ import iconoCarpeta from '../assets/Img/carpeta.png';
 import iconoArchivador from '../assets/Img/archivador.png';
 
 function Sidebar() {
+    const toast = useToast();
     const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
     const [tags, setTags] = useState([]);
     const [tagsLoading, setTagsLoading] = useState(true);
     const [folders, setFolders] = useState([]);
     const [foldersLoading, setFoldersLoading] = useState(true);
+    const [selectedFolderId, setSelectedFolderId] = useState(null);
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -31,6 +33,15 @@ function Sidebar() {
         loadTags();
         loadFolders();
     }, []);
+
+    // Actualizar folder seleccionada basada en URL
+    useEffect(() => {
+        if (activeFolder && activeFolder !== 'todas') {
+            setSelectedFolderId(parseInt(activeFolder));
+        } else {
+            setSelectedFolderId(null);
+        }
+    }, [activeFolder]);
 
     const loadTags = async () => {
         try {
@@ -76,71 +87,75 @@ function Sidebar() {
     const handleCreateFolder = async (folderData) => {
         try {
             await categoriesService.create(folderData);
+            toast.success(`Carpeta "${folderData.nombre}" creada correctamente`);
             await loadFolders(); // Recargar carpetas
             setIsFolderModalOpen(false);
         } catch (error) {
             console.error('Error creando carpeta:', error);
-            alert('Error al crear carpeta: ' + error.message);
+            toast.error('Error al crear carpeta: ' + error.message);
         }
     };
 
     const handleCreateTag = async (tagData) => {
         try {
             await tagsService.create(tagData);
+            toast.success(`Tag "${tagData.nombre}" creado correctamente`);
             await loadTags(); // Recargar tags
             setIsTagModalOpen(false);
         } catch (error) {
             console.error('Error creando tag:', error);
-            alert('Error al crear tag: ' + error.message);
+            toast.error('Error al crear tag: ' + error.message);
         }
     };
 
-    const renderFolders = (foldersList) => {
+    const renderFolders = (foldersList, isSubfolder = false) => {
         return foldersList.map(folder => (
-            <div 
-                key={folder.id} 
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handleFilter('carpeta', folder.id);
-                }} 
-                style={{ opacity: activeFolder === String(folder.id) ? 1 : 0.6, cursor: 'pointer' }}
-            >
-                <FolderItem 
-                    icono={iconoCarpeta} 
-                    titulo={folder.nombre} 
-                    contador={folder.bookmarks || 0}
-                />
+            <React.Fragment key={folder.id}>
+                <div
+                    className={`sidebar-folder__item ${isSubfolder ? 'sidebar-folder__item--sub' : ''} ${selectedFolderId === folder.id ? 'active' : ''}`}
+                    onClick={() => {
+                        setSelectedFolderId(folder.id);
+                        handleFilter('carpeta', folder.id);
+                    }}
+                >
+                    {!isSubfolder && (
+                        <img src={iconoCarpeta} alt="Carpeta" className="sidebar-folder__icon" />
+                    )}
+                    <span>{folder.nombre}</span>
+                </div>
+
                 {folder.children && folder.children.length > 0 && (
-                    <div style={{ marginLeft: '20px' }}>
-                        {renderFolders(folder.children)}
+                    <div className="sidebar-folder__sublist">
+                        {renderFolders(folder.children, true)}
                     </div>
                 )}
-            </div>
+            </React.Fragment>
         ));
     };
 
     return (
         <aside className="sidebar-container">
 
-            <div className="sidebar-block">
-                <div className="sidebar__header">
-
-                    <h3
-                        className="sidebar__title sidebar__title--clickable"
-                        onClick={() => navigate('/gestionar-carpetas')}
-                        title="Ir a gestionar carpetas"
-                    >
-                        Carpetas
-                    </h3>
-                    <button className="sidebar__add-btn" onClick={() => setIsFolderModalOpen(true)}>
-                        <img src={iconoAñadir} alt="Añadir carpeta" className="sidebar__add-icon" />
+            {/* SECCIÓN DE CARPETAS */}
+            <div className="sidebar-folder" style={{ marginBottom: '20px' }}>
+                <div className="sidebar-folder__header">
+                    <h3>Carpetas</h3>
+                    <button className="sidebar-folder__add-btn" onClick={() => setIsFolderModalOpen(true)}>
+                        <img src={iconoAñadir} alt="Añadir carpeta" className="sidebar-folder__add-icon" />
                     </button>
                 </div>
-
-                <div className="sidebar__list">
-                    <div onClick={() => handleFilter('carpeta', 'todas')} style={{ opacity: activeFolder === 'todas' ? 1 : 0.6, cursor: 'pointer' }}>
-                        <FolderItem icono={iconoArchivador} titulo="Todos los marcadores" contador="" />
+                <div className="sidebar-folder__list">
+                    <div
+                        className={`sidebar-folder__item ${selectedFolderId === null && !activeFolder ? 'active' : ''}`}
+                        onClick={() => {
+                            setSelectedFolderId(null);
+                            handleFilter('carpeta', 'todas');
+                        }}
+                    >
+                        <img src={iconoArchivador} alt="Todos" className="sidebar-folder__icon" />
+                        <span>Todos los marcadores</span>
                     </div>
+
                     {foldersLoading ? (
                         <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Cargando carpetas...</p>
                     ) : folders.length > 0 ? (
@@ -151,21 +166,15 @@ function Sidebar() {
                 </div>
             </div>
 
-
-            <div className="sidebar-block">
-                <div className="sidebar__header">
-                    <h3
-                        className="sidebar__title sidebar__title--clickable"
-                        onClick={() => navigate('/gestionar-tags')}
-                        title="Ir a gestionar tags"
-                    >
-                        Tags
-                    </h3>
-                    <button className="sidebar__add-btn" onClick={() => setIsTagModalOpen(true)} style={{ fontSize: '18px', padding: '0 8px' }}>
+            {/* SECCIÓN DE TAGS */}
+            <div className="sidebar-tags">
+                <div className="sidebar-tags__header">
+                    <h3>Tags</h3>
+                    <button className="sidebar-tags__add-btn" onClick={() => setIsTagModalOpen(true)}>
                         +
                     </button>
                 </div>
-                <div className="sidebar__tags-list" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                <div className="sidebar-tags__list">
                     {tagsLoading ? (
                         <p style={{ fontSize: '12px', color: '#999' }}>Cargando...</p>
                     ) : tags.length > 0 ? (

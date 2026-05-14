@@ -17,7 +17,7 @@ function GridCard({ bookmark, folder }) {
     const handleEdit = (e) => {
         e.stopPropagation();
         if (isFolder) {
-            navigate('/gestionar-carpetas');
+            navigate(`/gestionar-carpetas?id=${folder.id}`);
         } else {
             navigate(`/gestionar-marcadores?id=${bookmark.id}`);
         }
