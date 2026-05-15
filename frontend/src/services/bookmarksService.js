@@ -108,6 +108,20 @@ export const bookmarksService = {
     countAllBookmarks: () => apiCall('/links/stats/count-all'),
 
     // Contar marcadores visitados en última semana
-    countVisitedLastWeek: () => apiCall('/links/stats/count-last-week')
-};
+    countVisitedLastWeek: () => apiCall('/links/stats/count-last-week'),
 
+    // Actualizar datos de GitHub de todos los marcadores
+    refreshGitHubData: () => {
+        return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/refresh-github`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(res => {
+            if (!res.ok) {
+                throw new Error(`Error ${res.status}: ${res.statusText}`);
+            }
+            return res.json();
+        });
+    }
+};

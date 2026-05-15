@@ -51,6 +51,19 @@ function MainContent() {
 
     useEffect(() => {
         loadData();
+        
+        // Actualizar datos de GitHub en background (sin bloquear la UI)
+        console.log('[GitHub Refresh] Iniciando actualización automática de GitHub');
+        bookmarksService.refreshGitHubData()
+            .then(result => {
+                console.log('[GitHub Refresh] Resultado:', result);
+                // Recargar datos después de actualizar GitHub
+                loadData();
+            })
+            .catch(err => {
+                console.error('[GitHub Refresh] Error:', err);
+                // No mostrar error al usuario, es solo una actualización en background
+            });
     }, []);
 
     // Recargar datos cuando la ventana vuelve a estar en foco

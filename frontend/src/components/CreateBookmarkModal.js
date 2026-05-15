@@ -16,6 +16,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [scrapingUrl, setScrapingUrl] = useState(null);
+    const [gitHubData, setGitHubData] = useState(null); // Almacena datos de GitHub
     
     const [formData, setFormData] = useState({
         url: '',
@@ -56,6 +57,14 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
                     titulo: result.titulo,
                     descripcion: result.descripcion
                 }));
+
+                // Guardar datos de GitHub si existen
+                if (result.gitHubData) {
+                    console.log('[Frontend] Datos de GitHub encontrados:', result.gitHubData);
+                    setGitHubData(result.gitHubData);
+                } else {
+                    setGitHubData(null);
+                }
 
                 // Aplicar tags automáticos si los hay
                 if (result.autoTags && result.autoTags.length > 0) {
@@ -176,6 +185,16 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
                 submitData.append('tags', JSON.stringify(selectedTagIds));
             }
 
+            // Agregar datos de GitHub si existen
+            if (gitHubData) {
+                submitData.append('github_stars', gitHubData.stars || 0);
+                submitData.append('github_forks', gitHubData.forks || 0);
+                submitData.append('github_watchers', gitHubData.watchers || 0);
+                if (gitHubData.languages && gitHubData.languages.length > 0) {
+                    submitData.append('github_languages', JSON.stringify(gitHubData.languages));
+                }
+            }
+
             const newBookmark = await bookmarksService.create(submitData);
             
             console.log('Bookmark creado:', newBookmark);
@@ -194,6 +213,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
                 portadaPreview: null
             });
             setSelectedTagIds([]);
+            setGitHubData(null);
             
             // Disparar evento global para notificar que se creó un marcador
             window.dispatchEvent(new CustomEvent('bookmarkCreated', { detail: newBookmark }));
@@ -268,6 +288,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
                             onChange={handleInputChange}
                         ></textarea>
                     </div>
+
 
                     <div className="modal__field modal__field--file">
                         <div className="modal__file-info">

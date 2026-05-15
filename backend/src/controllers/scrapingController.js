@@ -122,6 +122,89 @@ function findMatchingTagsInText(text, tags) {
     return matchedTags;
 }
 
+// Función para obtener datos de un repositorio de GitHub
+async function getGitHubRepoData(url) {
+    try {
+        // Validar que sea una URL de GitHub
+        if (!url.includes('github.com')) {
+            return null;
+        }
+
+        // Extraer owner/repo de la URL
+        // Formatos soportados:
+        // https://github.com/owner/repo
+        // https://github.com/owner/repo/
+        // https://github.com/owner/repo/issues
+        const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+        if (!match || !match[1] || !match[2]) {
+            console.log('[GitHub API] No se pudo extraer owner/repo de la URL');
+            return null;
+        }
+
+        const owner = match[1];
+        const repo = match[2];
+
+        console.log(`[GitHub API] Obteniendo datos del repositorio: ${owner}/${repo}`);
+
+        const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, {
+            timeout: 5000,
+            headers: {
+                'User-Agent': 'SmartMark-App'
+                // Nota: Sin token, tienes 60 requests/hora. Con token, 5000/hora
+            }
+        });
+
+        const data = response.data;
+
+        // Extraer datos útiles
+        const repoData = {
+            stars: data.stargazers_count || 0,
+            forks: data.forks_count || 0,
+            watchers: data.watchers_count || 0,
+            languages: data.language ? [data.language] : [] // API solo devuelve el lenguaje principal
+        };
+
+        console.log(`[GitHub API] ✓ Datos obtenidos:`, repoData);
+        return repoData;
+    } catch (error) {
+        console.error('[GitHub API] Error al obtener datos:', error.message);
+        return null;
+    }
+}
+
+// Función para obtener todos los lenguajes de un repositorio de GitHub
+async function getGitHubLanguages(url) {
+    try {
+        if (!url.includes('github.com')) {
+            return [];
+        }
+
+        const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+        if (!match || !match[1] || !match[2]) {
+            return [];
+        }
+
+        const owner = match[1];
+        const repo = match[2];
+
+        const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/languages`, {
+            timeout: 5000,
+            headers: {
+                'User-Agent': 'SmartMark-App'
+            }
+        });
+
+        // Devuelve un objeto: { "JavaScript": 50000, "Python": 30000, ... }
+        // Lo convertimos a array de nombres
+        const languages = Object.keys(response.data);
+        console.log(`[GitHub API] Lenguajes encontrados: ${languages.join(', ')}`);
+        return languages;
+    } catch (error) {
+        console.error('[GitHub API] Error al obtener lenguajes:', error.message);
+        return [];
+    }
+}
+
 // Función para autotagging: encuentra coincidencias entre título/descripción/URL y nombres de tags
 async function autotagBookmark(db, titulo, descripcion, url = '') {
     try {
@@ -171,6 +254,8 @@ async function autotagBookmark(db, titulo, descripcion, url = '') {
 
 module.exports = {
     scrapeUrl,
-    autotagBookmark
+    autotagBookmark,
+    getGitHubRepoData,
+    getGitHubLanguages
 };
 

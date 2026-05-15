@@ -41,6 +41,10 @@ async function initDB() {
             categoria_id INTEGER, -- Si es NULL, el enlace se muestra suelto en la raíz.
             fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
             ultima_apertura DATETIME, -- Registra cuándo se abrió el marcador por última vez
+            github_stars INTEGER DEFAULT 0, -- Para repositorios de GitHub
+            github_forks INTEGER DEFAULT 0,
+            github_watchers INTEGER DEFAULT 0,
+            github_languages TEXT, -- JSON array: ["JavaScript", "Python", ...]
             FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE
         );
 
@@ -89,6 +93,8 @@ async function insertDefaultTags(db) {
         { nombre: 'C++', color: '616060' },           // Gris
         { nombre: 'Ruby', color: 'FF4343' },          // Rojo
         { nombre: 'SQL', color: '33A4DC' },           // Azul claro
+        { nombre: 'CSS', color: '33A4DC' },           // Azul claro (característico de CSS)
+        { nombre: 'HTML', color: 'FF4343' },          // Rojo (característico de HTML)
 
         // Frameworks y Librerías
         { nombre: 'React', color: '33DCCB' },         // Turquesa (característico de React)

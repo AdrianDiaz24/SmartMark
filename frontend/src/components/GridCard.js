@@ -101,6 +101,20 @@ function GridCard({ bookmark, folder }) {
                     {isFolder ? `Marcadores: ${folder?.bookmarks || 0}` : (bookmark?.descripcion || 'Sin descripción')}
                 </p>
 
+                {!isFolder && bookmark?.url && bookmark.url.includes('github.com') && bookmark?.github_stars !== undefined && bookmark?.github_stars !== null && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px', fontSize: '12px', lineHeight: '1.4', color: '#BDBDBD' }}>
+                        <div>
+                            Estrellas: {bookmark.github_stars}
+                        </div>
+                        <div>
+                            Forks: {bookmark.github_forks}
+                        </div>
+                        <div>
+                            Visualizaciones: {bookmark.github_watchers}
+                        </div>
+                    </div>
+                )}
+
                 <div className="grid-card__tags">
                     {!isFolder && bookmark?.tags && bookmark.tags.length > 0 ? (
                         bookmark.tags.map(tag => (

@@ -5,7 +5,8 @@ async function getAllBookmarks(db, filters = {}) {
     try {
         let query = `
             SELECT DISTINCT m.id, m.titulo, m.url, m.descripcion, m.portada, 
-                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura,
+                   m.github_stars, m.github_forks, m.github_watchers, m.github_languages
             FROM Marcadores m
             LEFT JOIN Marcadores_Tags mt ON m.id = mt.marcador_id
             LEFT JOIN Tags t ON mt.tag_id = t.id
@@ -49,9 +50,17 @@ async function getAllBookmarks(db, filters = {}) {
 
         const bookmarks = await db.all(query, params);
 
-        // Obtener tags para cada marcador
+        // Obtener tags para cada marcador y parsear github_languages
         for (let bookmark of bookmarks) {
             bookmark.tags = await getTagsByBookmark(db, bookmark.id);
+            // Parsear github_languages de JSON string a array
+            if (bookmark.github_languages) {
+                try {
+                    bookmark.github_languages = JSON.parse(bookmark.github_languages);
+                } catch (e) {
+                    bookmark.github_languages = [];
+                }
+            }
         }
 
         return bookmarks;
@@ -65,7 +74,8 @@ async function getBookmarkById(db, id) {
     try {
         const bookmark = await db.get(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
-                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura,
+                   m.github_stars, m.github_forks, m.github_watchers, m.github_languages
             FROM Marcadores m
             WHERE m.id = ?
         `, [id]);
@@ -75,6 +85,16 @@ async function getBookmarkById(db, id) {
         }
 
         bookmark.tags = await getTagsByBookmark(db, id);
+        
+        // Parsear github_languages de JSON string a array
+        if (bookmark.github_languages) {
+            try {
+                bookmark.github_languages = JSON.parse(bookmark.github_languages);
+            } catch (e) {
+                bookmark.github_languages = [];
+            }
+        }
+        
         return bookmark;
     } catch (error) {
         throw new Error(`Error al obtener marcador: ${error.message}`);
@@ -82,7 +102,7 @@ async function getBookmarkById(db, id) {
 }
 
 // Crear un nuevo marcador
-async function createBookmark(db, { titulo, url, descripcion, portada, categoria_id, tags = [] }) {
+async function createBookmark(db, { titulo, url, descripcion, portada, categoria_id, tags = [], github_stars = 0, github_forks = 0, github_watchers = 0, github_languages = [] }) {
     try {
         if (!titulo || titulo.trim() === '') {
             throw new Error('El título es requerido');
@@ -121,11 +141,17 @@ async function createBookmark(db, { titulo, url, descripcion, portada, categoria
             }
         }
 
+        // Procesar github_languages - convertir a JSON string
+        let githubLanguagesJson = null;
+        if (github_languages && github_languages.length > 0) {
+            githubLanguagesJson = JSON.stringify(github_languages);
+        }
+
         // Insertar el marcador
         const resultado = await db.run(`
-            INSERT INTO Marcadores (titulo, url, descripcion, portada, categoria_id, fecha_creacion)
-            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        `, [titulo.trim(), url.trim(), descripcion || null, portadaBase64, categoria_id || null]);
+            INSERT INTO Marcadores (titulo, url, descripcion, portada, categoria_id, fecha_creacion, github_stars, github_forks, github_watchers, github_languages)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?)
+        `, [titulo.trim(), url.trim(), descripcion || null, portadaBase64, categoria_id || null, github_stars, github_forks, github_watchers, githubLanguagesJson]);
 
         const bookmarkId = resultado.lastID;
 
@@ -152,7 +178,7 @@ async function createBookmark(db, { titulo, url, descripcion, portada, categoria
 }
 
 // Actualizar un marcador
-async function updateBookmark(db, id, { titulo, url, descripcion, portada, categoria_id, tags }) {
+async function updateBookmark(db, id, { titulo, url, descripcion, portada, categoria_id, tags, github_stars, github_forks, github_watchers, github_languages }) {
     try {
         const bookmark = await db.get(`SELECT * FROM Marcadores WHERE id = ?`, [id]);
         if (!bookmark) {
@@ -197,9 +223,19 @@ async function updateBookmark(db, id, { titulo, url, descripcion, portada, categ
             portadaFinal = bookmark.portada;
         }
 
+        // Procesar github_languages
+        let githubLanguagesJson = bookmark.github_languages;
+        if (github_languages !== undefined) {
+            if (github_languages && github_languages.length > 0) {
+                githubLanguagesJson = JSON.stringify(github_languages);
+            } else {
+                githubLanguagesJson = null;
+            }
+        }
+
         await db.run(`
             UPDATE Marcadores 
-            SET titulo = ?, url = ?, descripcion = ?, portada = ?, categoria_id = ?
+            SET titulo = ?, url = ?, descripcion = ?, portada = ?, categoria_id = ?, github_stars = ?, github_forks = ?, github_watchers = ?, github_languages = ?
             WHERE id = ?
         `, [
             titulo || bookmark.titulo,
@@ -207,6 +243,10 @@ async function updateBookmark(db, id, { titulo, url, descripcion, portada, categ
             descripcion !== undefined ? descripcion : bookmark.descripcion,
             portadaFinal,
             categoria_id !== undefined ? categoria_id : bookmark.categoria_id,
+            github_stars !== undefined ? github_stars : bookmark.github_stars,
+            github_forks !== undefined ? github_forks : bookmark.github_forks,
+            github_watchers !== undefined ? github_watchers : bookmark.github_watchers,
+            githubLanguagesJson,
             id
         ]);
 

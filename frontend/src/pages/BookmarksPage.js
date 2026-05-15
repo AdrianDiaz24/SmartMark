@@ -65,6 +65,17 @@ function BookmarksPage() {
         return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
+    // Recargar datos cuando se crea un marcador
+    useEffect(() => {
+        const handleBookmarkCreated = () => {
+            loadBookmarks();
+            loadFolders();
+        };
+
+        window.addEventListener('bookmarkCreated', handleBookmarkCreated);
+        return () => window.removeEventListener('bookmarkCreated', handleBookmarkCreated);
+    }, []);
+
     const loadTagName = async () => {
         try {
             const tag = await tagsService.getById(activeTag);

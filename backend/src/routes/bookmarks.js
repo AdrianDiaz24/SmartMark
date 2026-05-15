@@ -18,7 +18,9 @@ const {
 } = require('../controllers/bookmarksController');
 const {
     scrapeUrl,
-    autotagBookmark
+    autotagBookmark,
+    getGitHubRepoData,
+    getGitHubLanguages
 } = require('../controllers/scrapingController');
 
 let db;
@@ -44,7 +46,37 @@ router.post('/scrape', async (req, res, next) => {
         
         // Si el scraping fue exitoso, hacer autotagging
         if (scrapedData.success) {
-            const autoTags = await autotagBookmark(db, scrapedData.titulo, scrapedData.descripcion, url);
+            // 1. Autotagging básico (título, descripción, dominio)
+            let autoTags = await autotagBookmark(db, scrapedData.titulo, scrapedData.descripcion, url);
+            
+            // 2. Si es GitHub, obtener datos del repositorio
+            let gitHubData = null;
+            if (url.includes('github.com')) {
+                gitHubData = await getGitHubRepoData(url);
+                const gitHubLanguages = await getGitHubLanguages(url);
+                
+                if (gitHubData) {
+                    scrapedData.gitHubData = gitHubData;
+                    scrapedData.gitHubLanguages = gitHubLanguages;
+                    
+                    // Agregar lenguajes de GitHub al autotagging
+                    for (let language of gitHubLanguages) {
+                        // Buscar si existe un tag para este lenguaje
+                        const tagForLanguage = await db.get(
+                            'SELECT id FROM Tags WHERE LOWER(nombre) = LOWER(?)',
+                            [language]
+                        );
+                        if (tagForLanguage) {
+                            autoTags.push(tagForLanguage.id);
+                            console.log(`[GitHub Autotagging] Añadido tag: ${language} (ID: ${tagForLanguage.id})`);
+                        }
+                    }
+                    
+                    // Eliminar duplicados
+                    autoTags = [...new Set(autoTags)];
+                }
+            }
+            
             scrapedData.autoTags = autoTags; // Retornar IDs de tags encontrados
         }
 
@@ -114,6 +146,88 @@ router.get('/stats/count-all', async (req, res, next) => {
     }
 });
 
+// POST /api/links/refresh-github - Actualizar datos de GitHub de todos los marcadores
+router.post('/refresh-github', async (req, res, next) => {
+    try {
+        console.log('[GitHub Refresh] Iniciando actualización de datos de GitHub');
+        
+        // Obtener todos los marcadores
+        const allBookmarks = await db.all(`
+            SELECT id, url, titulo FROM Marcadores WHERE url LIKE '%github.com%'
+        `);
+
+        console.log(`[GitHub Refresh] Encontrados ${allBookmarks.length} marcadores de GitHub`);
+
+        let updated = 0;
+        let failed = 0;
+        const results = [];
+
+        // Actualizar datos de GitHub para cada marcador
+        for (let bookmark of allBookmarks) {
+            try {
+                console.log(`[GitHub Refresh] Actualizando: ${bookmark.titulo}`);
+                
+                const gitHubData = await getGitHubRepoData(bookmark.url);
+                const gitHubLanguages = await getGitHubLanguages(bookmark.url);
+
+                if (gitHubData) {
+                    await db.run(`
+                        UPDATE Marcadores 
+                        SET github_stars = ?, github_forks = ?, github_watchers = ?, github_languages = ?
+                        WHERE id = ?
+                    `, [
+                        gitHubData.stars || 0,
+                        gitHubData.forks || 0,
+                        gitHubData.watchers || 0,
+                        gitHubLanguages && gitHubLanguages.length > 0 ? JSON.stringify(gitHubLanguages) : null,
+                        bookmark.id
+                    ]);
+
+                    updated++;
+                    results.push({
+                        id: bookmark.id,
+                        titulo: bookmark.titulo,
+                        status: 'success',
+                        data: gitHubData
+                    });
+
+                    console.log(`[GitHub Refresh] ✓ Actualizado: ${bookmark.titulo} (⭐ ${gitHubData.stars}, 🔀 ${gitHubData.forks})`);
+                } else {
+                    failed++;
+                    results.push({
+                        id: bookmark.id,
+                        titulo: bookmark.titulo,
+                        status: 'failed',
+                        error: 'No se pudieron obtener datos de GitHub'
+                    });
+                }
+            } catch (error) {
+                failed++;
+                console.error(`[GitHub Refresh] Error actualizando ${bookmark.titulo}:`, error.message);
+                results.push({
+                    id: bookmark.id,
+                    titulo: bookmark.titulo,
+                    status: 'error',
+                    error: error.message
+                });
+            }
+        }
+
+        console.log(`[GitHub Refresh] Completado: ${updated} actualizados, ${failed} fallidos`);
+
+        res.json({
+            success: true,
+            total: allBookmarks.length,
+            updated,
+            failed,
+            results
+        });
+    } catch (error) {
+        console.error('Error en POST /refresh-github:', error);
+        next(error);
+    }
+});
+
 // GET /api/links/:id - Obtener un marcador específico
 router.get('/:id', async (req, res, next) => {
     try {
@@ -143,7 +257,7 @@ router.post('/', async (req, res, next) => {
 
             try {
                 // Extraer campos del body o del query/form fields
-                let { titulo, url, descripcion, categoria_id, tags } = req.body;
+                let { titulo, url, descripcion, categoria_id, tags, github_stars = 0, github_forks = 0, github_watchers = 0, github_languages = [] } = req.body;
 
                 if (!titulo || !url) {
                     return res.status(400).json({ error: 'El título y URL son requeridos' });
@@ -166,10 +280,20 @@ router.post('/', async (req, res, next) => {
                         parsedTags = [];
                     }
                 }
+
+                // Parsear github_languages - pueden venir como JSON string
+                let parsedGithubLanguages = [];
+                if (github_languages) {
+                    try {
+                        parsedGithubLanguages = typeof github_languages === 'string' ? JSON.parse(github_languages) : github_languages;
+                    } catch (e) {
+                        parsedGithubLanguages = [];
+                    }
+                }
                 
                 const parsedCategoryId = categoria_id ? parseInt(categoria_id) : null;
 
-                console.log('Creando bookmark:', { titulo, url, descripcion, parsedCategoryId, parsedTags, tienePortada: !!portada });
+                console.log('Creando bookmark:', { titulo, url, descripcion, parsedCategoryId, parsedTags, tienePortada: !!portada, github_stars, github_forks });
 
                 const newBookmark = await createBookmark(db, {
                     titulo,
@@ -177,7 +301,11 @@ router.post('/', async (req, res, next) => {
                     descripcion,
                     portada,
                     categoria_id: parsedCategoryId,
-                    tags: parsedTags || []
+                    tags: parsedTags || [],
+                    github_stars: parseInt(github_stars) || 0,
+                    github_forks: parseInt(github_forks) || 0,
+                    github_watchers: parseInt(github_watchers) || 0,
+                    github_languages: parsedGithubLanguages || []
                 });
 
                 res.status(201).json(newBookmark);
