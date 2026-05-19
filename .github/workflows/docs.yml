@@ -30,10 +30,10 @@ jobs:
           node-version: '18'
 
       - name: Instalar JSDoc
-        run: npm install -g jsdoc better-docs
+        run: npm install jsdoc better-docs
 
       - name: Generar Documentación con JSDoc
-        run: jsdoc -c ./jsdoc.json
+        run: npx jsdoc -c ./jsdoc.json
 
       - name: Deploy a GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

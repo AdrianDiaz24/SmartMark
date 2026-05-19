@@ -6,7 +6,7 @@
   "opts": {
     "outdir": "docs",
     "recurse": true,
-    "template": "node_modules/better-docs",
+    "template": "./node_modules/better-docs",
     "theme": "darkmode"
   },
   "plugins": ["plugins/markdown"],
