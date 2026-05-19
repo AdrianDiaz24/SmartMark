@@ -116,36 +116,6 @@ function ManageBookmark({ bookmark, onChange, onFileChange, availableFolders = [
                     />
                 </div>
 
-                {bookmark.url && bookmark.url.includes('github.com') && bookmark.github_stars !== undefined && bookmark.github_stars !== null && (
-                    <div style={{ backgroundColor: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #e0e0e0' }}>
-                        <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
-                            📊 Datos de GitHub
-                        </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', marginBottom: '10px', lineHeight: '1.6', color: '#BDBDBD' }}>
-                            <div>
-                                Estrellas: {bookmark.github_stars}
-                            </div>
-                            <div>
-                                Forks: {bookmark.github_forks}
-                            </div>
-                            <div>
-                                Visualizaciones: {bookmark.github_watchers}
-                            </div>
-                        </div>
-                        {bookmark.github_languages && Array.isArray(bookmark.github_languages) && bookmark.github_languages.length > 0 && (
-                            <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #e0e0e0' }}>
-                                <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#333', marginBottom: '5px' }}>Lenguajes:</div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                                    {bookmark.github_languages.map(lang => (
-                                        <span key={lang} style={{ backgroundColor: '#e3f2fd', color: '#1976d2', padding: '3px 8px', borderRadius: '12px', fontSize: '11px' }}>
-                                            {lang}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
 
                 <div className="manage-card__field manage-card__portada-row">
                     <div className="portada-info">
