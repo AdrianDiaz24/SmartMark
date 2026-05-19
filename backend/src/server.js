@@ -5,11 +5,13 @@ const path = require('path');
 const fs = require('fs');
 const initDB = require('./database/db');
 const errorHandler = require('./middleware/errorHandler');
+const { checkAndVerifyIfNeeded } = require('./config/cronJobConfig');
 
 // Importar rutas
 const bookmarksRouter = require('./routes/bookmarks');
 const categoriesRouter = require('./routes/categories');
 const tagsRouter = require('./routes/tags');
+const urlVerificationRouter = require('./routes/urlVerification');
 
 const app = express();
 const PORT = 3000;
@@ -58,6 +60,7 @@ app.use((req, res, next) => {
 app.use('/api/links', bookmarksRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/tags', tagsRouter);
+app.use('/api/url-verification', urlVerificationRouter);
 
 // LA RUTA RAÍZ
 app.get('/', (req, res) => {
@@ -72,4 +75,12 @@ app.listen(PORT, async () => {
   console.log(`Servidor de SmartMark corriendo en http://localhost:${PORT}`);
   db = await initDB();
   console.log('Base de datos inicializada correctamente');
+  
+  // Verificar si es necesario ejecutar verificación de URLs
+  // (sistema adaptable para servidores autohosteados)
+  try {
+    await checkAndVerifyIfNeeded(db);
+  } catch (error) {
+    console.error('⚠️  Error en verificador de URLs:', error.message);
+  }
 });

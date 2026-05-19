@@ -80,8 +80,11 @@ function LinkCard({ bookmark, folder }) {
         bookmark.portada.trim() !== ''
     ) && !isFolder;
 
+    // Verificar si la URL está inválida
+    const isInvalidUrl = !isFolder && bookmark?.url_estado === 'invalida';
+
     return (
-        <div className="link-card" onClick={handleFolderClick} style={{ cursor: isFolder || bookmark ? 'pointer' : 'default' }}>
+        <div className={`link-card ${isInvalidUrl ? 'link-card--invalid-url' : ''}`} onClick={handleFolderClick} style={{ cursor: isFolder || bookmark ? 'pointer' : 'default' }}>
             <div className={`link-card__image ${isFolder ? 'link-card__image--folder' : ''} ${!hasCustomPortada && !isFolder ? 'link-card__image--logo' : ''}`}>
                 <img 
                     src={getImageSrc()} 

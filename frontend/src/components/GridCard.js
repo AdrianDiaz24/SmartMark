@@ -80,8 +80,11 @@ function GridCard({ bookmark, folder }) {
         bookmark.portada.trim() !== ''
     ) && !isFolder;
 
+    // Verificar si la URL está inválida
+    const isInvalidUrl = !isFolder && bookmark?.url_estado === 'invalida';
+
     return (
-        <div className="grid-card" onClick={handleFolderClick} style={{ cursor: isFolder || bookmark ? 'pointer' : 'default' }}>
+        <div className={`grid-card ${isInvalidUrl ? 'grid-card--invalid-url' : ''}`} onClick={handleFolderClick} style={{ cursor: isFolder || bookmark ? 'pointer' : 'default' }}>
             <div className={`grid-card__image ${isFolder ? 'grid-card__image--folder' : ''} ${!hasCustomPortada && !isFolder ? 'grid-card__image--logo' : ''}`}>
                 <img 
                     src={getImageSrc()} 

@@ -9,6 +9,13 @@
     color: white;
     width: 100%;
     box-sizing: border-box;
+    border: 3px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.grid-card--invalid-url {
+    border-color: #FFA500;
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
 }
 
 .grid-card__image {

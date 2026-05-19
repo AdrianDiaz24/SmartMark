@@ -45,6 +45,8 @@ async function initDB() {
             github_forks INTEGER DEFAULT 0,
             github_watchers INTEGER DEFAULT 0,
             github_languages TEXT, -- JSON array: ["JavaScript", "Python", ...]
+            url_estado TEXT DEFAULT 'desconocido', -- 'valida', 'invalida', 'desconocido'
+            ultima_verificacion DATETIME, -- Última vez que se verificó la URL
             FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE
         );
 
@@ -67,6 +69,17 @@ async function initDB() {
             PRIMARY KEY (categoria_id, tag_id),
             FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE,
             FOREIGN KEY (tag_id) REFERENCES Tags(id) ON DELETE CASCADE
+        );
+
+        -- 6. TABLA DE LOG DE VERIFICACIÓN
+        -- Registra la última verificación de URLs
+        CREATE TABLE IF NOT EXISTS verification_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            last_verification DATETIME DEFAULT CURRENT_TIMESTAMP,
+            status TEXT DEFAULT 'completed',
+            marcadores_verificados INTEGER DEFAULT 0,
+            marcadores_invalidos INTEGER DEFAULT 0,
+            errores TEXT
         );
     `);
 

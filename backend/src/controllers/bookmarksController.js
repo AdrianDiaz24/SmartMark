@@ -6,7 +6,8 @@ async function getAllBookmarks(db, filters = {}) {
         let query = `
             SELECT DISTINCT m.id, m.titulo, m.url, m.descripcion, m.portada, 
                    m.categoria_id, m.fecha_creacion, m.ultima_apertura,
-                   m.github_stars, m.github_forks, m.github_watchers, m.github_languages
+                   m.github_stars, m.github_forks, m.github_watchers, m.github_languages,
+                   m.url_estado, m.ultima_verificacion
             FROM Marcadores m
             LEFT JOIN Marcadores_Tags mt ON m.id = mt.marcador_id
             LEFT JOIN Tags t ON mt.tag_id = t.id
@@ -75,7 +76,8 @@ async function getBookmarkById(db, id) {
         const bookmark = await db.get(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
                    m.categoria_id, m.fecha_creacion, m.ultima_apertura,
-                   m.github_stars, m.github_forks, m.github_watchers, m.github_languages
+                   m.github_stars, m.github_forks, m.github_watchers, m.github_languages,
+                   m.url_estado, m.ultima_verificacion
             FROM Marcadores m
             WHERE m.id = ?
         `, [id]);
@@ -372,7 +374,9 @@ async function getBookmarksByTag(db, tagId, filters = {}) {
     try {
         let query = `
             SELECT DISTINCT m.id, m.titulo, m.url, m.descripcion, m.portada, 
-                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura,
+                   m.github_stars, m.github_forks, m.github_watchers, m.github_languages,
+                   m.url_estado, m.ultima_verificacion
             FROM Marcadores m
             INNER JOIN Marcadores_Tags mt ON m.id = mt.marcador_id
             WHERE mt.tag_id = ?
@@ -435,7 +439,8 @@ async function getRecentBookmarks(db) {
     try {
         const bookmarks = await db.all(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
-                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura,
+                   m.url_estado, m.ultima_verificacion
             FROM Marcadores m
             WHERE m.categoria_id IS NULL
             ORDER BY COALESCE(m.ultima_apertura, m.fecha_creacion) DESC
@@ -457,7 +462,8 @@ async function getBookmarksVisitedLastWeek(db) {
     try {
         const bookmarks = await db.all(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
-                   m.categoria_id, m.fecha_creacion, m.ultima_apertura
+                   m.categoria_id, m.fecha_creacion, m.ultima_apertura,
+                   m.url_estado, m.ultima_verificacion
             FROM Marcadores m
             WHERE m.ultima_apertura IS NOT NULL
             AND m.ultima_apertura >= datetime('now', '-7 days')
