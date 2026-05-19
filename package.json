@@ -1,0 +1,13 @@
+{
+  "name": "smartmark",
+  "version": "1.0.0",
+  "description": "SmartMark - Gestor inteligente de marcadores",
+  "scripts": {
+    "docs": "jsdoc -c ./jsdoc.json"
+  },
+  "devDependencies": {
+    "jsdoc": "^4.0.2",
+    "better-docs": "^2.7.2"
+  }
+}
+

@@ -29,11 +29,15 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Instalar JSDoc
-        run: npm install jsdoc better-docs
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Limpiar documentación anterior
+        run: rm -rf docs
+        continue-on-error: true
 
       - name: Generar Documentación con JSDoc
-        run: npx jsdoc -c ./jsdoc.json
+        run: npm run docs
 
       - name: Deploy a GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -41,6 +45,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
+          force_orphan: true
 
 
 

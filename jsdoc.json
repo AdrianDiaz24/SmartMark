@@ -1,17 +1,22 @@
 {
   "source": {
     "include": ["backend/src"],
-    "exclude": ["backend/src/database/smartmark.db"]
+    "exclude": ["backend/src/database/smartmark.db", "backend/src/test_endpoints.http"]
   },
   "opts": {
     "outdir": "docs",
     "recurse": true,
     "template": "./node_modules/better-docs",
-    "theme": "darkmode"
+    "theme": "darkmode",
+    "readme": "./README.md"
   },
   "plugins": ["plugins/markdown"],
   "markdown": {
     "hardwrap": false
+  },
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false
   }
 }
 
