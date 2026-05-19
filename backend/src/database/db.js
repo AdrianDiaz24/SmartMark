@@ -1,6 +1,32 @@
 const sqlite3 = require('sqlite3').verbose();
 const { open } = require('sqlite');
 
+/**
+ * @fileoverview Inicialización y configuración de la base de datos SQLite para SmartMark
+ * Define el esquema completo de tablas con relaciones jerárquicas
+ * @module database/db
+ */
+
+/**
+ * Inicializa la conexión a la base de datos SQLite y crea todas las tablas
+ * @async
+ * @function initDB
+ * @returns {Promise<Object>} Instancia de la conexión a la base de datos
+ * @throws {Error} Si hay error al conectarse a la BD o crear tablas
+ *
+ * @description
+ * Crea las siguientes tablas:
+ * - **Categorias**: Carpetas con soporte para jerarquía (padre_id)
+ * - **Tags**: Etiquetas coloreadas para clasificar contenido
+ * - **Marcadores**: Bookmarks con metadatos GitHub y estado de URL
+ * - **Marcadores_Tags**: Relación many-to-many entre marcadores y tags
+ * - **Categorias_Tags**: Relación many-to-many entre categorías y tags
+ * - **verification_log**: Registro de las verificaciones de URLs del sistema
+ *
+ * @example
+ * const db = await initDB();
+ * const allBookmarks = await db.all('SELECT * FROM Marcadores');
+ */
 async function initDB() {
 
     // 1. Abrimos la conexión

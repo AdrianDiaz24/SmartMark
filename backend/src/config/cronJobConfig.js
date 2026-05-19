@@ -1,11 +1,35 @@
 const { verifyAllBookmarks } = require('../services/urlVerificationService');
 
+/**
+ * @fileoverview Sistema adaptativo de verificación de URLs para SmartMark
+ * Diseñado para funciones en servidores autohosteados que no están siempre encendidos
+ * @module config/cronJobConfig
+ */
+
+/** @constant {number} VERIFICATION_INTERVAL - Intervalo de verificación en milisegundos (7 días) */
 const VERIFICATION_INTERVAL = 7 * 24 * 60 * 60 * 1000; // 7 días en milisegundos
 
 /**
- * Chequea si pasó 1 semana desde la última verificación
- * Si pasó, ejecuta la verificación de URLs
- * Esto permite que funcione en servidores autohosteados que no están siempre encendidos
+ * Verifica si es necesario ejecutar la verificación de URLs
+ *
+ * Sistema adaptativo que:
+ * - No depende de horarios fijos (como cron tradicional)
+ * - Funciona en servidores que se reinician ocasionalmente
+ * - Ejecuta verificación si han pasado 7 días desde la última
+ * - Guarda un log de cada verificación en la tabla verification_log
+ *
+ * @async
+ * @function checkAndVerifyIfNeeded
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @returns {Promise<void>}
+ * @throws {Error} Error se captura y guarda en verification_log
+ *
+ * @example
+ * // Se ejecuta al iniciar el servidor
+ * const db = await initDB();
+ * await checkAndVerifyIfNeeded(db);
+ * // Si han pasado 7 días, verifica todas las URLs
+ * // Si no, solo muestra el estado
  */
 async function checkAndVerifyIfNeeded(db) {
     try {

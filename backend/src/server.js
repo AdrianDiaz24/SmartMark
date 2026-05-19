@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Servidor principal Express para la API de SmartMark
+ * Configura todas las rutas, middleware y servicios necesarios
+ * @module server
+ */
+
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -13,7 +19,10 @@ const categoriesRouter = require('./routes/categories');
 const tagsRouter = require('./routes/tags');
 const urlVerificationRouter = require('./routes/urlVerification');
 
+/** @constant {Object} app - Instancia de Express */
 const app = express();
+
+/** @constant {number} PORT - Puerto en el que escucha el servidor */
 const PORT = 3000;
 
 // Crear carpeta de uploads si no existe

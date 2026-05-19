@@ -1,6 +1,23 @@
-// Controlador para gestionar todas las operaciones de Marcadores (Bookmarks)
+/**
+ * @fileoverview Controlador para gestionar todas las operaciones de Marcadores (Bookmarks)
+ * Incluye CRUD completo, filtrado, búsqueda y gestión de tags para marcadores
+ * @module controllers/bookmarksController
+ */
 
-// Obtener todos los marcadores con filtros opcionales
+/**
+ * Obtiene todos los marcadores con filtros opcionales (categoría, tags, búsqueda)
+ * @async
+ * @function getAllBookmarks
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {Object} [filters={}] - Filtros opcionales
+ * @param {number} [filters.categoria_id] - ID de categoría para filtrar
+ * @param {number} [filters.tag_id] - ID de tag para filtrar
+ * @param {string} [filters.search] - Término de búsqueda (título, descripción, tags)
+ * @param {number} [filters.limit] - Límite de resultados
+ * @param {number} [filters.offset] - Offset para paginación
+ * @returns {Promise<Array>} Array de bookmarks con tags incluidos
+ * @throws {Error} Si hay error al consultar la base de datos
+ */
 async function getAllBookmarks(db, filters = {}) {
     try {
         let query = `
@@ -70,7 +87,15 @@ async function getAllBookmarks(db, filters = {}) {
     }
 }
 
-// Obtener un marcador específico por ID
+/**
+ * Obtiene un marcador específico por su ID
+ * @async
+ * @function getBookmarkById
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} id - ID del marcador
+ * @returns {Promise<Object>} Objeto marcador con tags y metadatos GitHub
+ * @throws {Error} Si el marcador no existe o hay error en la consulta
+ */
 async function getBookmarkById(db, id) {
     try {
         const bookmark = await db.get(`

@@ -1,6 +1,17 @@
-// Controlador para gestionar todas las operaciones de Categorías
+/**
+ * @fileoverview Controlador para gestionar todas las operaciones de Categorías (Carpetas)
+ * Incluye las operaciones CRUD, gestión de jerarquía de carpetas y estadísticas
+ * @module controllers/categoriesController
+ */
 
-// Obtener todas las categorías con su estructura jerárquica
+/**
+ * Obtiene todas las categorías raíz con su estructura jerárquica completa
+ * @async
+ * @function getAllCategories
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @returns {Promise<Array>} Array de categorías padres con subcategorías anidadas
+ * @throws {Error} Si hay error al consultar la base de datos
+ */
 async function getAllCategories(db) {
     try {
         const categories = await db.all(`
@@ -23,7 +34,15 @@ async function getAllCategories(db) {
     }
 }
 
-// Obtener subcategorías recursivamente
+/**
+ * Obtiene subcategorías recursivamente para construir el árbol de carpetas
+ * @async
+ * @function getSubcategories
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} parentId - ID de la categoría padre
+ * @returns {Promise<Array>} Array de subcategorías con su estructura recursiva
+ * @throws {Error} Si hay error en la consulta
+ */
 async function getSubcategories(db, parentId) {
     try {
         const subcats = await db.all(`
@@ -45,7 +64,15 @@ async function getSubcategories(db, parentId) {
     }
 }
 
-// Obtener estadísticas de una categoría (cantidad de subcarpetas y marcadores)
+/**
+ * Obtiene estadísticas de una categoría (cantidad de subcarpetas y marcadores)
+ * @async
+ * @function getCategoryStats
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} categoryId - ID de la categoría
+ * @returns {Promise<Object>} Objeto con { subfolders: number, bookmarks: number }
+ * @throws {Error} Si hay error al consultar la base de datos
+ */
 async function getCategoryStats(db, categoryId) {
     try {
         const subfolders = await db.get(`
@@ -65,7 +92,15 @@ async function getCategoryStats(db, categoryId) {
     }
 }
 
-// Obtener una categoría específica por ID
+/**
+ * Obtiene una categoría específica por su ID incluyendo subcategorías
+ * @async
+ * @function getCategoryById
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} id - ID de la categoría
+ * @returns {Promise<Object|null>} Objeto categoría con estructura jerárquica o null
+ * @throws {Error} Si hay error en la consulta
+ */
 async function getCategoryById(db, id) {
     try {
         const category = await db.get(`
@@ -88,7 +123,17 @@ async function getCategoryById(db, id) {
     }
 }
 
-// Crear una nueva categoría
+/**
+ * Crea una nueva categoría en el sistema con soporte para jerarquía
+ * @async
+ * @function createCategory
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {string} nombre - Nombre de la categoría
+ * @param {number} [padre_id=null] - ID de la categoría padre (opcional)
+ * @param {Array<number>} [tags=[]] - Array de IDs de tags a asociar
+ * @returns {Promise<Object>} Nueva categoría creada
+ * @throws {Error} Si el nombre está vacío o hay conflicto con jerarquía
+ */
 async function createCategory(db, nombre, padre_id = null, tags = []) {
     try {
         if (!nombre || nombre.trim() === '') {
@@ -130,7 +175,17 @@ async function createCategory(db, nombre, padre_id = null, tags = []) {
     }
 }
 
-// Actualizar una categoría
+/**
+ * Actualiza una categoría existente (nombre y/o padre)
+ * @async
+ * @function updateCategory
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} id - ID de la categoría a actualizar
+ * @param {string} nombre - Nuevo nombre
+ * @param {number} padre_id - Nuevo ID de padre
+ * @returns {Promise<Object>} Categoría actualizada
+ * @throws {Error} Si la categoría no existe o hay conflicto de jerarquía
+ */
 async function updateCategory(db, id, nombre, padre_id) {
     try {
         const categoria = await db.get(`SELECT * FROM Categorias WHERE id = ?`, [id]);

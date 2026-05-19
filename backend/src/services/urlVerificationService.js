@@ -1,9 +1,34 @@
 const axios = require('axios');
 
-// Timeout para verificaciones de URL (en ms)
+/**
+ * @fileoverview Servicio de verificación de URLs para SmartMark
+ * Verifica el estado de todos los marcadores usando HTTP HEAD/GET
+ * @module services/urlVerificationService
+ */
+
+/** @constant {number} VERIFICATION_TIMEOUT - Timeout máximo para una verificación (5 segundos) */
 const VERIFICATION_TIMEOUT = 5000;
 
-// Función para verificar una única URL
+/**
+ * Verifica si una URL es accesible y válida
+ * Intenta primero con HEAD request (más rápido), si falla intenta GET
+ * 
+ * @async
+ * @function verifyUrl
+ * @param {string} url - URL a verificar
+ * @returns {Promise<string>} 'valida' si la URL es accesible, 'invalida' si no
+ * 
+ * @description
+ * Proceso de verificación:
+ * 1. Intenta HEAD request (rápido, sin descargar contenido)
+ * 2. Si falla, intenta GET request
+ * 3. Retorna 'valida' si código HTTP < 400
+ * 4. Retorna 'invalida' si código >= 400 o timeout
+ * 
+ * @example
+ * const estado = await verifyUrl('https://example.com');
+ * // Retorna: 'valida' o 'invalida'
+ */
 async function verifyUrl(url) {
     try {
         // Primero intentar con HEAD (más rápido)
@@ -43,7 +68,27 @@ async function verifyUrl(url) {
     }
 }
 
-// Función para verificar todos los marcadores en la base de datos
+/**
+ * Verifica el estado de todas las URLs en la base de datos
+ * Se ejecuta cada 7 días o cuando se inicia el servidor
+ * Actualiza el campo url_estado en cada marcador
+ * 
+ * @async
+ * @function verifyAllBookmarks
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @returns {Promise<Object>} Estadísticas: { total: number, validos: number, invalidos: number }
+ * 
+ * @description
+ * Procesa cada marcador y:
+ * 1. Verifica su URL
+ * 2. Actualiza url_estado ('valida' o 'invalida')
+ * 3. Recuenta estadísticas generales
+ * 4. Muestra progreso en consola
+ * 
+ * @example
+ * const result = await verifyAllBookmarks(db);
+ * // Retorna: { total: 50, validos: 45, invalidos: 5 }
+ */
 async function verifyAllBookmarks(db) {
     try {
         console.log(' Iniciando verificación semanal de URLs...');
