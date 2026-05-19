@@ -25,7 +25,21 @@ async function getTagById(db, id) {
     }
 }
 
-// Crear un nuevo tag
+/**
+ * Crea un nuevo tag (etiqueta) en la base de datos
+ * @async
+ * @function createTag
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {string} nombre - Nombre del tag (debe ser único y no vacío)
+ * @param {string} color - Color en formato hexadecimal (ej: "FF5733" o "#FF5733")
+ * @returns {Promise<Object>} Objeto del tag creado con propiedades: id, nombre, color, fecha_creacion
+ * @throws {Error} Si el nombre está vacío, el color es inválido, o el nombre ya existe
+ *
+ * @example
+ * // Crear un nuevo tag
+ * const nuevoTag = await createTag(db, 'React', 'FF5733');
+ * // Retorna: { id: 1, nombre: 'React', color: 'FF5733', fecha_creacion: '2026-05-19T10:30:00Z' }
+ */
 async function createTag(db, nombre, color) {
     try {
         if (!nombre || nombre.trim() === '') {
