@@ -1,0 +1,17 @@
+{
+  "source": {
+    "include": ["backend/src"],
+    "exclude": ["backend/src/database/smartmark.db"]
+  },
+  "opts": {
+    "outdir": "docs",
+    "recurse": true,
+    "template": "node_modules/better-docs",
+    "theme": "darkmode"
+  },
+  "plugins": ["plugins/markdown"],
+  "markdown": {
+    "hardwrap": false
+  }
+}
+

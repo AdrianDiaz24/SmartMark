@@ -1,0 +1,46 @@
+name: Generar Documentación con JSDoc
+
+on:
+  push:
+    branches:
+      - main
+
+    paths:
+      - 'backend/src/**'
+      - '.github/workflows/docs.yml'
+      - 'jsdoc.json'
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v3
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Instalar JSDoc
+        run: npm install -g jsdoc better-docs
+
+      - name: Generar Documentación con JSDoc
+        run: jsdoc -c ./jsdoc.json
+
+      - name: Deploy a GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+
+
+
