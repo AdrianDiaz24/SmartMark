@@ -1,6 +1,20 @@
 // Controlador para gestionar todas las operaciones de Tags
 
-// Obtener todos los tags
+/**
+ * Obtiene todos los tags de la base de datos
+ * @async
+ * @function getAllTags
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @returns {Promise<Array>} Array de objetos tag con propiedades: id, nombre, color, fecha_creacion
+ * @throws {Error} Si hay un error al consultar la base de datos
+ *
+ * @example
+ * const tags = await getAllTags(db);
+ * // Retorna: [
+ * //   { id: 1, nombre: 'React', color: 'FF5733', fecha_creacion: '2026-05-19T10:30:00Z' },
+ * //   { id: 2, nombre: 'Node.js', color: '3498DB', fecha_creacion: '2026-05-18T15:45:00Z' }
+ * // ]
+ */
 async function getAllTags(db) {
     try {
         const tags = await db.all(`
@@ -13,7 +27,19 @@ async function getAllTags(db) {
     }
 }
 
-// Obtener un tag específico por ID
+/**
+ * Obtiene un tag específico por su ID
+ * @async
+ * @function getTagById
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} id - ID del tag a obtener
+ * @returns {Promise<Object|undefined>} Objeto tag con propiedades: id, nombre, color, fecha_creacion
+ * @throws {Error} Si hay un error al consultar la base de datos
+ *
+ * @example
+ * const tag = await getTagById(db, 1);
+ * // Retorna: { id: 1, nombre: 'React', color: 'FF5733', fecha_creacion: '2026-05-19T10:30:00Z' }
+ */
 async function getTagById(db, id) {
     try {
         const tag = await db.get(`
@@ -76,7 +102,25 @@ async function createTag(db, nombre, color) {
     }
 }
 
-// Actualizar un tag
+/**
+ * Actualiza un tag existente
+ * @async
+ * @function updateTag
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} id - ID del tag a actualizar
+ * @param {string} [nombre] - Nuevo nombre del tag (opcional)
+ * @param {string} [color] - Nuevo color en formato hexadecimal (opcional)
+ * @returns {Promise<Object>} Tag actualizado con todas sus propiedades
+ * @throws {Error} Si el tag no existe, el nombre ya está en uso, o el color es inválido
+ *
+ * @example
+ * // Actualizar solo el nombre
+ * const updated = await updateTag(db, 1, 'Vue.js');
+ *
+ * @example
+ * // Actualizar solo el color
+ * const updated = await updateTag(db, 1, undefined, '#E74C3C');
+ */
 async function updateTag(db, id, nombre, color) {
     try {
         const tag = await db.get(`SELECT * FROM Tags WHERE id = ?`, [id]);
@@ -117,7 +161,21 @@ async function updateTag(db, id, nombre, color) {
     }
 }
 
-// Eliminar un tag
+// ...existing code...
+
+/**
+ * Elimina un tag de la base de datos y todas sus relaciones
+ * @async
+ * @function deleteTag
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} id - ID del tag a eliminar
+ * @returns {Promise<Object>} Objeto de confirmación con mensaje de éxito
+ * @throws {Error} Si el tag no existe o hay error al eliminar
+ *
+ * @example
+ * const result = await deleteTag(db, 1);
+ * // Retorna: { mensaje: 'Tag eliminado exitosamente' }
+ */
 async function deleteTag(db, id) {
     try {
         const tag = await db.get(`SELECT * FROM Tags WHERE id = ?`, [id]);
@@ -141,7 +199,22 @@ async function deleteTag(db, id) {
     }
 }
 
-// Obtener tags de un marcador específico
+/**
+ * Obtiene todos los tags asociados a un marcador específico
+ * @async
+ * @function getTagsByBookmark
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} bookmarkId - ID del marcador
+ * @returns {Promise<Array>} Array de tags asociados al marcador
+ * @throws {Error} Si hay error al consultar la base de datos
+ *
+ * @example
+ * const tags = await getTagsByBookmark(db, 5);
+ * // Retorna: [
+ * //   { id: 1, nombre: 'React', color: 'FF5733', fecha_creacion: '2026-05-19T10:30:00Z' },
+ * //   { id: 3, nombre: 'Frontend', color: '9B59B6', fecha_creacion: '2026-05-19T11:15:00Z' }
+ * // ]
+ */
 async function getTagsByBookmark(db, bookmarkId) {
     try {
         const tags = await db.all(`
@@ -157,7 +230,19 @@ async function getTagsByBookmark(db, bookmarkId) {
     }
 }
 
-// Obtener estadísticas de un tag
+/**
+ * Obtiene estadísticas de uso de un tag específico
+ * @async
+ * @function getTagStats
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} tagId - ID del tag para obtener estadísticas
+ * @returns {Promise<Object>} Objeto con estadísticas: { bookmarks: number, categories: number }
+ * @throws {Error} Si hay error al consultar la base de datos
+ *
+ * @example
+ * const stats = await getTagStats(db, 1);
+ * // Retorna: { bookmarks: 12, categories: 3 }
+ */
 async function getTagStats(db, tagId) {
     try {
         // Contar marcadores con este tag

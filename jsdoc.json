@@ -1,22 +1,33 @@
 {
   "source": {
     "include": ["backend/src"],
-    "exclude": ["backend/src/database/smartmark.db", "backend/src/test_endpoints.http"]
+    "includePattern": ".+\\.js$",
+    "excludePattern": "(node_modules|docs|smartmark\\.db|test_endpoints\\.http)"
   },
   "opts": {
     "outdir": "docs",
     "recurse": true,
-    "template": "./node_modules/better-docs",
-    "theme": "darkmode",
-    "readme": "./README.md"
-  },
-  "plugins": ["plugins/markdown"],
-  "markdown": {
-    "hardwrap": false
+    "template": "./node_modules/better-docs"
   },
   "templates": {
     "cleverLinks": false,
-    "monospaceLinks": false
+    "monospaceLinks": false,
+    "default": {
+      "applicationName": "SmartMark API Documentation",
+      "disqus": "",
+      "googleAnalytics": "",
+      "openGraph": {
+        "title": "SmartMark - Bookmark Manager API",
+        "type": "website",
+        "image": ""
+      },
+      "meta": [
+        {
+          "name": "description",
+          "content": "Documentación de la API de SmartMark - Gestor inteligente de marcadores"
+        }
+      ]
+    }
   }
 }
 
