@@ -27,7 +27,11 @@ async function checkAndVerifyIfNeeded(db) {
             const currentTime = new Date().getTime();
             const timeSinceLastVerification = currentTime - lastVerificationTime;
 
-            console.log(`Última verificación: ${lastLog.last_verification}`);
+            // Formatear fecha a DD-MM-YYYY
+            const [year, month, day] = lastLog.last_verification.split('-');
+            const fechaFormateada = `${day}-${month}-${year}`;
+
+            console.log(`Última verificación: ${fechaFormateada}`);
             console.log(`Tiempo transcurrido: ${Math.floor(timeSinceLastVerification / (1000 * 60 * 60 * 24))} días`);
 
             if (timeSinceLastVerification < VERIFICATION_INTERVAL) {
