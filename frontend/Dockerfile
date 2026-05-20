@@ -4,6 +4,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Argumentos de build
+ARG REACT_APP_API_BASE_URL=http://localhost:3000/api
+
 # Copiar package.json
 COPY package.json package-lock.json ./
 
@@ -13,8 +16,8 @@ RUN npm install
 # Copiar código fuente
 COPY . .
 
-# Build de la aplicación
-RUN npm run build
+# Build de la aplicación con variable de entorno
+RUN REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL npm run build
 
 # Stage 2: Serve
 FROM node:18-alpine
