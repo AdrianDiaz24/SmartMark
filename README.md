@@ -79,7 +79,7 @@ Características destacadas:
 
 Antes de comenzar, asegúrate de tener instalado:
 
-- **Node.js** 16+ ([descargar](https://nodejs.org))
+- **Node.js** 20+ ([descargar](https://nodejs.org))
 - **npm** 7+ (incluido con Node.js)
 - **Git** ([descargar](https://git-scm.com))
 
