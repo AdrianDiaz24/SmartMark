@@ -3,9 +3,11 @@
 > **Gestor inteligente de marcadores con verificación automática de URLs, asignacion automatica de tags y organización jerárquica, pensada para desarolladores**
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Node.js](https://img.shields.io/badge/node.js-16+-green.svg)
+![Node.js](https://img.shields.io/badge/node.js-20+-green.svg)
 ![React](https://img.shields.io/badge/React-18+-blue.svg)
 ![SQLite](https://img.shields.io/badge/SQLite-3.51+-cyan.svg)
+![Docker](https://img.shields.io/badge/Docker-Supported-2496ED.svg)
+![Docker Compose](https://img.shields.io/badge/Docker%20Compose-Supported-2496ED.svg)
 
 ---
 
@@ -162,6 +164,127 @@ Abrirá automáticamente `http://localhost:3001` en tu navegador.
 ### Acceder a la Aplicación
 - **URL:** `http://localhost:3001`
 - **API Backend:** `http://localhost:3000/api`
+
+---
+
+## Despliegue con Docker
+
+### Requisitos Previos
+
+- **Docker** ([descargar](https://docs.docker.com/get-docker/))
+- **Docker Compose** ([descargar](https://docs.docker.com/compose/install/))
+
+Verificar instalación:
+```bash
+docker --version
+docker-compose --version
+```
+
+### Opción 1: Docker Compose (RECOMENDADO)
+
+La forma más fácil y rápida. **No necesitas clonar el repositorio:**
+
+#### 1. Descargar solo el archivo `docker-compose.yml`
+
+```bash
+# Crear una carpeta para el proyecto
+mkdir smartmark
+cd smartmark
+
+# Descargar el archivo docker-compose.yml
+curl -o docker-compose.yml https://raw.githubusercontent.com/AdrianDiaz24/SmartMark/main/docker-compose.yml
+```
+
+#### 2. Descargar las imágenes más recientes
+```bash
+docker-compose pull
+```
+
+#### 3. Crear los contenedore e iniciar la aplicación
+```bash
+docker-compose up -d
+```
+
+#### 4. Acceder a la aplicación
+
+- **Frontend:** http://localhost:3001
+- **Backend API:** http://localhost:3000/api
+
+**Ver logs en tiempo real:**
+```bash
+docker-compose logs -f
+```
+
+**Detener la aplicación:**
+```bash
+docker-compose stop
+```
+
+**Reiniciar la aplicación:**
+```bash
+docker-compose restart
+```
+
+**Eliminar contenedores (sin eliminar volúmenes):**
+```bash
+docker-compose down
+```
+
+**Eliminar contenedores y volúmenes (¡CUIDADO!):**
+```bash
+docker-compose down -v
+```
+
+### Opción 2: Descargar Imágenes Individuales desde Docker Hub
+
+Si prefieres ejecutar los contenedores sin Docker Compose:
+
+#### Backend
+- **Repositorio:** [adriandiaz24/smartmark-backend](https://hub.docker.com/r/adriandiaz24/smartmark-backend)
+
+```bash
+docker run -d -p 3000:3000 --name smartmark-backend adriandiaz24/smartmark-backend:latest
+```
+
+#### Frontend
+- **Repositorio:** [adriandiaz24/smartmark-frontend](https://hub.docker.com/r/adriandiaz24/smartmark-frontend)
+
+```bash
+docker run -d -p 3001:3001 --name smartmark-frontend adriandiaz24/smartmark-frontend:latest
+```
+
+### Cómo Funcionan las Imágenes
+
+- **Backend:** `adriandiaz24/smartmark-backend:latest` - Servidor API de marcadores con SQLite
+- **Frontend:** `adriandiaz24/smartmark-frontend:latest` - Aplicación React compilada y servida
+- **Automático:** Las imágenes se actualizan automáticamente en Docker Hub cuando hay commits en la rama `main`
+
+### Solución de Problemas con Docker
+
+**Puerto en uso:**
+```bash
+# Ver contenedores en ejecución
+docker ps
+
+# Detener un contenedor
+docker stop CONTAINER_ID
+```
+
+**Eliminar contenedores y volúmenes:**
+```bash
+docker-compose down -v
+```
+
+**Ver logs de un contenedor:**
+```bash
+docker logs CONTAINER_ID -f
+```
+
+**Forzar descarga de últimas imágenes:**
+```bash
+docker-compose pull --no-parallel
+docker-compose up -d
+```
 
 ---
 
@@ -373,7 +496,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ---
 
-## 👤 Autor
+## Autor
 
 **SmartMark** fue desarrollado como proyecto de gestión de marcadores.
 
@@ -411,7 +534,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ---
 
-**Made with ❤️ for bookmark lovers**
+**Made with love for bookmark lovers**
 
 ---
 
