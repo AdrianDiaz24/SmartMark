@@ -50,17 +50,9 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/smartmark-frontend:latest
             ${{ secrets.DOCKER_USERNAME }}/smartmark-frontend:${{ github.sha }}
 
-      - name: Docker login to remote server (optional)
-        continue-on-error: true
-        env:
-          DOCKER_HOST: ${{ secrets.DOCKER_HOST }}
-          DOCKER_CERT_PATH: ${{ secrets.DOCKER_CERT_PATH }}
-          DOCKER_TLS_VERIFY: ${{ secrets.DOCKER_TLS_VERIFY }}
-        run: docker pull ${{ secrets.DOCKER_USERNAME }}/smartmark-backend:latest
-
       - name: Deployment notification
         run: |
-          echo "✅ Docker images built and pushed successfully!"
+          echo "Docker images built and pushed successfully!"
           echo "Backend image: ${{ secrets.DOCKER_USERNAME }}/smartmark-backend:latest"
           echo "Frontend image: ${{ secrets.DOCKER_USERNAME }}/smartmark-frontend:latest"
 

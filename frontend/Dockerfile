@@ -32,4 +32,3 @@ EXPOSE 3001
 
 # Comando para servir la aplicación
 CMD ["serve", "-s", "build", "-l", "3001"]
-
