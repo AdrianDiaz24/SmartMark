@@ -3,17 +3,15 @@ version: '3.8'
 services:
   # Servicio Backend
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: adriandiaz24/smartmark-backend:latest
     container_name: smartmark-backend
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
     volumes:
-      - ./backend/database:/app/database
-      - ./backend/uploads:/app/uploads
+      - smartmark-db:/app/database
+      - smartmark-uploads:/app/uploads
     networks:
       - smartmark-network
     restart: unless-stopped
@@ -26,14 +24,12 @@ services:
 
   # Servicio Frontend
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - REACT_APP_API_BASE_URL=http://localhost:3000/api
+    image: adriandiaz24/smartmark-frontend:latest
     container_name: smartmark-frontend
     ports:
       - "3001:3001"
+    environment:
+      - REACT_APP_API_BASE_URL=http://localhost:3000/api
     depends_on:
       - backend
     networks:
