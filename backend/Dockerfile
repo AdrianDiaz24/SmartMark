@@ -1,5 +1,5 @@
 # Dockerfile para el backend de SmartMark
-FROM node:18-alpine
+FROM node:20-slim
 
 # Establecer directorio de trabajo
 WORKDIR /app

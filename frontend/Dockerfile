@@ -1,6 +1,6 @@
 # Dockerfile multi-stage para el frontend de SmartMark
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ COPY . .
 RUN REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL npm run build
 
 # Stage 2: Serve
-FROM node:18-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
