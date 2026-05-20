@@ -20,7 +20,7 @@ COPY . .
 RUN REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL npm run build
 
 # Stage 2: Serve
-FROM node:20-slim
+FROM node:20
 
 WORKDIR /app
 

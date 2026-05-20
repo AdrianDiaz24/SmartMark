@@ -71,6 +71,20 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/tags', tagsRouter);
 app.use('/api/url-verification', urlVerificationRouter);
 
+// Ruta raíz de API
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'Bienvenido a la API de SmartMark',
+    version: '1.0.0',
+    endpoints: {
+      links: '/api/links',
+      categories: '/api/categories',
+      tags: '/api/tags',
+      urlVerification: '/api/url-verification'
+    }
+  });
+});
+
 // LA RUTA RAÍZ
 app.get('/', (req, res) => {
   res.send('¡Hola Mundo desde el backend de SmartMark!');
@@ -90,6 +104,6 @@ app.listen(PORT, async () => {
   try {
     await checkAndVerifyIfNeeded(db);
   } catch (error) {
-    console.error('⚠️  Error en verificador de URLs:', error.message);
+    console.error('⚠Error en verificador de URLs:', error.message);
   }
 });

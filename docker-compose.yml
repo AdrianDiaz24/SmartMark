@@ -30,7 +30,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - REACT_APP_API_BASE_URL=http://backend:3000/api
+        - REACT_APP_API_BASE_URL=http://localhost:3000/api
     container_name: smartmark-frontend
     ports:
       - "3001:3001"
