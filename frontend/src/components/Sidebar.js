@@ -139,7 +139,13 @@ function Sidebar() {
             {/* SECCIÓN DE CARPETAS */}
             <div className="sidebar-folder" style={{ marginBottom: '20px' }}>
                 <div className="sidebar-folder__header">
-                    <h3>Carpetas</h3>
+                    <h3 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => navigate('/gestionar-carpetas')}
+                        title="Click para gestionar carpetas"
+                    >
+                        Carpetas
+                    </h3>
                     <button className="sidebar-folder__add-btn" onClick={() => setIsFolderModalOpen(true)}>
                         <img src={iconoAñadir} alt="Añadir carpeta" className="sidebar-folder__add-icon" />
                     </button>
@@ -169,7 +175,13 @@ function Sidebar() {
             {/* SECCIÓN DE TAGS */}
             <div className="sidebar-tags">
                 <div className="sidebar-tags__header">
-                    <h3>Tags</h3>
+                    <h3 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => navigate('/gestionar-tags')}
+                        title="Click para gestionar tags"
+                    >
+                        Tags
+                    </h3>
                     <button className="sidebar-tags__add-btn" onClick={() => setIsTagModalOpen(true)}>
                         +
                     </button>

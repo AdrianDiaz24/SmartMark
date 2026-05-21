@@ -21,13 +21,6 @@ function TagPopover({ isOpen, onClose, availableTags, selectedTags, onToggleTag 
                 <header className="tag-popover__header">
                     <span className="tag-popover__title">Tags</span>
                     {}
-                    <button
-                        type="button"
-                        className="tag-popover__add-new"
-                        onClick={() => setIsCreateModalOpen(true)}
-                    >
-                        +
-                    </button>
                 </header>
 
                 <div className="tag-popover__list">

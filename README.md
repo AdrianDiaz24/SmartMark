@@ -18,7 +18,7 @@
 - [Requisitos Previos](#requisitos-previos)
 - [Instalación](#instalación)
 - [Configuración](#configuración)
-- [Uso](#uso)
+- [Despliegue de la aplicación web](#despliegue-de-la-aplicación-web)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [API Endpoints](#api-endpoints)
 - [Tecnologías](#tecnologías)
@@ -135,7 +135,7 @@ npm install
 
 ---
 
-## Uso
+## Despliegue de la aplicación web
 
 ### Iniciar el Backend
 ```bash

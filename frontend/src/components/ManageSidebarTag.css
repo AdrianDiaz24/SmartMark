@@ -3,4 +3,4 @@
 .manage-sidebar-tag__header h3 { margin: 0; font-size: 20px; }
 .manage-sidebar-tag__add-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; line-height: 1; transition: opacity 0.2s; }
 .manage-sidebar-tag__add-btn:hover { opacity: 0.7; }
-.manage-sidebar-tag__list { display: flex; flex-direction: column; gap: 15px; align-items: flex-start; }
+.manage-sidebar-tag__list { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }

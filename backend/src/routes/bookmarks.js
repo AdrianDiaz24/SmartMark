@@ -191,7 +191,7 @@ router.post('/refresh-github', async (req, res, next) => {
                         data: gitHubData
                     });
 
-                    console.log(`[GitHub Refresh] ✓ Actualizado: ${bookmark.titulo} (⭐ ${gitHubData.stars}, 🔀 ${gitHubData.forks})`);
+                    console.log(`[GitHub Refresh] ✓ Actualizado: ${bookmark.titulo} (Starts: ${gitHubData.stars}, Forks: ${gitHubData.forks})`);
                 } else {
                     failed++;
                     results.push({
@@ -443,25 +443,6 @@ router.post('/:id/access', async (req, res, next) => {
     }
 });
 
-// GET /api/links/stats/last-week - Obtener marcadores visitados última semana (DUPLICADA - se mantiene abajo para mayor especificidad)
-// router.get('/stats/last-week', async (req, res, next) => {
-//     try {
-//         const bookmarks = await getBookmarksVisitedLastWeek(db);
-//         res.json(bookmarks);
-//     } catch (error) {
-//         next(error);
-//     }
-// });
-
-// GET /api/links/stats/count-last-week - Contar marcadores visitados última semana (DUPLICADA)
-// router.get('/stats/count-last-week', async (req, res, next) => {
-//     try {
-//         const count = await countBookmarksVisitedLastWeek(db);
-//         res.json({ count });
-//     } catch (error) {
-//         next(error);
-//     }
-// });
 
 module.exports = router;
 
