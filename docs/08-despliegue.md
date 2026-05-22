@@ -283,6 +283,29 @@ Con esto y las instrucciones de despliegue documentadas en el apartado anterior,
 
 ## 5. Recuperación Despliegue
 
+En este apartado se encuentra documentandos los criterios de evaluacion del modulo de Despliegue de Aplicacione Web, se podra encontrar en el orden de la rubrica entregada por Edu, encontrandose en el siguiente orden:
+
+1. [C6 - Documentación-del-proyecto](#c6---documentación-del-proyecto)
+2. [C5 - Control-de-versiones-e-integración-y-despliegue-continuo](#c5---control-de-versiones--integración-y-despliegue-continuo)
+3. [C1 - Buen-diseño-de-arquitectura-de-la-aplicación](#c1---buen-diseño-de-arquitectura-de-la-aplicación)
+4. [C2 - Buena-implementación-en-Docker](#c2---buena-implementación-en-docker)
+5. [C3 - Uso correcto del servidor web-como front](#c3---uso-correcto-del-servidor-web-como-front)
+6. [C4 - Uso correcto del servidor de aplicaciones](#c4---uso-correcto-del-servidor-de-aplicaciones)
+7. [C7 - Gestión básica de ficheros y artefactos necesarios para el despliegue](#c7---gestión-básica-de-ficheros-y-artefactos-necesarios-para-el-despliegue)
+8. [C8 - Verificación básica de red del despliegue](#c8---verificación-básica-de-red-del-despliegue)
+
+Destacar que varias de las evidencias que se encuentran en este apartado se pueden encontrar repetidas en el resto de la documentacion como dentro de este apartado, ya que se piede varias veces en diferentes criterios, se que es redundante, pero creo que facilita tamvien la correccion de los diferentes criterios de evaluacion.
+
+---
+
+### C6 - Documentación del proyecto
+
+La documentacion del proyecto se encuentra en el README.md del repositorio, donde se explica detalladamente el proceso de despliegue, la aquirtectura de la aplicación y los endpoints de la API, entre otras cosas.
+
+Tambien se cuenta con toda la documentacion del directorio `docs` donde se explica cada una de las partes del proyecto, queiro presuponer que el readme.md como el resto de evidencias en los otros documentos son suficiente evidencia para demostrar la correcta documentacion y funcionamiento del proyecto.
+
+---
+
 ### C5 - Control de versiones + integración y despliegue continuo
 
 Durante el desarrollo de SmartMark, se utilizó Git para el control de versiones. Se implementó el despliegue continuo utilizando GitHub Actions, lo que permite desplegar nuevas versiones a Docker Hub cada vez que se hacen commits en la rama `main`. Esto asegura que las imágenes de Docker estén siempre actualizadas con la última versión estable del código.
@@ -416,7 +439,79 @@ curl http://localhost:3001
 
 ### C3 - Uso correcto del servidor web como front
 
+## Uso del Servidor Web como Front (Reverse Proxy)
 
+Para mejorar el despliegue del frontend, se ha sustituido el servidor básico por **Nginx**. Este actúa como servidor de archivos estáticos para la aplicación React y, simultáneamente, como un proxy inverso (Reverse Proxy) para la API.
+
+### 1. Configuración del Servidor y Proxy
+
+Se han configurado dos rutas principales en Nginx. Todo el tráfico normal carga la interfaz web, pero cualquier petición que vaya a la ruta `/api` es redirigida internamente al contenedor del backend.
+
+- **Fichero de configuración (`nginx.conf`):**
+```nginx
+server {
+    listen 80;
+    
+    location / {
+        root /usr/share/nginx/html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api {
+        proxy_pass http://backend:3000;
+    }
+}
+```
+
+### Verificacion del Funcionamiento y evidencias
+
+Al acceder a `http://localhost:3001`, se carga la aplicación React servida por Nginx. Al interactuar con la aplicación, las peticiones a la API se redirigen correctamente al backend, lo que se puede verificar en los logs de ambos contenedores, tambien a traves de docker-compose ps se puede ver que se exponen tanto el puerto 3001 del fronten con el 80 de nginx.
+
+**Docker-compose ps**
+
+![docker-compose ps](https://i.gyazo.com/a95df2d0ca397645be86d3d29e1c9bcd.png)
+
+**Curl frontend**
+
+![curl frontend](https://i.gyazo.com/2b2dfcce3d28bc026b92c58313ab806c.png)
+
+**Curl backend**
+
+![curl backend](https://i.gyazo.com/2aa2cbcb162919c7456c1e48158e0acf.png)
+
+**Docker-compose logs frontend**
+
+```
+smartmark-frontend  | 172.18.0.1 - - [22/May/2026:16:17:20 +0000] "GET /api/links/stats/recent HTTP/1.1" 200 2 "http://localhost:3001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 OPR/131.0.0.0" "-"
+smartmark-frontend  | 172.18.0.1 - - [22/May/2026:16:17:20 +0000] "GET /api/categories HTTP/1.1" 200 2 "http://localhost:3001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 OPR/131.0.0.0" "-"
+smartmark-frontend  | 172.18.0.1 - - [22/May/2026:16:17:20 +0000] "GET /api/tags HTTP/1.1" 200 2496 "http://localhost:3001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 OPR/131.0.0.0" "-"
+```
+
+---
+
+### C4 - Uso correcto del servidor de aplicaciones
+
+Se usa como servidor de aplicaciones uso Node.js junto con Express para el backend. Esto permite una separación clara de responsabilidades, con Node.js manejando la lógica de negocio y Express se encarga de escuchar las peticiones HTTP, procesarlas y enviar respuestas adecuadas al frontend.
+
+#### Pruebas y evidencias
+
+**Curl**
+
+Se usa `curl -i http://localhost:3001/api/links` para verificar que el servidor de aplicaciones está respondiendo correctamente a las peticiones API.
+
+![curl backend](https://i.gyazo.com/ef7dc4875706c5513314ba40971096c8.png)
+
+**Logs**
+
+Como se puede apreciar en los logs del backend, las peticiones a la API (Crear marcador) se están procesando correctamente, lo que confirma que el servidor de aplicaciones está funcionando, ademas de las peticiones de la API, se ve como funciona junto a la BD y en la imagen anterior como se envian los datos al frontend.
+
+![logs backend](https://i.gyazo.com/6ab1537037e04f8876902c89cb3e84e3.png)
+
+**Prueba de rendimiento**
+
+Se usa el comando `Measure-Command { curl.exe -s http://localhost:3001/api/links > $null }` del PowerShell de Windows para medir el tiempo que tarda en responder el servidor de aplicaciones a una petición API, lo que ayuda a verificar que el servidor está respondiendo de manera eficiente.
+
+![Prueba de rendimiento](https://i.gyazo.com/3e986a94d9aebd069e34f0b2e538ca43.png)
 
 ---
 
