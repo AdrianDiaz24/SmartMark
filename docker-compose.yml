@@ -10,7 +10,7 @@ services:
     environment:
       - NODE_ENV=production
     volumes:
-      - smartmark-db:/app/database
+      - smartmark-db:/app/src/database
       - smartmark-uploads:/app/uploads
     networks:
       - smartmark-network
