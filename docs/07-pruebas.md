@@ -38,24 +38,24 @@ Se utilizó **únicamente pruebas manuales** durante todo el desarrollo.
 Cada endpoint se probó manualmente verificando:
 
 GET /api/links
-- Sin filtros → Retorna todos los marcadores
-- Con ?carpeta=1 → Filtra por carpeta
-- Con ?tag=2 → Filtra por tag
-- Con ambos filtros → Combina ambas condiciones
+- Sin filtros: Retorna todos los marcadores
+- Con ?carpeta=1: Filtra por carpeta
+- Con ?tag=2: Filtra por tag
+- Con ambos filtros: Combina ambas condiciones
 
 POST /api/links
-- Con datos válidos → Se crea marcador y retorna ID
-- Sin URL → Error 400
-- URL inválida → Scraping devuelve error
+- Con datos válidos: Se crea marcador y retorna ID
+- Sin URL: Error 400
+- URL inválida: Scraping devuelve error
 
 PUT /api/links/:id
-- Con datos válidos → Actualiza y retorna el marcador
-- ID inexistente → Error 404
+- Con datos válidos: Actualiza y retorna el marcador
+- ID inexistente: Error 404
 - Datos incompletos → Error 400
 
 DELETE /api/links/:id
-- Con ID existente → Elimina y retorna success
-- Con ID inexistente → Error 404
+- Con ID existente: Elimina y retorna success
+- Con ID inexistente: Error 404
 - Verificar cascade delete de tags
 
 
@@ -63,23 +63,23 @@ DELETE /api/links/:id
 
 
 Crear Marcador
-- Pegar URL → Se extrae metadatos automáticamente
-- Cambiar datos → Se actualizan en tiempo real
-- Seleccionar carpeta → Se asigna correctamente
-- Seleccionar tags → Se muestran badges de color
-- Hacer clic "Crear" → Aparece en grid inmediatamente
+- Pegar URL: Se extrae metadatos automáticamente
+- Cambiar datos: Se actualizan en tiempo real
+- Seleccionar carpeta: Se asigna correctamente
+- Seleccionar tags: Se muestran badges de color
+- Hacer clic "Crear": Aparece en grid inmediatamente
 
 Filtrado
-- Click en carpeta → Se filtran marcadores
-- Click en tag → Se filtran marcadores
-- Combinación → Se filtran por ambos criterios
-- Hacer clic "Todos" → Muestra todos nuevamente
+- Click en carpeta: Se filtran marcadores
+- Click en tag: Se filtran marcadores
+- Combinación: Se filtran por ambos criterios
+- Hacer clic "Todos": Muestra todos nuevamente
 
 Búsqueda
-- Escribir en SearchBar → Filtra en tiempo real
-- Busca en título → Coincidencias en título
-- Busca en descripción → Coincidencias en descripción
-- Limpiar → Muestra todos
+- Escribir en SearchBar: Filtra en tiempo real
+- Busca en título: Coincidencias en título
+- Busca en descripción: Coincidencias en descripción
+- Limpiar: Muestra todos
 
 ### 2.2 Pruebas E2E
 
@@ -142,10 +142,10 @@ Búsqueda
 ### 2.4 Pruebas de Compatibilidad (Manuales)
 
 | Navegador | Versión | Funcionalidad | Estado |
-|-----------|---------|---------------|--------|
-| Chrome    | 124+    | Completa | ✅ OK |
-| Firefox   | 123+    | Completa | ✅ OK |
-| Opera GX  | 131+    | Completa | ✅ OK |
+|-----------|---------|---------------|-----|
+| Chrome    | 124+    | Completa |  OK |
+| Firefox   | 123+    | Completa |  OK |
+| Opera GX  | 131+    | Completa |  OK |
 
 ---
 
@@ -172,7 +172,7 @@ Búsqueda
 
 ## 4. Resultados y Estadísticas de las Pruebas
 
-Todas las funcionalidades principales del MVP fueron probadas manualmente en el entorno de desarrollo local y en docker. No se encontraron errores críticos ni bloqueantes. 
+Todas las funcionalidades principales del MVP fueron probadas manualmente en el entorno de desarrollo local y en docker. No se encontraron errores.
 
 Es verdad que es dificil dar un resultado o estadisticas de porcentajes de test exitosos o fallidos, ya que no se utilizó un framework de testing automatizado, pero se puede decir que el 100% de las funcionalidades principales fueron probadas manualmente y funcionaron correctamente.
 

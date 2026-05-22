@@ -239,18 +239,23 @@ docker-compose down -v
 
 Si prefieres ejecutar los contenedores sin Docker Compose:
 
+#### Red Interna
+```bash
+docker network create smartmark-network
+```
+
 #### Backend
 - **Repositorio:** [adriandiaz24/smartmark-backend](https://hub.docker.com/r/adriandiaz24/smartmark-backend)
 
 ```bash
-docker run -d -p 3000:3000 --name smartmark-backend adriandiaz24/smartmark-backend:latest
+docker run -d -p 3000:3000 --name smartmark-backend --network smartmark-network adriandiaz24/smartmark-backend:latest
 ```
 
 #### Frontend
 - **Repositorio:** [adriandiaz24/smartmark-frontend](https://hub.docker.com/r/adriandiaz24/smartmark-frontend)
 
 ```bash
-docker run -d -p 3001:3001 --name smartmark-frontend adriandiaz24/smartmark-frontend:latest
+docker run -d -p 3001:3001 --name smartmark-frontend --network smartmark-network adriandiaz24/smartmark-frontend:latest
 ```
 
 ### Cómo Funcionan las Imágenes
@@ -258,6 +263,7 @@ docker run -d -p 3001:3001 --name smartmark-frontend adriandiaz24/smartmark-fron
 - **Backend:** `adriandiaz24/smartmark-backend:latest` - Servidor API de marcadores con SQLite
 - **Frontend:** `adriandiaz24/smartmark-frontend:latest` - Aplicación React compilada y servida
 - **Automático:** Las imágenes se actualizan automáticamente en Docker Hub cuando hay commits en la rama `main`
+
 
 ### Solución de Problemas con Docker
 
