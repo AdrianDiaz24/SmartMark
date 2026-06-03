@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import ManageBookmark from './ManageBookmark';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteBookmarkModal from './DeleteBookmarkModal';
+import SearchResultsPanel from './SearchResultsPanel';
 import { bookmarksService } from '../services/bookmarksService';
 import { categoriesService } from '../services/categoriesService';
 import { tagsService } from '../services/tagsService';
@@ -287,6 +288,8 @@ function ManageBookmarksContent() {
                     Error: {error}
                 </div>
             )}
+
+            <SearchResultsPanel />
 
             {editedBookmark && (
                 <div className="manage-content manage-content--2-cols">

@@ -5,6 +5,7 @@ import ManageTagCenter from './ManageTagCenter';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteTagModal from './DeleteTagModal';
 import CreateTagModal from './CreateTagModal';
+import SearchResultsPanel from './SearchResultsPanel';
 import { tagsService } from '../services/tagsService';
 import { useToast } from '../hooks/useToast';
 import './ManageFoldersContent.css';
@@ -163,6 +164,8 @@ function ManageTagsContent() {
                     onSelect={handleSelectTag}
                     onAdd={() => setIsCreateModalOpen(true)}
                 />
+
+                <SearchResultsPanel />
 
                 {selectedTag && editedTag && (
                     <>

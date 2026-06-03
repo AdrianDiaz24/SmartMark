@@ -5,6 +5,7 @@ import ManageFolderCenter from './ManageFolderCenter';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteFolderModal from './DeleteFolderModal';
 import CreateFolderModal from './CreateFolderModal';
+import SearchResultsPanel from './SearchResultsPanel';
 import { categoriesService } from '../services/categoriesService';
 import { tagsService } from '../services/tagsService';
 import { useToast } from '../hooks/useToast';
@@ -216,6 +217,8 @@ function ManageFoldersContent() {
                     onSelect={handleSelectFolder}
                     onAdd={handleAddFolder}
                 />
+
+                <SearchResultsPanel />
 
                 <ManageFolderCenter
                     folder={editedFolder}

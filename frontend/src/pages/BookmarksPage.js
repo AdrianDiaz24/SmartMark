@@ -5,6 +5,7 @@ import FilterBar from '../components/FilterBar';
 import GridCard from '../components/GridCard';
 import LinkCard from '../components/LinkCard';
 import CreateBookmarkModal from '../components/CreateBookmarkModal';
+import { useSearch } from '../context/SearchContext';
 import { bookmarksService } from '../services/bookmarksService';
 import { tagsService } from '../services/tagsService';
 import { categoriesService } from '../services/categoriesService';
@@ -13,6 +14,7 @@ import './BookmarksPage.css';
 function BookmarksPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const { searchTerm: contextSearchTerm } = useSearch();
     const [bookmarks, setBookmarks] = useState([]);
     const [folders, setFolders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,7 +25,8 @@ function BookmarksPage() {
 
     const activeFolder = searchParams.get('carpeta');
     const activeTag = searchParams.get('tag');
-    const searchTerm = searchParams.get('search');
+    const urlSearchTerm = searchParams.get('search');
+    const searchTerm = (contextSearchTerm && contextSearchTerm.trim()) ? contextSearchTerm : urlSearchTerm;
     const [viewMode, setViewMode] = useState('grid');
     const [searchName, setSearchName] = useState(null);
 
@@ -50,11 +53,21 @@ function BookmarksPage() {
 
     // Cargar marcadores al cambiar filtros
     useEffect(() => {
-        loadBookmarks();
-        loadFolders();
-    }, [activeFolder, activeTag, searchTerm]);
+        // Si el cambio es solo en el contexto de búsqueda, usar debounce
+        if (contextSearchTerm && contextSearchTerm.trim()) {
+            const timeoutId = setTimeout(() => {
+                loadBookmarks();
+                loadFolders();
+            }, 300);
+            return () => clearTimeout(timeoutId);
+        } else {
+            // Para cambios en URL o filtros, cargar inmediatamente
+            loadBookmarks();
+            loadFolders();
+        }
+    }, [activeFolder, activeTag, searchTerm, contextSearchTerm]);
 
-    // Recargar datos cuando la ventana vuelve a estar en foco
+    // Recargar datos
     useEffect(() => {
         const handleFocus = () => {
             loadBookmarks();

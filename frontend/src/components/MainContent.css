@@ -15,6 +15,51 @@
     gap: 20px;
 }
 
+/* --- SECCIÓN RESULTADOS --- */
+.main-content__results {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.main-content__results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-content__results-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    color: #000000; /* Título en negro para resultados de búsqueda */
+}
+
+.main-content__results-count {
+    font-size: 13px;
+    color: #999;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.main-content__results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 /* --- SECCIÓN RECIENTES --- */
 .main-content__recent {
     display: flex;
