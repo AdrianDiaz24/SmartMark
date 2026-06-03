@@ -7,7 +7,7 @@ const { verifyAllBookmarks } = require('../services/urlVerificationService');
  */
 
 /** @constant {number} VERIFICATION_INTERVAL - Intervalo de verificación en milisegundos (7 días) */
-const VERIFICATION_INTERVAL = 7 * 24 * 60 * 60 * 1000; // 7 días en milisegundos
+const VERIFICATION_INTERVAL = process.env.VERIFICATION_INTERVAL ? parseInt(process.env.VERIFICATION_INTERVAL) : 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Verifica si es necesario ejecutar la verificación de URLs

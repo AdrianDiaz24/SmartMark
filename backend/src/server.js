@@ -4,6 +4,7 @@
  * @module server
  */
 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -23,7 +24,7 @@ const urlVerificationRouter = require('./routes/urlVerification');
 const app = express();
 
 /** @constant {number} PORT - Puerto en el que escucha el servidor */
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Crear carpeta de uploads si no existe
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -33,6 +34,8 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Configurar multer para almacenar en memoria (ya que guardaremos en BD como BLOB)
 const storage = multer.memoryStorage();
+
+const maxFileSize = (process.env.MAX_FILE_SIZE_MB || 5) * 1024 * 1024;
 
 const upload = multer({
     storage: storage,
@@ -45,12 +48,15 @@ const upload = multer({
         }
     },
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB máximo
+        fileSize: maxFileSize
     }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -96,6 +102,7 @@ app.use(errorHandler);
 // ARRANQUE DEL SERVIDOR
 app.listen(PORT, async () => {
   console.log(`Servidor de SmartMark corriendo en http://localhost:${PORT}`);
+  console.log(`Entorno: ${process.env.NODE_ENV || 'development'}`);
   db = await initDB();
   console.log('Base de datos inicializada correctamente');
   

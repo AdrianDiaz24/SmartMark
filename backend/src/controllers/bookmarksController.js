@@ -465,6 +465,7 @@ async function getRecentBookmarks(db) {
         const bookmarks = await db.all(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
                    m.categoria_id, m.fecha_creacion, m.ultima_apertura,
+                   m.github_stars, m.github_forks, m.github_watchers, m.github_languages,
                    m.url_estado, m.ultima_verificacion
             FROM Marcadores m
             WHERE m.categoria_id IS NULL
@@ -474,6 +475,14 @@ async function getRecentBookmarks(db) {
 
         for (let bookmark of bookmarks) {
             bookmark.tags = await getTagsByBookmark(db, bookmark.id);
+            // Parsear github_languages de JSON string a array
+            if (bookmark.github_languages) {
+                try {
+                    bookmark.github_languages = JSON.parse(bookmark.github_languages);
+                } catch (e) {
+                    bookmark.github_languages = [];
+                }
+            }
         }
 
         return bookmarks;

@@ -6,8 +6,8 @@ const axios = require('axios');
  * @module services/urlVerificationService
  */
 
-/** @constant {number} VERIFICATION_TIMEOUT - Timeout máximo para una verificación (5 segundos) */
-const VERIFICATION_TIMEOUT = 5000;
+/** @constant {number} VERIFICATION_TIMEOUT - Timeout máximo para una verificación (5 segundos por defecto) */
+const VERIFICATION_TIMEOUT = process.env.HTTP_TIMEOUT ? parseInt(process.env.HTTP_TIMEOUT) : 5000;
 
 /**
  * Verifica si una URL es accesible y válida

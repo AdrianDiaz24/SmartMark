@@ -30,8 +30,9 @@ const { open } = require('sqlite');
 async function initDB() {
 
     // 1. Abrimos la conexión
+    const databasePath = process.env.DATABASE_PATH || './src/database/smartmark.db';
     const db = await open({
-        filename: './src/database/smartmark.db',
+        filename: databasePath,
         driver: sqlite3.Database
     });
 
