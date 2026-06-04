@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import ManageBookmark from './ManageBookmark';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteBookmarkModal from './DeleteBookmarkModal';
@@ -12,6 +12,7 @@ import './ManageBookmarksContent.css';
 
 function ManageBookmarksContent() {
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const toast = useToast();
     const [bookmarks, setBookmarks] = useState([]);
     const [editedBookmark, setEditedBookmark] = useState(null);
@@ -188,19 +189,11 @@ function ManageBookmarksContent() {
         try {
             await bookmarksService.delete(editedBookmark.id);
             
-            // Eliminar de la lista
-            const updatedBookmarks = bookmarks.filter(b => b.id !== editedBookmark.id);
-            setBookmarks(updatedBookmarks);
-            
-            // Seleccionar otro bookmark o limpiar
-            if (updatedBookmarks.length > 0) {
-                setEditedBookmark(updatedBookmarks[0]);
-            } else {
-                setEditedBookmark(null);
-            }
-
             setIsDeleteModalOpen(false);
             toast.success('Marcador eliminado correctamente');
+            
+            // Navegar a HomePage después de eliminar
+            navigate('/');
         } catch (err) {
             console.error('Error eliminando marcador:', err);
             toast.error(`Error al eliminar: ${err.message}`);

@@ -147,13 +147,14 @@ function ManageFoldersContent() {
     const handleDeleteFolder = async (deleteBookmarks = false) => {
         try {
             await categoriesService.delete(selectedFolder.id, deleteBookmarks);
-            await loadFolders();
             setIsDeleteModalOpen(false);
             if (deleteBookmarks) {
                 toast.success('Carpeta y marcadores eliminados correctamente');
             } else {
                 toast.success('Carpeta eliminada. Los marcadores se movieron a la carpeta padre');
             }
+            // Navegar a HomePage después de eliminar
+            navigate('/');
         } catch (error) {
             console.error('Error eliminando carpeta:', error);
             toast.error('Error al eliminar: ' + error.message);

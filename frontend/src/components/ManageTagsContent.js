@@ -104,17 +104,11 @@ function ManageTagsContent() {
             const updatedTags = tags.filter(t => t.id !== selectedTag.id);
             setTags(updatedTags);
             
-            // Seleccionar otro tag o limpiar
-            if (updatedTags.length > 0) {
-                setSelectedTag(updatedTags[0]);
-                setEditedTag(updatedTags[0]);
-            } else {
-                setSelectedTag(null);
-                setEditedTag(null);
-            }
-
             setIsDeleteModalOpen(false);
             toast.success('Tag eliminado correctamente');
+            
+            // Navegar a HomePage después de eliminar
+            navigate('/');
         } catch (err) {
             console.error('Error eliminando tag:', err);
             toast.error(`Error al eliminar: ${err.message}`);
