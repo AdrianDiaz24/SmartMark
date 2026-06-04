@@ -17,7 +17,7 @@ function QuickActionsPanel({
                     onClick={onUpdate}
                     disabled={isLoading}
                 >
-                    {isLoading ? 'Guardando...' : 'Actualizar'}
+                    {isLoading ? 'Guardando cambios...' : 'Guardar cambios'}
                 </button>
                 <button 
                     className="manage-btn manage-btn--light" 
