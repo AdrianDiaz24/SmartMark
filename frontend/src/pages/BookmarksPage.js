@@ -16,7 +16,6 @@ function BookmarksPage() {
     const [searchParams] = useSearchParams();
     const { searchTerm: contextSearchTerm } = useSearch();
     const [bookmarks, setBookmarks] = useState([]);
-    const [folders, setFolders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [tagName, setTagName] = useState(null);
@@ -28,7 +27,6 @@ function BookmarksPage() {
     const urlSearchTerm = searchParams.get('search');
     const searchTerm = (contextSearchTerm && contextSearchTerm.trim()) ? contextSearchTerm : urlSearchTerm;
     const [viewMode, setViewMode] = useState('grid');
-    const [searchName, setSearchName] = useState(null);
 
     // Cargar nombre del tag, carpeta y búsqueda si hay filtros activos
     useEffect(() => {
@@ -43,12 +41,6 @@ function BookmarksPage() {
         } else {
             setFolderName(null);
         }
-
-        if (searchTerm) {
-            setSearchName(searchTerm);
-        } else {
-            setSearchName(null);
-        }
     }, [activeFolder, activeTag, searchTerm]);
 
     // Cargar marcadores al cambiar filtros
@@ -57,13 +49,11 @@ function BookmarksPage() {
         if (contextSearchTerm && contextSearchTerm.trim()) {
             const timeoutId = setTimeout(() => {
                 loadBookmarks();
-                loadFolders();
             }, 300);
             return () => clearTimeout(timeoutId);
         } else {
             // Para cambios en URL o filtros, cargar inmediatamente
             loadBookmarks();
-            loadFolders();
         }
     }, [activeFolder, activeTag, searchTerm, contextSearchTerm]);
 
@@ -71,7 +61,6 @@ function BookmarksPage() {
     useEffect(() => {
         const handleFocus = () => {
             loadBookmarks();
-            loadFolders();
         };
 
         window.addEventListener('focus', handleFocus);
@@ -82,7 +71,6 @@ function BookmarksPage() {
     useEffect(() => {
         const handleBookmarkCreated = () => {
             loadBookmarks();
-            loadFolders();
         };
 
         window.addEventListener('bookmarkCreated', handleBookmarkCreated);
@@ -111,50 +99,6 @@ function BookmarksPage() {
         }
     };
 
-    const filterFoldersByTag = (folders, tagId) => {
-        return folders.filter(folder => 
-            folder.tags && folder.tags.some(tag => tag.id === parseInt(tagId))
-        );
-    };
-
-    const filterFoldersBySearch = (folders, search) => {
-        const lowerSearch = search.toLowerCase();
-        return folders.filter(folder => 
-            folder.nombre.toLowerCase().includes(lowerSearch) ||
-            (folder.tags && folder.tags.some(tag => tag.nombre.toLowerCase().includes(lowerSearch)))
-        );
-    };
-
-    const loadFolders = async () => {
-        try {
-            const allCategories = await categoriesService.getAll();
-            let displayFolders = [];
-
-            if (activeFolder && activeFolder !== 'todas') {
-                // Si hay un filtro de carpeta activo, mostrar solo las subcarpetas
-                const parentCategory = await categoriesService.getById(activeFolder);
-                displayFolders = parentCategory?.children || [];
-            } else {
-                // Si no hay filtro de carpeta, mostrar carpetas de primer nivel
-                displayFolders = allCategories || [];
-            }
-
-            // Si hay un filtro de tag, aplicarlo a las carpetas que se mostrarán
-            if (activeTag) {
-                displayFolders = filterFoldersByTag(displayFolders, activeTag);
-            }
-
-            // Si hay búsqueda, aplicarla a las carpetas que se mostrarán
-            if (searchTerm) {
-                displayFolders = filterFoldersBySearch(displayFolders, searchTerm);
-            }
-
-            setFolders(displayFolders);
-        } catch (error) {
-            console.error('Error cargando carpetas:', error);
-            setFolders([]);
-        }
-    };
 
     const loadBookmarks = async () => {
         try {
@@ -215,10 +159,9 @@ function BookmarksPage() {
         navigate(`/todos?${params.toString()}` || '/todos');
     };
 
-    const handleBookmarkCreated = (newBookmark) => {
-        // Recargar tanto marcadores como carpetas para asegurar que todo está sincronizado
+    const handleBookmarkCreated = () => {
+        // Recargar marcadores para asegurar que todo está sincronizado
         loadBookmarks();
-        loadFolders();
         // Cerrar el modal
         setIsCreateBookmarkModalOpen(false);
     };
@@ -247,17 +190,6 @@ function BookmarksPage() {
                         <p style={{ color: 'red' }}>Error: {error}</p>
                     ) : (
                         <>
-                            {folders.length > 0 && (
-                                <>
-                                    {folders.map((folder) => (
-                                        viewMode === 'grid' ? (
-                                            <GridCard key={`folder-${folder.id}`} folder={folder} />
-                                        ) : (
-                                            <LinkCard key={`folder-${folder.id}`} folder={folder} />
-                                        )
-                                    ))}
-                                </>
-                            )}
                             {bookmarks.length > 0 && (
                                 <>
                                     {bookmarks.map((bookmark) => (
@@ -269,7 +201,7 @@ function BookmarksPage() {
                                     ))}
                                 </>
                             )}
-                            {folders.length === 0 && bookmarks.length === 0 && (
+                            {bookmarks.length === 0 && (
                                 <p>No hay elementos disponibles</p>
                             )}
                         </>
