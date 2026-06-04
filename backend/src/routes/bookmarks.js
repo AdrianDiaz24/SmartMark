@@ -43,11 +43,12 @@ router.post('/scrape', async (req, res, next) => {
         }
 
         const scrapedData = await scrapeUrl(url);
+        const usuarioId = req.usuario.id; // Obtener ID del usuario autenticado
         
         // Si el scraping fue exitoso, hacer autotagging
         if (scrapedData.success) {
-            // 1. Autotagging básico (título, descripción, dominio)
-            let autoTags = await autotagBookmark(db, scrapedData.titulo, scrapedData.descripcion, url);
+            // 1. Autotagging básico (título, descripción, dominio) - solo para tags del usuario
+            let autoTags = await autotagBookmark(db, scrapedData.titulo, scrapedData.descripcion, url, usuarioId);
             
             // 2. Si es GitHub, obtener datos del repositorio
             let gitHubData = null;
@@ -59,12 +60,12 @@ router.post('/scrape', async (req, res, next) => {
                     scrapedData.gitHubData = gitHubData;
                     scrapedData.gitHubLanguages = gitHubLanguages;
                     
-                    // Agregar lenguajes de GitHub al autotagging
+                    // Agregar lenguajes de GitHub al autotagging - solo para tags del usuario
                     for (let language of gitHubLanguages) {
-                        // Buscar si existe un tag para este lenguaje
+                        // Buscar si existe un tag para este lenguaje EN LOS TAGS DEL USUARIO
                         const tagForLanguage = await db.get(
-                            'SELECT id FROM Tags WHERE LOWER(nombre) = LOWER(?)',
-                            [language]
+                            'SELECT id FROM Tags WHERE LOWER(nombre) = LOWER(?) AND usuario_id = ?',
+                            [language, usuarioId]
                         );
                         if (tagForLanguage) {
                             autoTags.push(tagForLanguage.id);

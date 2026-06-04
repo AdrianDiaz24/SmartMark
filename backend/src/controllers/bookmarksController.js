@@ -461,7 +461,7 @@ async function recordBookmarkAccess(db, bookmarkId) {
 }
 
 // Obtener los últimos 10 marcadores más recientemente abiertos (o creados si no han sido abiertos)
-// Solo devuelve marcadores de la sección general (sin carpeta padre)
+// Devuelve TODOS los marcadores recientes sin importar si tienen carpeta asignada
 async function getRecentBookmarks(db, usuarioId) {
     try {
         const bookmarks = await db.all(`
@@ -470,7 +470,7 @@ async function getRecentBookmarks(db, usuarioId) {
                    m.github_stars, m.github_forks, m.github_watchers, m.github_languages,
                    m.url_estado, m.ultima_verificacion
             FROM Marcadores m
-            WHERE m.usuario_id = ? AND m.categoria_id IS NULL
+            WHERE m.usuario_id = ?
             ORDER BY COALESCE(m.ultima_apertura, m.fecha_creacion) DESC
             LIMIT 10
         `, [usuarioId]);
