@@ -16,6 +16,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated, defaultFolder
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [scrapingUrl, setScrapingUrl] = useState(null);
+    const [scrapingToastId, setScrapingToastId] = useState(null);
     const [gitHubData, setGitHubData] = useState(null); // Almacena datos de GitHub
     
     const [formData, setFormData] = useState({
@@ -36,6 +37,12 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated, defaultFolder
             }));
             loadTags();
             loadCategories();
+        } else {
+            // Limpiar toast al cerrar el modal
+            if (scrapingToastId) {
+                toast.removeToast?.(scrapingToastId);
+                setScrapingToastId(null);
+            }
         }
     }, [isOpen, defaultFolderId]);
 
@@ -45,10 +52,40 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated, defaultFolder
             if (formData.url.trim() && formData.url.startsWith('http')) {
                 performScrape(formData.url.trim());
             }
-        }, 1500); // Espera 1.5 segundos después de que el usuario deje de escribir
+        }, 1000); // Espera 1 segundo después de que el usuario deje de escribir
 
         return () => clearTimeout(debounceTimer);
     }, [formData.url]);
+
+    // Mostrar bloqueo inmediatamente al detectar URL
+    useEffect(() => {
+        const hasUrl = formData.url.trim() && formData.url.startsWith('http');
+        
+        if (hasUrl && !scrapingToastId) {
+            // Mostrar toast inmediatamente cuando hay URL
+            const toastId = toast.info('Buscando metadatos…', 3000);
+            setScrapingToastId(toastId);
+        } else if (!hasUrl && scrapingToastId) {
+            // Ocultar toast si se borra la URL
+            toast.removeToast?.(scrapingToastId);
+            setScrapingToastId(null);
+        }
+    }, [formData.url]);
+
+    // Extender duración del toast mientras hay scraping en progreso
+    useEffect(() => {
+        if (scrapingUrl && scrapingToastId) {
+            // Si hay scraping activo y hay un toast, mantener el toast visible
+            // No hacer nada, el toast ya debería estar visible
+        } else if (!scrapingUrl && scrapingToastId && (formData.url.trim() && formData.url.startsWith('http'))) {
+            // Scraping completado, mantener el toast 3 segundos más
+            const timerId = setTimeout(() => {
+                toast.removeToast?.(scrapingToastId);
+                setScrapingToastId(null);
+            }, 3000);
+            return () => clearTimeout(timerId);
+        }
+    }, [scrapingUrl]);
 
     const performScrape = async (url) => {
         try {
@@ -139,6 +176,30 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated, defaultFolder
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+    };
+
+    const handleClose = () => {
+        // Limpiar formulario antes de cerrar
+        setFormData({
+            url: '',
+            titulo: '',
+            descripcion: '',
+            portada: null,
+            categoria_id: defaultFolderId || '',
+            portadaPreview: null
+        });
+        setSelectedTagIds([]);
+        setGitHubData(null);
+        setError(null);
+        
+        // Limpiar toast
+        if (scrapingToastId) {
+            toast.removeToast?.(scrapingToastId);
+            setScrapingToastId(null);
+        }
+        
+        // Cerrar modal
+        onClose();
     };
 
     const handleFileChange = (e) => {
@@ -241,7 +302,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated, defaultFolder
     const selectedTags = tags.filter(tag => selectedTagIds.includes(tag.id));
 
     return (
-        <div className="modal-overlay" onMouseDown={onClose}>
+        <div className="modal-overlay" onMouseDown={handleClose}>
             <section className="modal-content modal-content--large" onMouseDown={(e) => e.stopPropagation()} aria-labelledby="bookmark-modal-title">
 
                 <h2 id="bookmark-modal-title" className="visually-hidden">Crear nuevo marcador</h2>
@@ -278,6 +339,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated, defaultFolder
                             className="modal__input" 
                             value={formData.titulo}
                             onChange={handleInputChange}
+                            disabled={scrapingUrl !== null}
                             required 
                         />
                     </div>
@@ -291,6 +353,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated, defaultFolder
                             className="modal__input modal__textarea"
                             value={formData.descripcion}
                             onChange={handleInputChange}
+                            disabled={scrapingUrl !== null}
                         ></textarea>
                     </div>
 
