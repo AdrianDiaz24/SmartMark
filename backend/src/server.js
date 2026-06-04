@@ -12,9 +12,11 @@ const path = require('path');
 const fs = require('fs');
 const initDB = require('./database/db');
 const errorHandler = require('./middleware/errorHandler');
+const { authenticateToken } = require('./middleware/authMiddleware');
 const { checkAndVerifyIfNeeded } = require('./config/cronJobConfig');
 
 // Importar rutas
+const authRouter = require('./routes/auth');
 const bookmarksRouter = require('./routes/bookmarks');
 const categoriesRouter = require('./routes/categories');
 const tagsRouter = require('./routes/tags');
@@ -66,16 +68,20 @@ let db;
 
 // Middleware para pasar la conexión a las rutas
 app.use((req, res, next) => {
+  req.db = db;
   req.app.locals.db = db;
   req.app.locals.upload = upload;
   next();
 });
 
-// RUTAS
-app.use('/api/links', bookmarksRouter);
-app.use('/api/categories', categoriesRouter);
-app.use('/api/tags', tagsRouter);
-app.use('/api/url-verification', urlVerificationRouter);
+// RUTAS PÚBLICAS
+app.use('/api/auth', authRouter);
+
+// RUTAS PROTEGIDAS
+app.use('/api/links', authenticateToken, bookmarksRouter);
+app.use('/api/categories', authenticateToken, categoriesRouter);
+app.use('/api/tags', authenticateToken, tagsRouter);
+app.use('/api/url-verification', authenticateToken, urlVerificationRouter);
 
 // Ruta raíz de API
 app.get('/api', (req, res) => {
@@ -83,10 +89,16 @@ app.get('/api', (req, res) => {
     message: 'Bienvenido a la API de SmartMark',
     version: '1.0.0',
     endpoints: {
-      links: '/api/links',
-      categories: '/api/categories',
-      tags: '/api/tags',
-      urlVerification: '/api/url-verification'
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login'
+      },
+      protected: {
+        links: '/api/links',
+        categories: '/api/categories',
+        tags: '/api/tags',
+        urlVerification: '/api/url-verification'
+      }
     }
   });
 });

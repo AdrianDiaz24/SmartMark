@@ -5,23 +5,24 @@
  */
 
 /**
- * Obtiene todas las categorías raíz con su estructura jerárquica completa
+ * Obtiene todas las categorías raíz con su estructura jerárquica completa del usuario
  * @async
  * @function getAllCategories
  * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
  * @returns {Promise<Array>} Array de categorías padres con subcategorías anidadas
  * @throws {Error} Si hay error al consultar la base de datos
  */
-async function getAllCategories(db) {
+async function getAllCategories(db, usuarioId) {
     try {
         const categories = await db.all(`
-            SELECT * FROM Categorias WHERE padre_id IS NULL
+            SELECT * FROM Categorias WHERE padre_id IS NULL AND usuario_id = ?
             ORDER BY fecha_creacion DESC
-        `);
+        `, [usuarioId]);
 
         // Para cada categoría padre, obtener sus subcategorías
         for (let cat of categories) {
-            cat.children = await getSubcategories(db, cat.id);
+            cat.children = await getSubcategories(db, cat.id, usuarioId);
             const stats = await getCategoryStats(db, cat.id);
             cat.subfolders = stats.subfolders;
             cat.bookmarks = stats.bookmarks;
@@ -35,23 +36,24 @@ async function getAllCategories(db) {
 }
 
 /**
- * Obtiene subcategorías recursivamente para construir el árbol de carpetas
+ * Obtiene subcategorías recursivamente para construir el árbol de carpetas del usuario
  * @async
  * @function getSubcategories
  * @param {Object} db - Instancia de la base de datos SQLite
  * @param {number} parentId - ID de la categoría padre
+ * @param {number} usuarioId - ID del usuario propietario
  * @returns {Promise<Array>} Array de subcategorías con su estructura recursiva
  * @throws {Error} Si hay error en la consulta
  */
-async function getSubcategories(db, parentId) {
+async function getSubcategories(db, parentId, usuarioId) {
     try {
         const subcats = await db.all(`
-            SELECT * FROM Categorias WHERE padre_id = ?
+            SELECT * FROM Categorias WHERE padre_id = ? AND usuario_id = ?
             ORDER BY fecha_creacion DESC
-        `, [parentId]);
+        `, [parentId, usuarioId]);
 
         for (let subcat of subcats) {
-            subcat.children = await getSubcategories(db, subcat.id);
+            subcat.children = await getSubcategories(db, subcat.id, usuarioId);
             const stats = await getCategoryStats(db, subcat.id);
             subcat.subfolders = stats.subfolders;
             subcat.bookmarks = stats.bookmarks;
@@ -93,25 +95,26 @@ async function getCategoryStats(db, categoryId) {
 }
 
 /**
- * Obtiene una categoría específica por su ID incluyendo subcategorías
+ * Obtiene una categoría específica por su ID incluyendo subcategorías del usuario
  * @async
  * @function getCategoryById
  * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
  * @param {number} id - ID de la categoría
  * @returns {Promise<Object|null>} Objeto categoría con estructura jerárquica o null
  * @throws {Error} Si hay error en la consulta
  */
-async function getCategoryById(db, id) {
+async function getCategoryById(db, usuarioId, id) {
     try {
         const category = await db.get(`
-            SELECT * FROM Categorias WHERE id = ?
-        `, [id]);
+            SELECT * FROM Categorias WHERE id = ? AND usuario_id = ?
+        `, [id, usuarioId]);
 
         if (!category) {
             return null;
         }
 
-        category.children = await getSubcategories(db, id);
+        category.children = await getSubcategories(db, id, usuarioId);
         const stats = await getCategoryStats(db, id);
         category.subfolders = stats.subfolders;
         category.bookmarks = stats.bookmarks;
@@ -128,29 +131,44 @@ async function getCategoryById(db, id) {
  * @async
  * @function createCategory
  * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
  * @param {string} nombre - Nombre de la categoría
  * @param {number} [padre_id=null] - ID de la categoría padre (opcional)
  * @param {Array<number>} [tags=[]] - Array de IDs de tags a asociar
  * @returns {Promise<Object>} Nueva categoría creada
  * @throws {Error} Si el nombre está vacío o hay conflicto con jerarquía
  */
-async function createCategory(db, nombre, padre_id = null, tags = []) {
+async function createCategory(db, usuarioId, nombre, padre_id = null, tags = []) {
     try {
         if (!nombre || nombre.trim() === '') {
             throw new Error('El nombre de la categoría es requerido');
         }
 
+        // Validar que padre_id pertenezca al usuario si se proporciona
+        if (padre_id) {
+            const parent = await db.get(
+                `SELECT id FROM Categorias WHERE id = ? AND usuario_id = ?`,
+                [padre_id, usuarioId]
+            );
+            if (!parent) {
+                throw new Error('La categoría padre especificada no existe o no pertenece al usuario');
+            }
+        }
+
         const resultado = await db.run(`
-            INSERT INTO Categorias (nombre, padre_id, fecha_creacion)
-            VALUES (?, ?, CURRENT_TIMESTAMP)
-        `, [nombre.trim(), padre_id || null]);
+            INSERT INTO Categorias (nombre, padre_id, usuario_id, fecha_creacion)
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        `, [nombre.trim(), padre_id || null, usuarioId]);
 
         const categoryId = resultado.lastID;
 
         // Agregar tags si se proporcionan
         if (tags && tags.length > 0) {
             for (let tagId of tags) {
-                const tag = await db.get(`SELECT id FROM Tags WHERE id = ?`, [tagId]);
+                const tag = await db.get(
+                    `SELECT id FROM Tags WHERE id = ? AND usuario_id = ?`,
+                    [tagId, usuarioId]
+                );
                 if (tag) {
                     await db.run(`
                         INSERT INTO Categorias_Tags (categoria_id, tag_id)
@@ -164,6 +182,7 @@ async function createCategory(db, nombre, padre_id = null, tags = []) {
             id: categoryId,
             nombre: nombre.trim(),
             padre_id: padre_id || null,
+            usuario_id: usuarioId,
             fecha_creacion: new Date().toISOString(),
             children: [],
             subfolders: 0,
@@ -180,15 +199,19 @@ async function createCategory(db, nombre, padre_id = null, tags = []) {
  * @async
  * @function updateCategory
  * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
  * @param {number} id - ID de la categoría a actualizar
  * @param {string} nombre - Nuevo nombre
  * @param {number} padre_id - Nuevo ID de padre
  * @returns {Promise<Object>} Categoría actualizada
  * @throws {Error} Si la categoría no existe o hay conflicto de jerarquía
  */
-async function updateCategory(db, id, nombre, padre_id) {
+async function updateCategory(db, usuarioId, id, nombre, padre_id) {
     try {
-        const categoria = await db.get(`SELECT * FROM Categorias WHERE id = ?`, [id]);
+        const categoria = await db.get(
+            `SELECT * FROM Categorias WHERE id = ? AND usuario_id = ?`,
+            [id, usuarioId]
+        );
         if (!categoria) {
             throw new Error('Categoría no encontrada');
         }
@@ -198,27 +221,33 @@ async function updateCategory(db, id, nombre, padre_id) {
             if (padre_id === id) {
                 throw new Error('Una categoría no puede ser padre de sí misma');
             }
-            // Validar que el padre existe
-            const padre = await db.get(`SELECT * FROM Categorias WHERE id = ?`, [padre_id]);
+            // Validar que el padre existe y pertenece al usuario
+            const padre = await db.get(
+                `SELECT * FROM Categorias WHERE id = ? AND usuario_id = ?`,
+                [padre_id, usuarioId]
+            );
             if (!padre) {
-                throw new Error('Categoría padre no encontrada');
+                throw new Error('Categoría padre no encontrada o no pertenece al usuario');
             }
         }
 
         await db.run(`
-            UPDATE Categorias SET nombre = ?, padre_id = ? WHERE id = ?
-        `, [nombre || categoria.nombre, padre_id !== undefined ? padre_id : categoria.padre_id, id]);
+            UPDATE Categorias SET nombre = ?, padre_id = ? WHERE id = ? AND usuario_id = ?
+        `, [nombre || categoria.nombre, padre_id !== undefined ? padre_id : categoria.padre_id, id, usuarioId]);
 
-        return getCategoryById(db, id);
+        return getCategoryById(db, usuarioId, id);
     } catch (error) {
         throw new Error(`Error al actualizar categoría: ${error.message}`);
     }
 }
 
-// Eliminar una categoría
-async function deleteCategory(db, id, deleteBookmarks = false) {
+// Eliminar una categoría del usuario
+async function deleteCategory(db, usuarioId, id, deleteBookmarks = false) {
     try {
-        const categoria = await db.get(`SELECT * FROM Categorias WHERE id = ?`, [id]);
+        const categoria = await db.get(
+            `SELECT * FROM Categorias WHERE id = ? AND usuario_id = ?`,
+            [id, usuarioId]
+        );
         if (!categoria) {
             throw new Error('Categoría no encontrada');
         }
@@ -230,18 +259,18 @@ async function deleteCategory(db, id, deleteBookmarks = false) {
             // Mover los marcadores a la categoría padre
             const padre_id = categoria.padre_id || null;
             await db.run(`
-                UPDATE Marcadores SET categoria_id = ? WHERE categoria_id = ?
-            `, [padre_id, id]);
+                UPDATE Marcadores SET categoria_id = ? WHERE categoria_id = ? AND usuario_id = ?
+            `, [padre_id, id, usuarioId]);
         }
 
         // Mover las subcategorías a la categoría padre
         const padre_id = categoria.padre_id || null;
         await db.run(`
-            UPDATE Categorias SET padre_id = ? WHERE padre_id = ?
-        `, [padre_id, id]);
+            UPDATE Categorias SET padre_id = ? WHERE padre_id = ? AND usuario_id = ?
+        `, [padre_id, id, usuarioId]);
 
         // Eliminar la categoría
-        await db.run(`DELETE FROM Categorias WHERE id = ?`, [id]);
+        await db.run(`DELETE FROM Categorias WHERE id = ? AND usuario_id = ?`, [id, usuarioId]);
 
         return { mensaje: 'Categoría eliminada exitosamente' };
     } catch (error) {

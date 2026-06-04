@@ -9,6 +9,7 @@
  * @async
  * @function getAllBookmarks
  * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
  * @param {Object} [filters={}] - Filtros opcionales
  * @param {number} [filters.categoria_id] - ID de categoría para filtrar
  * @param {number} [filters.tag_id] - ID de tag para filtrar
@@ -18,7 +19,7 @@
  * @returns {Promise<Array>} Array de bookmarks con tags incluidos
  * @throws {Error} Si hay error al consultar la base de datos
  */
-async function getAllBookmarks(db, filters = {}) {
+async function getAllBookmarks(db, usuarioId, filters = {}) {
     try {
         let query = `
             SELECT DISTINCT m.id, m.titulo, m.url, m.descripcion, m.portada, 
@@ -28,9 +29,9 @@ async function getAllBookmarks(db, filters = {}) {
             FROM Marcadores m
             LEFT JOIN Marcadores_Tags mt ON m.id = mt.marcador_id
             LEFT JOIN Tags t ON mt.tag_id = t.id
-            WHERE 1=1
+            WHERE m.usuario_id = ?
         `;
-        const params = [];
+        const params = [usuarioId];
 
         // Filtrar por categoría
         if (filters.categoria_id) {
@@ -92,11 +93,12 @@ async function getAllBookmarks(db, filters = {}) {
  * @async
  * @function getBookmarkById
  * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
  * @param {number} id - ID del marcador
  * @returns {Promise<Object>} Objeto marcador con tags y metadatos GitHub
- * @throws {Error} Si el marcador no existe o hay error en la consulta
+ * @throws {Error} Si el marcador no existe o no pertenece al usuario
  */
-async function getBookmarkById(db, id) {
+async function getBookmarkById(db, usuarioId, id) {
     try {
         const bookmark = await db.get(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
@@ -104,8 +106,8 @@ async function getBookmarkById(db, id) {
                    m.github_stars, m.github_forks, m.github_watchers, m.github_languages,
                    m.url_estado, m.ultima_verificacion
             FROM Marcadores m
-            WHERE m.id = ?
-        `, [id]);
+            WHERE m.id = ? AND m.usuario_id = ?
+        `, [id, usuarioId]);
 
         if (!bookmark) {
             return null;
@@ -129,7 +131,7 @@ async function getBookmarkById(db, id) {
 }
 
 // Crear un nuevo marcador
-async function createBookmark(db, { titulo, url, descripcion, portada, categoria_id, tags = [], github_stars = 0, github_forks = 0, github_watchers = 0, github_languages = [] }) {
+async function createBookmark(db, usuarioId, { titulo, url, descripcion, portada, categoria_id, tags = [], github_stars = 0, github_forks = 0, github_watchers = 0, github_languages = [] }) {
     try {
         if (!titulo || titulo.trim() === '') {
             throw new Error('El título es requerido');
@@ -146,11 +148,11 @@ async function createBookmark(db, { titulo, url, descripcion, portada, categoria
             throw new Error('La URL proporcionada no es válida');
         }
 
-        // Si se proporciona categoria_id, validar que exista
+        // Si se proporciona categoria_id, validar que exista y pertenezca al usuario
         if (categoria_id) {
-            const categoria = await db.get(`SELECT id FROM Categorias WHERE id = ?`, [categoria_id]);
+            const categoria = await db.get(`SELECT id FROM Categorias WHERE id = ? AND usuario_id = ?`, [categoria_id, usuarioId]);
             if (!categoria) {
-                throw new Error('La categoría especificada no existe');
+                throw new Error('La categoría especificada no existe o no pertenece al usuario');
             }
         }
 
@@ -174,21 +176,21 @@ async function createBookmark(db, { titulo, url, descripcion, portada, categoria
             githubLanguagesJson = JSON.stringify(github_languages);
         }
 
-        // Insertar el marcador
+        // Insertar el marcador CON usuario_id
         const resultado = await db.run(`
-            INSERT INTO Marcadores (titulo, url, descripcion, portada, categoria_id, fecha_creacion, github_stars, github_forks, github_watchers, github_languages)
-            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?)
-        `, [titulo.trim(), url.trim(), descripcion || null, portadaBase64, categoria_id || null, github_stars, github_forks, github_watchers, githubLanguagesJson]);
+            INSERT INTO Marcadores (titulo, url, descripcion, portada, categoria_id, usuario_id, fecha_creacion, github_stars, github_forks, github_watchers, github_languages)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?)
+        `, [titulo.trim(), url.trim(), descripcion || null, portadaBase64, categoria_id || null, usuarioId, github_stars, github_forks, github_watchers, githubLanguagesJson]);
 
         const bookmarkId = resultado.lastID;
 
         // Agregar tags si se proporcionan
         if (tags && tags.length > 0) {
             for (let tagId of tags) {
-                // Validar que el tag existe
-                const tag = await db.get(`SELECT id FROM Tags WHERE id = ?`, [tagId]);
+                // Validar que el tag existe y pertenece al usuario
+                const tag = await db.get(`SELECT id FROM Tags WHERE id = ? AND usuario_id = ?`, [tagId, usuarioId]);
                 if (!tag) {
-                    throw new Error(`El tag con ID ${tagId} no existe`);
+                    throw new Error(`El tag con ID ${tagId} no existe o no pertenece al usuario`);
                 }
 
                 await db.run(`
@@ -198,7 +200,7 @@ async function createBookmark(db, { titulo, url, descripcion, portada, categoria
             }
         }
 
-        return getBookmarkById(db, bookmarkId);
+        return getBookmarkById(db, usuarioId, bookmarkId);
     } catch (error) {
         throw new Error(`Error al crear marcador: ${error.message}`);
     }
@@ -460,7 +462,7 @@ async function recordBookmarkAccess(db, bookmarkId) {
 
 // Obtener los últimos 10 marcadores más recientemente abiertos (o creados si no han sido abiertos)
 // Solo devuelve marcadores de la sección general (sin carpeta padre)
-async function getRecentBookmarks(db) {
+async function getRecentBookmarks(db, usuarioId) {
     try {
         const bookmarks = await db.all(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
@@ -468,10 +470,10 @@ async function getRecentBookmarks(db) {
                    m.github_stars, m.github_forks, m.github_watchers, m.github_languages,
                    m.url_estado, m.ultima_verificacion
             FROM Marcadores m
-            WHERE m.categoria_id IS NULL
+            WHERE m.usuario_id = ? AND m.categoria_id IS NULL
             ORDER BY COALESCE(m.ultima_apertura, m.fecha_creacion) DESC
             LIMIT 10
-        `);
+        `, [usuarioId]);
 
         for (let bookmark of bookmarks) {
             bookmark.tags = await getTagsByBookmark(db, bookmark.id);
@@ -491,18 +493,19 @@ async function getRecentBookmarks(db) {
     }
 }
 
-// Obtener marcadores visitados en la última semana
-async function getBookmarksVisitedLastWeek(db) {
+// Obtener marcadores del usuario visitados en la última semana
+async function getBookmarksVisitedLastWeek(db, usuarioId) {
     try {
         const bookmarks = await db.all(`
             SELECT m.id, m.titulo, m.url, m.descripcion, m.portada, 
                    m.categoria_id, m.fecha_creacion, m.ultima_apertura,
                    m.url_estado, m.ultima_verificacion
             FROM Marcadores m
-            WHERE m.ultima_apertura IS NOT NULL
+            WHERE m.usuario_id = ?
+            AND m.ultima_apertura IS NOT NULL
             AND m.ultima_apertura >= datetime('now', '-7 days')
             ORDER BY m.ultima_apertura DESC
-        `);
+        `, [usuarioId]);
 
         for (let bookmark of bookmarks) {
             bookmark.tags = await getTagsByBookmark(db, bookmark.id);
@@ -514,13 +517,14 @@ async function getBookmarksVisitedLastWeek(db) {
     }
 }
 
-// Contar todos los marcadores (incluyendo los de carpetas)
-async function countAllBookmarks(db) {
+// Contar todos los marcadores del usuario
+async function countAllBookmarks(db, usuarioId) {
     try {
         const result = await db.get(`
             SELECT COUNT(*) as count
             FROM Marcadores
-        `);
+            WHERE usuario_id = ?
+        `, [usuarioId]);
 
         return result.count || 0;
     } catch (error) {
@@ -528,15 +532,16 @@ async function countAllBookmarks(db) {
     }
 }
 
-// Contar marcadores visitados en la última semana
-async function countBookmarksVisitedLastWeek(db) {
+// Contar marcadores del usuario visitados en la última semana
+async function countBookmarksVisitedLastWeek(db, usuarioId) {
     try {
         const result = await db.get(`
             SELECT COUNT(*) as count
             FROM Marcadores m
-            WHERE m.ultima_apertura IS NOT NULL
+            WHERE m.usuario_id = ?
+            AND m.ultima_apertura IS NOT NULL
             AND m.ultima_apertura >= datetime('now', '-7 days')
-        `);
+        `, [usuarioId]);
 
         return result.count || 0;
     } catch (error) {

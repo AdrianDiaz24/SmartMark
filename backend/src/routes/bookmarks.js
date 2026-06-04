@@ -28,7 +28,7 @@ let upload;
 
 // Middleware para inyectar la conexión a la BD y multer
 router.use((req, res, next) => {
-    db = req.app.locals.db;
+    db = req.db;
     upload = req.app.locals.upload;
     next();
 });
@@ -90,7 +90,8 @@ router.post('/scrape', async (req, res, next) => {
 // GET /api/links/stats/recent - Obtener los últimos 10 marcadores más recientemente abiertos
 router.get('/stats/recent', async (req, res, next) => {
     try {
-        const bookmarks = await getRecentBookmarks(db);
+        const usuarioId = req.usuario.id;
+        const bookmarks = await getRecentBookmarks(db, usuarioId);
         res.json(bookmarks);
     } catch (error) {
         next(error);
@@ -101,8 +102,9 @@ router.get('/stats/recent', async (req, res, next) => {
 router.get('/', async (req, res, next) => {
     try {
         const { categoria_id, tag_id, search, limit, offset } = req.query;
+        const usuarioId = req.usuario.id;
 
-        const bookmarks = await getAllBookmarks(db, {
+        const bookmarks = await getAllBookmarks(db, usuarioId, {
             categoria_id: categoria_id ? parseInt(categoria_id) : null,
             tag_id: tag_id ? parseInt(tag_id) : null,
             search,
@@ -119,7 +121,8 @@ router.get('/', async (req, res, next) => {
 // GET /api/links/stats/last-week - Obtener marcadores visitados última semana
 router.get('/stats/last-week', async (req, res, next) => {
     try {
-        const bookmarks = await getBookmarksVisitedLastWeek(db);
+        const usuarioId = req.usuario.id;
+        const bookmarks = await getBookmarksVisitedLastWeek(db, usuarioId);
         res.json(bookmarks);
     } catch (error) {
         next(error);
@@ -129,17 +132,19 @@ router.get('/stats/last-week', async (req, res, next) => {
 // GET /api/links/stats/count-last-week - Contar marcadores visitados última semana
 router.get('/stats/count-last-week', async (req, res, next) => {
     try {
-        const count = await countBookmarksVisitedLastWeek(db);
+        const usuarioId = req.usuario.id;
+        const count = await countBookmarksVisitedLastWeek(db, usuarioId);
         res.json({ count });
     } catch (error) {
         next(error);
     }
 });
 
-// GET /api/links/stats/count-all - Contar todos los marcadores
+// GET /api/links/stats/count-all - Contar todos los marcadores del usuario
 router.get('/stats/count-all', async (req, res, next) => {
     try {
-        const count = await countAllBookmarks(db);
+        const usuarioId = req.usuario.id;
+        const count = await countAllBookmarks(db, usuarioId);
         res.json({ count });
     } catch (error) {
         next(error);
@@ -232,7 +237,8 @@ router.post('/refresh-github', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const bookmark = await getBookmarkById(db, id);
+        const usuarioId = req.usuario.id;
+        const bookmark = await getBookmarkById(db, usuarioId, id);
 
         if (!bookmark) {
             return res.status(404).json({ error: 'Marcador no encontrado' });
@@ -295,7 +301,8 @@ router.post('/', async (req, res, next) => {
 
                 console.log('Creando bookmark:', { titulo, url, descripcion, parsedCategoryId, parsedTags, tienePortada: !!portada, github_stars, github_forks });
 
-                const newBookmark = await createBookmark(db, {
+                const usuarioId = req.usuario.id;
+                const newBookmark = await createBookmark(db, usuarioId, {
                     titulo,
                     url,
                     descripcion,

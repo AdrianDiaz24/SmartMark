@@ -1,5 +1,10 @@
 import { apiCall } from './api';
 
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
 export const bookmarksService = {
     // Obtener todos los marcadores
     getAll: (params = {}) => {
@@ -12,12 +17,16 @@ export const bookmarksService = {
 
     // Hacer web scraping de una URL
     scrapeUrl: (url) => {
+        const token = localStorage.getItem('token');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+        };
+        
         return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/scrape`, {
             method: 'POST',
             body: JSON.stringify({ url }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers
         }).then(res => {
             if (!res.ok) {
                 throw new Error(`Error ${res.status}: ${res.statusText}`);
@@ -30,9 +39,11 @@ export const bookmarksService = {
     create: (bookmarkData) => {
         // Si hay archivo, usar FormData para enviar la imagen
         if (bookmarkData instanceof FormData) {
+            const headers = getAuthHeaders();
             return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links`, {
                 method: 'POST',
-                body: bookmarkData
+                body: bookmarkData,
+                headers
             }).then(res => {
                 if (!res.ok) {
                     throw new Error(`Error ${res.status}: ${res.statusText}`);
@@ -59,9 +70,11 @@ export const bookmarksService = {
     update: (id, bookmarkData) => {
         // Si hay archivo, usar FormData para enviar la imagen
         if (bookmarkData instanceof FormData) {
+            const headers = getAuthHeaders();
             return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/${id}`, {
                 method: 'PUT',
-                body: bookmarkData
+                body: bookmarkData,
+                headers
             }).then(res => res.json());
         }
         

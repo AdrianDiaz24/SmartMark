@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSearch } from '../context/SearchContext';
+import { useAuth } from '../context/AuthContext';
 import CreateBookmarkModal from "./CreateBookmarkModal";
 import './Header.css';
 
@@ -9,9 +10,11 @@ import Mas from '../assets/Img/mas_negro.png';
 
 function Header() {
     const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { searchTerm, updateSearchTerm, clearSearch } = useSearch();
+    const { usuario, logout } = useAuth();
 
     // Actualizar búsqueda en tiempo real
     const handleSearchChange = (e) => {
@@ -39,6 +42,12 @@ function Header() {
         }
     };
 
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+        setIsUserMenuOpen(false);
+    };
+
     return(
         <header className="header">
             <section className="header__logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
@@ -60,11 +69,38 @@ function Header() {
                 />
             </form>
 
-            <section className={"header__add"}>
+            <section className={"header__actions"}>
                 <button className={"header__add-btn"} onClick={() => setIsBookmarkModalOpen(true)}>
                     <img src={Mas} alt="Agregar marcador" className={"header__add-icon"}/>
                     Añadir marcador
                 </button>
+
+                <div className="header__user">
+                    <button 
+                        className="header__user-btn"
+                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                        title={usuario?.username}
+                    >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </button>
+
+                    {isUserMenuOpen && (
+                        <div className="header__user-menu">
+                            <p className="header__user-name">{usuario?.username}</p>
+                            <p className="header__user-email">{usuario?.email}</p>
+                            <hr className="header__user-divider" />
+                            <button 
+                                className="header__logout-btn"
+                                onClick={handleLogout}
+                            >
+                                Cerrar sesión
+                            </button>
+                        </div>
+                    )}
+                </div>
             </section>
 
             <CreateBookmarkModal
