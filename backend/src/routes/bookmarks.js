@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const {
-    getAllBookmarks,
+    getBookmarks,
     getBookmarkById,
     createBookmark,
     updateBookmark,
@@ -99,13 +99,13 @@ router.get('/stats/recent', async (req, res, next) => {
     }
 });
 
-// GET /api/links - Obtener todos los marcadores (con filtros opcionales)
+// GET /api/links - Obtener marcadores (con filtros opcionales)
 router.get('/', async (req, res, next) => {
     try {
         const { categoria_id, tag_id, search, limit, offset, all } = req.query;
         const usuarioId = req.usuario.id;
 
-        const bookmarks = await getAllBookmarks(db, usuarioId, {
+        const bookmarks = await getBookmarks(db, usuarioId, {
             categoria_id: categoria_id ? parseInt(categoria_id) : null,
             tag_id: tag_id ? parseInt(tag_id) : null,
             search,

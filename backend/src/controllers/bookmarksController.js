@@ -5,9 +5,12 @@
  */
 
 /**
- * Obtiene todos los marcadores con filtros opcionales (categoría, tags, búsqueda)
+ * Obtiene marcadores con filtros opcionales (categoría, tags, búsqueda)
+ * Por defecto devuelve solo la sección general (marcadores sin carpeta).
+ * Usa parámetro `all: true` para obtener TODOS los marcadores.
+ * Con búsqueda, devuelve todos los resultados sin importar carpeta.
  * @async
- * @function getAllBookmarks
+ * @function getBookmarks
  * @param {Object} db - Instancia de la base de datos SQLite
  * @param {number} usuarioId - ID del usuario propietario
  * @param {Object} [filters={}] - Filtros opcionales
@@ -20,7 +23,7 @@
  * @returns {Promise<Array>} Array de bookmarks con tags incluidos
  * @throws {Error} Si hay error al consultar la base de datos
  */
-async function getAllBookmarks(db, usuarioId, filters = {}) {
+async function getBookmarks(db, usuarioId, filters = {}) {
     try {
         let query = `
             SELECT DISTINCT m.id, m.titulo, m.url, m.descripcion, m.portada, 
@@ -554,7 +557,7 @@ async function countBookmarksVisitedLastWeek(db, usuarioId) {
 }
 
 module.exports = {
-    getAllBookmarks,
+    getBookmarks,
     getBookmarkById,
     createBookmark,
     updateBookmark,
