@@ -7,7 +7,7 @@ import { categoriesService } from '../services/categoriesService';
 import { useToast } from '../hooks/useToast';
 import './CreateBookmarkModal.css';
 
-function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
+function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated, defaultFolderId }) {
     const toast = useToast();
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const [selectedTagIds, setSelectedTagIds] = useState([]);
@@ -29,10 +29,15 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated }) {
 
     useEffect(() => {
         if (isOpen) {
+            // Inicializar categoria_id con defaultFolderId si está disponible
+            setFormData(prev => ({
+                ...prev,
+                categoria_id: defaultFolderId || ''
+            }));
             loadTags();
             loadCategories();
         }
-    }, [isOpen]);
+    }, [isOpen, defaultFolderId]);
 
     // Web scraping
     useEffect(() => {

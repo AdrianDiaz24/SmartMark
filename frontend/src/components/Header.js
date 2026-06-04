@@ -16,6 +16,9 @@ function Header() {
     const { searchTerm, updateSearchTerm, clearSearch } = useSearch();
     const { usuario, logout } = useAuth();
 
+    // Obtener carpeta activa del URL
+    const activeFolderId = searchParams.get('carpeta');
+
     // Actualizar búsqueda en tiempo real
     const handleSearchChange = (e) => {
         const term = e.target.value;
@@ -106,6 +109,7 @@ function Header() {
             <CreateBookmarkModal
                 isOpen={isBookmarkModalOpen}
                 onClose={() => setIsBookmarkModalOpen(false)}
+                defaultFolderId={activeFolderId}
             />
         </header>
     );

@@ -57,7 +57,7 @@ function BookmarksPage() {
         }
     }, [activeFolder, activeTag, searchTerm, contextSearchTerm]);
 
-    // Recargar datos
+    // Recargar datos cuando la ventana vuelve a tener foco
     useEffect(() => {
         const handleFocus = () => {
             loadBookmarks();
@@ -65,7 +65,7 @@ function BookmarksPage() {
 
         window.addEventListener('focus', handleFocus);
         return () => window.removeEventListener('focus', handleFocus);
-    }, []);
+    }, [activeFolder, activeTag, searchTerm]);
 
     // Recargar datos cuando se crea un marcador
     useEffect(() => {
@@ -75,7 +75,7 @@ function BookmarksPage() {
 
         window.addEventListener('bookmarkCreated', handleBookmarkCreated);
         return () => window.removeEventListener('bookmarkCreated', handleBookmarkCreated);
-    }, []);
+    }, [activeFolder, activeTag, searchTerm]);
 
     const loadTagName = async () => {
         try {
@@ -213,6 +213,7 @@ function BookmarksPage() {
                 isOpen={isCreateBookmarkModalOpen}
                 onClose={() => setIsCreateBookmarkModalOpen(false)}
                 onBookmarkCreated={handleBookmarkCreated}
+                defaultFolderId={activeFolder}
             />
 
         </div>
