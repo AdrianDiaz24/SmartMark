@@ -16,6 +16,8 @@ function ManageBookmarksContent() {
     const toast = useToast();
     const [bookmarks, setBookmarks] = useState([]);
     const [editedBookmark, setEditedBookmark] = useState(null);
+    const [originalData, setOriginalData] = useState(null);
+    const [unsavedChangesToastId, setUnsavedChangesToastId] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -28,6 +30,13 @@ function ManageBookmarksContent() {
         loadBookmarks();
         loadFolders();
         loadTags();
+
+        // Limpiar toast al desmontar
+        return () => {
+            if (unsavedChangesToastId) {
+                toast.removeToast?.(unsavedChangesToastId);
+            }
+        };
     }, []);
 
     // Seleccionar el bookmark según el parámetro de URL o el primero si no hay
@@ -40,8 +49,57 @@ function ManageBookmarksContent() {
         } else if (bookmarks.length > 0 && !editedBookmark) {
             // Si no hay ID en URL, seleccionar el primer marcador de la lista
             setEditedBookmark(bookmarks[0]);
+            setOriginalData(JSON.parse(JSON.stringify(bookmarks[0])));
         }
     }, [bookmarks, searchParams]);
+
+    // Detectar cambios en el bookmark editado
+    useEffect(() => {
+        if (!editedBookmark || !originalData) {
+            return;
+        }
+
+        // Convertir ambos a JSON para comparación exacta
+        try {
+            const editedStr = JSON.stringify({
+                titulo: editedBookmark.titulo,
+                url: editedBookmark.url,
+                descripcion: editedBookmark.descripcion,
+                categoria_id: editedBookmark.categoria_id,
+                tags: (editedBookmark.tags || []).map(t => t.id).sort(),
+                portada: editedBookmark.portada,
+                id: editedBookmark.id
+            });
+            
+            const originalStr = JSON.stringify({
+                titulo: originalData.titulo,
+                url: originalData.url,
+                descripcion: originalData.descripcion,
+                categoria_id: originalData.categoria_id,
+                tags: (originalData.tags || []).map(t => t.id).sort(),
+                portada: originalData.portada,
+                id: originalData.id
+            });
+
+            const hasChanges = editedStr !== originalStr;
+
+            if (hasChanges) {
+                // Si hay cambios y no hay toast, mostrar
+                if (!unsavedChangesToastId) {
+                    const toastId = toast.warning('Cambios sin guardar', 3000);
+                    setUnsavedChangesToastId(toastId);
+                }
+            } else {
+                // Si no hay cambios y hay un toast, ocultarlo
+                if (unsavedChangesToastId) {
+                    toast.removeToast?.(unsavedChangesToastId);
+                    setUnsavedChangesToastId(null);
+                }
+            }
+        } catch (err) {
+            console.error('Error al comparar cambios:', err);
+        }
+    }, [editedBookmark, originalData]);
 
     const loadBookmarks = async () => {
         try {
@@ -64,10 +122,12 @@ function ManageBookmarksContent() {
             const bookmark = await bookmarksService.getById(bookmarkId);
             if (bookmark) {
                 setEditedBookmark(bookmark);
+                setOriginalData(JSON.parse(JSON.stringify(bookmark)));
             } else {
                 // Si no existe, usar el primero de la lista
                 if (bookmarks.length > 0) {
                     setEditedBookmark(bookmarks[0]);
+                    setOriginalData(JSON.parse(JSON.stringify(bookmarks[0])));
                 }
             }
         } catch (err) {
@@ -75,6 +135,7 @@ function ManageBookmarksContent() {
             // Fallback: usar el primero de la lista
             if (bookmarks.length > 0) {
                 setEditedBookmark(bookmarks[0]);
+                setOriginalData(JSON.parse(JSON.stringify(bookmarks[0])));
             }
         }
     };
@@ -166,7 +227,19 @@ function ManageBookmarksContent() {
                 b.id === editedBookmark.id ? updatedBookmark : b
             );
             setBookmarks(updatedBookmarks);
-            setEditedBookmark(updatedBookmark);
+            
+            // Sincronizar: hacer copia profunda sin portadaFile para que sean idénticos
+            const cleanUpdateBookmark = JSON.parse(JSON.stringify(updatedBookmark));
+            setEditedBookmark(cleanUpdateBookmark);
+            
+            // Limpiar toast de cambios sin guardar
+            if (unsavedChangesToastId) {
+                toast.removeToast?.(unsavedChangesToastId);
+                setUnsavedChangesToastId(null);
+            }
+            
+            // Actualizar datos originales con la misma copia
+            setOriginalData(JSON.parse(JSON.stringify(cleanUpdateBookmark)));
             
             toast.success('Marcador actualizado correctamente');
         } catch (err) {
@@ -235,7 +308,19 @@ function ManageBookmarksContent() {
                 b.id === editedBookmark.id ? updatedBookmark : b
             );
             setBookmarks(updatedBookmarks);
-            setEditedBookmark(updatedBookmark);
+            
+            // Sincronizar: hacer copia profunda para que sean idénticos
+            const cleanUpdateBookmark = JSON.parse(JSON.stringify(updatedBookmark));
+            setEditedBookmark(cleanUpdateBookmark);
+            
+            // Limpiar toast de cambios sin guardar
+            if (unsavedChangesToastId) {
+                toast.removeToast?.(unsavedChangesToastId);
+                setUnsavedChangesToastId(null);
+            }
+            
+            // Actualizar datos originales con la misma copia
+            setOriginalData(JSON.parse(JSON.stringify(cleanUpdateBookmark)));
             
             toast.success('Portada eliminada correctamente');
         } catch (err) {

@@ -19,6 +19,8 @@ function ManageFoldersContent() {
     const [folders, setFolders] = useState([]);
     const [selectedFolder, setSelectedFolder] = useState(null);
     const [editedFolder, setEditedFolder] = useState(null);
+    const [originalData, setOriginalData] = useState(null);
+    const [unsavedChangesToastId, setUnsavedChangesToastId] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +32,13 @@ function ManageFoldersContent() {
     useEffect(() => {
         loadFolders();
         loadTags();
+
+        // Limpiar toast al desmontar (cuando se navega fuera de la página)
+        return () => {
+            if (unsavedChangesToastId) {
+                toast.removeToast?.(unsavedChangesToastId);
+            }
+        };
     }, []);
 
     // Seleccionar la carpeta según el parámetro `id` o la primera carpeta
@@ -52,6 +61,46 @@ function ManageFoldersContent() {
             }
         }
     }, [folders, folderId]);
+
+    // Detectar cambios en la carpeta editada
+    useEffect(() => {
+        if (!editedFolder || !originalData) {
+            return;
+        }
+
+        // Convertir ambos a JSON para comparación exacta
+        try {
+            const editedStr = JSON.stringify({
+                name: editedFolder.name,
+                parentId: editedFolder.parentId,
+                id: editedFolder.id
+            });
+            
+            const originalStr = JSON.stringify({
+                name: originalData.name,
+                parentId: originalData.parentId,
+                id: originalData.id
+            });
+
+            const hasChanges = editedStr !== originalStr;
+
+            if (hasChanges) {
+                // Si hay cambios y no hay toast, mostrar
+                if (!unsavedChangesToastId) {
+                    const toastId = toast.warning('Cambios sin guardar', 3000);
+                    setUnsavedChangesToastId(toastId);
+                }
+            } else {
+                // Si no hay cambios y hay un toast, ocultarlo
+                if (unsavedChangesToastId) {
+                    toast.removeToast?.(unsavedChangesToastId);
+                    setUnsavedChangesToastId(null);
+                }
+            }
+        } catch (err) {
+            console.error('Error al comparar cambios:', err);
+        }
+    }, [editedFolder, originalData]);
 
     const loadFolders = async () => {
         try {
@@ -99,6 +148,7 @@ function ManageFoldersContent() {
             date: folder.fecha_creacion ? new Date(folder.fecha_creacion).toLocaleDateString('es-ES') : 'N/A'
         };
         setEditedFolder(folderData);
+        setOriginalData(JSON.parse(JSON.stringify(folderData))); // Copia profunda para comparar cambios
     };
 
     const handleInputChange = (field, value) => {
@@ -117,6 +167,16 @@ function ManageFoldersContent() {
             };
             await categoriesService.update(selectedFolder.id, updateData);
             toast.success(`Se ha actualizado la carpeta: ${editedFolder.name}`);
+            
+            // Sincronizar datos originales con editados
+            setOriginalData(JSON.parse(JSON.stringify(editedFolder)));
+            
+            // Limpiar toast de cambios sin guardar
+            if (unsavedChangesToastId) {
+                toast.removeToast?.(unsavedChangesToastId);
+                setUnsavedChangesToastId(null);
+            }
+            
             await loadFolders();
         } catch (error) {
             console.error('Error actualizando carpeta:', error);
