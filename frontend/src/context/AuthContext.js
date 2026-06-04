@@ -1,5 +1,7 @@
 import React, { createContext, useState, useCallback, useEffect, useContext } from 'react';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -12,7 +14,7 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         const savedToken = localStorage.getItem('token');
         const savedUser = localStorage.getItem('usuario');
-        
+
         if (savedToken && savedUser) {
             try {
                 setToken(savedToken);
@@ -23,14 +25,14 @@ export function AuthProvider({ children }) {
                 localStorage.removeItem('usuario');
             }
         }
-        
+
         setLoading(false);
     }, []);
 
     const register = useCallback(async (email, username, password) => {
         try {
             setError(null);
-            const response = await fetch('http://localhost:3000/api/auth/register', {
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -62,7 +64,7 @@ export function AuthProvider({ children }) {
     const login = useCallback(async (email, password) => {
         try {
             setError(null);
-            const response = await fetch('http://localhost:3000/api/auth/login', {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

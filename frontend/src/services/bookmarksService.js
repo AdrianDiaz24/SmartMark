@@ -1,5 +1,7 @@
 import { apiCall } from './api';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     return token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -17,13 +19,12 @@ export const bookmarksService = {
 
     // Hacer web scraping de una URL
     scrapeUrl: (url) => {
-        const token = localStorage.getItem('token');
         const headers = {
             'Content-Type': 'application/json',
             ...getAuthHeaders()
         };
         
-        return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/scrape`, {
+        return fetch(`${API_BASE_URL}/links/scrape`, {
             method: 'POST',
             body: JSON.stringify({ url }),
             headers
@@ -40,7 +41,7 @@ export const bookmarksService = {
         // Si hay archivo, usar FormData para enviar la imagen
         if (bookmarkData instanceof FormData) {
             const headers = getAuthHeaders();
-            return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links`, {
+            return fetch(`${API_BASE_URL}/links`, {
                 method: 'POST',
                 body: bookmarkData,
                 headers
@@ -71,7 +72,7 @@ export const bookmarksService = {
         // Si hay archivo, usar FormData para enviar la imagen
         if (bookmarkData instanceof FormData) {
             const headers = getAuthHeaders();
-            return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/${id}`, {
+            return fetch(`${API_BASE_URL}/links/${id}`, {
                 method: 'PUT',
                 body: bookmarkData,
                 headers
@@ -125,7 +126,7 @@ export const bookmarksService = {
 
     // Actualizar datos de GitHub de todos los marcadores
     refreshGitHubData: () => {
-        return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/refresh-github`, {
+        return fetch(`${API_BASE_URL}/links/refresh-github`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
