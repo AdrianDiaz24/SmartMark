@@ -14,6 +14,7 @@
  * @param {number} [filters.categoria_id] - ID de categoría para filtrar
  * @param {number} [filters.tag_id] - ID de tag para filtrar
  * @param {string} [filters.search] - Término de búsqueda (título, descripción, tags)
+ * @param {boolean} [filters.all] - Si es true, devuelve TODOS los marcadores (sin restringir a sección general)
  * @param {number} [filters.limit] - Límite de resultados
  * @param {number} [filters.offset] - Offset para paginación
  * @returns {Promise<Array>} Array de bookmarks con tags incluidos
@@ -37,8 +38,11 @@ async function getAllBookmarks(db, usuarioId, filters = {}) {
         if (filters.categoria_id) {
             query += ` AND m.categoria_id = ?`;
             params.push(filters.categoria_id);
-        } else {
-            // Si NO hay filtro de categoría, mostrar solo marcadores sin categoría (sección general)
+        } else if (!filters.search && !filters.all) {
+            // Solo mostrar sección general si:
+            // - NO hay búsqueda Y
+            // - NO se solicita "todos" (all=true)
+            // Cuando hay búsqueda o se solicita todos, buscar en TODOS los marcadores del usuario
             query += ` AND m.categoria_id IS NULL`;
         }
 

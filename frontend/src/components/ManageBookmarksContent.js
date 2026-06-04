@@ -45,7 +45,7 @@ function ManageBookmarksContent() {
     const loadBookmarks = async () => {
         try {
             setLoading(true);
-            const data = await bookmarksService.getAll();
+            const data = await bookmarksService.getAll({ all: true });
             setBookmarks(data || []);
             if (error) setError(null);
         } catch (err) {

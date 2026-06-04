@@ -102,13 +102,14 @@ router.get('/stats/recent', async (req, res, next) => {
 // GET /api/links - Obtener todos los marcadores (con filtros opcionales)
 router.get('/', async (req, res, next) => {
     try {
-        const { categoria_id, tag_id, search, limit, offset } = req.query;
+        const { categoria_id, tag_id, search, limit, offset, all } = req.query;
         const usuarioId = req.usuario.id;
 
         const bookmarks = await getAllBookmarks(db, usuarioId, {
             categoria_id: categoria_id ? parseInt(categoria_id) : null,
             tag_id: tag_id ? parseInt(tag_id) : null,
             search,
+            all: all === 'true', // Convertir string 'true' a booleano
             limit: limit ? parseInt(limit) : null,
             offset: offset ? parseInt(offset) : null
         });
