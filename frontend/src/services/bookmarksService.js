@@ -76,7 +76,12 @@ export const bookmarksService = {
                 method: 'PUT',
                 body: bookmarkData,
                 headers
-            }).then(res => res.json());
+            }).then(res => {
+                if (!res.ok) {
+                    throw new Error(`Error ${res.status}: ${res.statusText}`);
+                }
+                return res.json();
+            });
         }
         
         return apiCall(`/links/${id}`, {
