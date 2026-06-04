@@ -13,7 +13,7 @@ const fs = require('fs');
 const initDB = require('./database/db');
 const errorHandler = require('./middleware/errorHandler');
 const { authenticateToken } = require('./middleware/authMiddleware');
-const { checkAndVerifyIfNeeded } = require('./config/cronJobConfig');
+const { checkAndVerifyIfNeeded, VERIFICATION_INTERVAL } = require('./config/cronJobConfig');
 
 // Importar rutas
 const authRouter = require('./routes/auth');
@@ -125,4 +125,15 @@ app.listen(PORT, async () => {
   } catch (error) {
     console.error('⚠Error en verificador de URLs:', error.message);
   }
+
+  // Ejecutar verificación periódicamente durante la ejecución
+  setInterval(async () => {
+    try {
+      await checkAndVerifyIfNeeded(db);
+    } catch (error) {
+      console.error('⚠Error en verificador periódico de URLs:', error.message);
+    }
+  }, VERIFICATION_INTERVAL);
+  
+  console.log(`Verificador de URLs configurado para ejecutarse cada ${VERIFICATION_INTERVAL / (1000 * 60)} minutos`);
 });

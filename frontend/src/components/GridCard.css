@@ -14,8 +14,8 @@
 }
 
 .grid-card--invalid-url {
-    border-color: #FFA500;
-    box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
+    border-color: #FF4444;
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
 }
 
 .grid-card__image {

@@ -102,6 +102,9 @@ async function verifyAllBookmarks(db) {
         console.log(` Verificando ${bookmarks.length} marcadores...`);
 
         let contador = 0;
+        let validos = 0;
+        let invalidos = 0;
+
         for (let bookmark of bookmarks) {
             try {
                 const estado = await verifyUrl(bookmark.url);
@@ -114,6 +117,11 @@ async function verifyAllBookmarks(db) {
                 `, [estado, bookmark.id]);
 
                 contador++;
+                if (estado === 'valida') {
+                    validos++;
+                } else {
+                    invalidos++;
+                }
                 
                 // Log cada 10 marcadores
                 if (contador % 10 === 0) {
@@ -125,7 +133,7 @@ async function verifyAllBookmarks(db) {
         }
 
         console.log(`Verificación completada. ${contador} marcadores procesados.`);
-        return { verificados: contador, total: bookmarks.length };
+        return { total: bookmarks.length, validos, invalidos };
     } catch (error) {
         console.error('Error en verificación de URLs:', error.message);
         throw error;
