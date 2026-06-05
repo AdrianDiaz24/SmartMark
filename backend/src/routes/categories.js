@@ -16,6 +16,8 @@ const {
     removeTagFromCategory,
     getTotalCategoriesCount
 } = require('../controllers/categoriesController');
+const validate = require('../middleware/validation');
+const { createCategorySchema, updateCategorySchema } = require('../schemas/categorySchemas');
 
 let db;
 
@@ -107,24 +109,24 @@ router.get('/:id', async (req, res, next) => {
  * @tags Categories
  * @security Bearer
  * @requestBody {object} required - Datos de la nueva carpeta
- * @requestBody.nombre {string} - Nombre de la carpeta (requerido)
+ * @requestBody.nombre {string} - Nombre de la carpeta (requerido, 2-100 caracteres)
+ * @requestBody.descripcion {string} - Descripción de la carpeta (opcional)
  * @requestBody.padre_id {number} - ID de carpeta padre para subcarpetas (opcional)
  * @requestBody.tags {array} - Array de IDs de tags (opcional)
  * @returns {object} 201 - Carpeta creada exitosamente
- * @returns {object} 400 - Nombre faltante
+ * @returns {object} 400 - Nombre inválido o faltante
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error interno del servidor
  */
-router.post('/', async (req, res, next) => {
+router.post('/', validate(createCategorySchema), async (req, res, next) => {
     try {
-        const { nombre, padre_id, tags } = req.body;
+        const { nombre, descripcion, padre_id, tags } = req.body;
         const usuarioId = req.usuario.id;
 
-        if (!nombre) {
-            return res.status(400).json({ error: 'El nombre es requerido' });
-        }
+        // Convertir padre_id a número si viene como string
+        const parentId = padre_id ? parseInt(padre_id, 10) : null;
 
-        const newCategory = await createCategory(db, usuarioId, nombre, padre_id, tags || []);
+        const newCategory = await createCategory(db, usuarioId, nombre, parentId, tags || []);
         res.status(201).json(newCategory);
     } catch (error) {
         next(error);
@@ -139,13 +141,9 @@ router.post('/', async (req, res, next) => {
  * @security Bearer
  * @param {number} id.path - ID de la carpeta (requerido)
  * @requestBody {object} required
- * @requestBody.nombre {string} - Nuevo nombre de la carpeta (opcional)
+ * @requestBody.nombre {string} - Nuevo nombre de la carpeta (opcional, 2-100 caracteres)
+ * @requestBody.descripcion {string} - Nueva descripción (opcional)
  * @requestBody.padre_id {number|null} - Nuevo ID de carpeta padre para mover (opcional)
- * @example
- * {
- *   "nombre": "Mi Carpeta Actualizada",
- *   "padre_id": null
- * }
  * @returns {object} 200 - Carpeta actualizada
  * @returns.id {number} - ID de la carpeta
  * @returns.nombre {string} - Nombre actualizado
@@ -154,13 +152,16 @@ router.post('/', async (req, res, next) => {
  * @returns {object} 404 - Carpeta no encontrada
  * @returns {object} 500 - Error interno
  */
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', validate(updateCategorySchema), async (req, res, next) => {
     try {
         const { id } = req.params;
         const { nombre, padre_id } = req.body;
         const usuarioId = req.usuario.id;
 
-        const updatedCategory = await updateCategory(db, usuarioId, id, nombre, padre_id);
+        // Convertir padre_id a número si viene como string
+        const parentId = padre_id ? parseInt(padre_id, 10) : padre_id;
+
+        const updatedCategory = await updateCategory(db, usuarioId, id, nombre, parentId);
         res.json(updatedCategory);
     } catch (error) {
         next(error);

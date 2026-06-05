@@ -13,6 +13,8 @@ const {
     deleteTag,
     getTagStats
 } = require('../controllers/tagsController');
+const validate = require('../middleware/validation');
+const { createTagSchema, updateTagSchema } = require('../schemas/tagSchemas');
 
 let db;
 
@@ -88,21 +90,18 @@ router.get('/:id', async (req, res, next) => {
  * @tags Tags
  * @security Bearer
  * @requestBody {object} required - Datos del nuevo tag
- * @requestBody.nombre {string} - Nombre del tag (requerido)
+ * @requestBody.nombre {string} - Nombre del tag (requerido, 2-50 caracteres)
  * @requestBody.color {string} - Color en formato hex (requerido, ej: #FF5733)
  * @returns {object} 201 - Tag creado exitosamente
- * @returns {object} 400 - Nombre o color faltantes
+ * @returns {object} 400 - Nombre o color inválidos
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error interno del servidor
  */
-router.post('/', async (req, res, next) => {
+router.post('/', validate(createTagSchema), async (req, res, next) => {
     try {
         const { nombre, color } = req.body;
         const usuarioId = req.usuario.id;
 
-        if (!nombre || !color) {
-            return res.status(400).json({ error: 'El nombre y color son requeridos' });
-        }
 
         const newTag = await createTag(db, usuarioId, nombre, color);
         res.status(201).json(newTag);
@@ -119,13 +118,8 @@ router.post('/', async (req, res, next) => {
  * @security Bearer
  * @param {number} id.path - ID del tag (requerido)
  * @requestBody {object} required
- * @requestBody.nombre {string} - Nuevo nombre del tag (opcional)
+ * @requestBody.nombre {string} - Nuevo nombre del tag (opcional, 2-50 caracteres)
  * @requestBody.color {string} - Nuevo color hex (opcional, ej: #FF5733)
- * @example
- * {
- *   "nombre": "Python",
- *   "color": "#3776AB"
- * }
  * @returns {object} 200 - Tag actualizado
  * @returns.id {number} - ID del tag
  * @returns.nombre {string} - Nombre actualizado
@@ -134,7 +128,7 @@ router.post('/', async (req, res, next) => {
  * @returns {object} 404 - Tag no encontrado
  * @returns {object} 500 - Error interno
  */
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', validate(updateTagSchema), async (req, res, next) => {
     try {
         const { id } = req.params;
         const { nombre, color } = req.body;

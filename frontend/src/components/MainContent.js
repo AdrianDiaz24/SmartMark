@@ -105,14 +105,29 @@ function MainContent() {
         return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
-    // Recargar datos cuando se crea un marcador
+    // Recargar datos cuando se crea un marcador, tag o carpeta
     useEffect(() => {
         const handleBookmarkCreated = () => {
             loadData();
         };
 
+        const handleTagCreated = () => {
+            loadData();
+        };
+
+        const handleFolderCreated = () => {
+            loadData();
+        };
+
         window.addEventListener('bookmarkCreated', handleBookmarkCreated);
-        return () => window.removeEventListener('bookmarkCreated', handleBookmarkCreated);
+        window.addEventListener('tagCreated', handleTagCreated);
+        window.addEventListener('folderCreated', handleFolderCreated);
+        
+        return () => {
+            window.removeEventListener('bookmarkCreated', handleBookmarkCreated);
+            window.removeEventListener('tagCreated', handleTagCreated);
+            window.removeEventListener('folderCreated', handleFolderCreated);
+        };
     }, []);
 
     return (

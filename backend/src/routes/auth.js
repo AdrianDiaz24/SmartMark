@@ -5,6 +5,8 @@
 
 const express = require('express');
 const { register, login } = require('../controllers/authController');
+const validate = require('../middleware/validation');
+const { registerSchema, loginSchema } = require('../schemas/authSchemas');
 
 const router = express.Router();
 
@@ -13,9 +15,9 @@ const router = express.Router();
  * @summary Registra un nuevo usuario en el sistema
  * @tags Authentication
  * @requestBody {object} required
- * @requestBody.email {string} required - Email del usuario
- * @requestBody.username {string} required - Nombre de usuario
- * @requestBody.password {string} required - Contraseña
+ * @requestBody.email {string} required - Email del usuario (debe ser único)
+ * @requestBody.username {string} required - Nombre de usuario (3-30 caracteres, alfanumérico)
+ * @requestBody.password {string} required - Contraseña (mínimo 8 caracteres)
  * @returns {object} 201 - Usuario registrado
  * @returns.usuario_id {number} ID del nuevo usuario
  * @returns.email {string} Email confirmado
@@ -24,7 +26,7 @@ const router = express.Router();
  * @returns {object} 400 - Datos inválidos
  * @returns {object} 500 - Error en servidor
  */
-router.post('/register', async (req, res, next) => {
+router.post('/register', validate(registerSchema), async (req, res, next) => {
     try {
         const { email, username, password } = req.body;
         const result = await register(req.db, email, username, password);
@@ -50,7 +52,7 @@ router.post('/register', async (req, res, next) => {
  * @returns {object} 404 - Usuario no existe
  * @returns {object} 500 - Error en servidor
  */
-router.post('/login', async (req, res, next) => {
+router.post('/login', validate(loginSchema), async (req, res, next) => {
     try {
         const { email, password } = req.body;
         const result = await login(req.db, email, password);

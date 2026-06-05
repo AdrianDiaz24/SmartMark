@@ -6,6 +6,8 @@
 const express = require('express');
 const router = express.Router();
 const bookmarkService = require('../services/bookmarkService');
+const validate = require('../middleware/validation');
+const { createBookmarkSchema, updateBookmarkSchema, scrapeUrlSchema } = require('../schemas/bookmarkSchemas');
 
 let db;
 let upload;
@@ -30,12 +32,9 @@ router.use((req, res, next) => {
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error en scraping
  */
-router.post('/scrape', async (req, res, next) => {
+router.post('/scrape', validate(scrapeUrlSchema), async (req, res, next) => {
     try {
         const { url } = req.body;
-        if (!url || !url.trim()) {
-            return res.status(400).json({ error: 'URL es requerida' });
-        }
 
         const usuarioId = req.usuario.id;
         const scrapedData = await bookmarkService.scrapeAndAutoTag(db, url, usuarioId);
@@ -284,7 +283,7 @@ router.get('/:id', async (req, res, next) => {
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error interno
  */
-router.post('/', async (req, res, next) => {
+router.post('/', validate(createBookmarkSchema), async (req, res, next) => {
     try {
         const uploadSingle = upload.single('portada');
         
@@ -296,9 +295,6 @@ router.post('/', async (req, res, next) => {
             try {
                 let { titulo, url, descripcion, categoria_id, tag_ids } = req.body;
 
-                if (!titulo || !url) {
-                    return res.status(400).json({ error: 'El título y URL son requeridos' });
-                }
 
                 let portada = null;
                 if (req.file) {
@@ -355,7 +351,7 @@ router.post('/', async (req, res, next) => {
  * @returns {object} 404 - Marcador no encontrado
  * @returns {object} 500 - Error interno
  */
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', validate(updateBookmarkSchema), async (req, res, next) => {
     try {
         const uploadSingle = upload.single('portada');
         
