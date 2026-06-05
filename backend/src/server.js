@@ -51,7 +51,17 @@ const swaggerOptions = {
     swaggerUIPath: '/api-docs',
     exposeSwaggerUI: true,
     exposeApiDocs: true,
-    apiDocsPath: '/api-docs.json'
+    apiDocsPath: '/api-docs.json',
+    components: {
+        securitySchemes: {
+            Bearer: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+                description: 'Ingresa tu token JWT. Accede a /api/auth/login primero para obtenerlo'
+            }
+        }
+    }
 };
 
 expressJsdocSwagger(app)(swaggerOptions);

@@ -10,27 +10,19 @@ const router = express.Router();
 
 /**
  * POST /api/auth/register
- * @summary Registra un nuevo usuario
+ * @summary Registra un nuevo usuario en el sistema
  * @tags Authentication
  * @requestBody {object} required
- * @requestBody.email {string} - Email del usuario (requerido, válido)
- * @requestBody.username {string} - Nombre de usuario (requerido, mín 3 caracteres)
- * @requestBody.password {string} - Contraseña (requerido, mín 8 caracteres)
- * @example
- * {
- *   "email": "usuario@example.com",
- *   "username": "miusuario",
- *   "password": "password123"
- * }
- * @returns {object} 201
- * @returns.usuario_id {number} - ID del usuario creado
- * @returns.email {string} - Email confirmado
- * @returns.username {string} - Nombre de usuario
- * @returns.token {string} - JWT token para autenticación
- * @returns {object} 400
- * @returns.error {string} - Email ya existe / Validación fallida
- * @returns {object} 500
- * @returns.error {string} - Error interno del servidor
+ * @requestBody.email {string} required - Email del usuario
+ * @requestBody.username {string} required - Nombre de usuario
+ * @requestBody.password {string} required - Contraseña
+ * @returns {object} 201 - Usuario registrado
+ * @returns.usuario_id {number} ID del nuevo usuario
+ * @returns.email {string} Email confirmado
+ * @returns.username {string} Nombre de usuario
+ * @returns.token {string} JWT token
+ * @returns {object} 400 - Datos inválidos
+ * @returns {object} 500 - Error en servidor
  */
 router.post('/register', async (req, res, next) => {
     try {
@@ -44,27 +36,19 @@ router.post('/register', async (req, res, next) => {
 
 /**
  * POST /api/auth/login
- * @summary Inicia sesión de usuario
+ * @summary Obtiene token JWT con credenciales válidas
  * @tags Authentication
  * @requestBody {object} required
- * @requestBody.email {string} - Email del usuario (requerido)
- * @requestBody.password {string} - Contraseña (requerido)
- * @example
- * {
- *   "email": "usuario@example.com",
- *   "password": "password123"
- * }
- * @returns {object} 200
- * @returns.usuario_id {number} - ID del usuario
- * @returns.email {string} - Email del usuario
- * @returns.username {string} - Nombre de usuario
- * @returns.token {string} - JWT token para autenticación
- * @returns {object} 401
- * @returns.error {string} - Email o contraseña incorrectos
- * @returns {object} 404
- * @returns.error {string} - Usuario no encontrado
- * @returns {object} 500
- * @returns.error {string} - Error interno del servidor
+ * @requestBody.email {string} required - Email registrado del usuario
+ * @requestBody.password {string} required - Contraseña del usuario
+ * @returns {object} 200 - Login exitoso
+ * @returns.usuario_id {number} ID del usuario
+ * @returns.email {string} Email del usuario
+ * @returns.username {string} Nombre de usuario
+ * @returns.token {string} JWT token
+ * @returns {object} 401 - Credenciales incorrectas
+ * @returns {object} 404 - Usuario no existe
+ * @returns {object} 500 - Error en servidor
  */
 router.post('/login', async (req, res, next) => {
     try {
