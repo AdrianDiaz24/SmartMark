@@ -1,5 +1,12 @@
 import { apiCall } from './api';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
 export const bookmarksService = {
     // Obtener todos los marcadores
     getAll: (params = {}) => {
@@ -12,12 +19,15 @@ export const bookmarksService = {
 
     // Hacer web scraping de una URL
     scrapeUrl: (url) => {
-        return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/scrape`, {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+        };
+        
+        return fetch(`${API_BASE_URL}/links/scrape`, {
             method: 'POST',
             body: JSON.stringify({ url }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers
         }).then(res => {
             if (!res.ok) {
                 throw new Error(`Error ${res.status}: ${res.statusText}`);
@@ -30,9 +40,11 @@ export const bookmarksService = {
     create: (bookmarkData) => {
         // Si hay archivo, usar FormData para enviar la imagen
         if (bookmarkData instanceof FormData) {
-            return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links`, {
+            const headers = getAuthHeaders();
+            return fetch(`${API_BASE_URL}/links`, {
                 method: 'POST',
-                body: bookmarkData
+                body: bookmarkData,
+                headers
             }).then(res => {
                 if (!res.ok) {
                     throw new Error(`Error ${res.status}: ${res.statusText}`);
@@ -59,10 +71,17 @@ export const bookmarksService = {
     update: (id, bookmarkData) => {
         // Si hay archivo, usar FormData para enviar la imagen
         if (bookmarkData instanceof FormData) {
-            return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/${id}`, {
+            const headers = getAuthHeaders();
+            return fetch(`${API_BASE_URL}/links/${id}`, {
                 method: 'PUT',
-                body: bookmarkData
-            }).then(res => res.json());
+                body: bookmarkData,
+                headers
+            }).then(res => {
+                if (!res.ok) {
+                    throw new Error(`Error ${res.status}: ${res.statusText}`);
+                }
+                return res.json();
+            });
         }
         
         return apiCall(`/links/${id}`, {
@@ -112,7 +131,7 @@ export const bookmarksService = {
 
     // Actualizar datos de GitHub de todos los marcadores
     refreshGitHubData: () => {
-        return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/links/refresh-github`, {
+        return fetch(`${API_BASE_URL}/links/refresh-github`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const {
-    getAllBookmarks,
+    getBookmarks,
     getBookmarkById,
     createBookmark,
     updateBookmark,
@@ -28,7 +28,7 @@ let upload;
 
 // Middleware para inyectar la conexión a la BD y multer
 router.use((req, res, next) => {
-    db = req.app.locals.db;
+    db = req.db;
     upload = req.app.locals.upload;
     next();
 });
@@ -43,11 +43,12 @@ router.post('/scrape', async (req, res, next) => {
         }
 
         const scrapedData = await scrapeUrl(url);
+        const usuarioId = req.usuario.id; // Obtener ID del usuario autenticado
         
         // Si el scraping fue exitoso, hacer autotagging
         if (scrapedData.success) {
-            // 1. Autotagging básico (título, descripción, dominio)
-            let autoTags = await autotagBookmark(db, scrapedData.titulo, scrapedData.descripcion, url);
+            // 1. Autotagging básico (título, descripción, dominio) - solo para tags del usuario
+            let autoTags = await autotagBookmark(db, scrapedData.titulo, scrapedData.descripcion, url, usuarioId);
             
             // 2. Si es GitHub, obtener datos del repositorio
             let gitHubData = null;
@@ -59,12 +60,12 @@ router.post('/scrape', async (req, res, next) => {
                     scrapedData.gitHubData = gitHubData;
                     scrapedData.gitHubLanguages = gitHubLanguages;
                     
-                    // Agregar lenguajes de GitHub al autotagging
+                    // Agregar lenguajes de GitHub al autotagging - solo para tags del usuario
                     for (let language of gitHubLanguages) {
-                        // Buscar si existe un tag para este lenguaje
+                        // Buscar si existe un tag para este lenguaje EN LOS TAGS DEL USUARIO
                         const tagForLanguage = await db.get(
-                            'SELECT id FROM Tags WHERE LOWER(nombre) = LOWER(?)',
-                            [language]
+                            'SELECT id FROM Tags WHERE LOWER(nombre) = LOWER(?) AND usuario_id = ?',
+                            [language, usuarioId]
                         );
                         if (tagForLanguage) {
                             autoTags.push(tagForLanguage.id);
@@ -90,22 +91,25 @@ router.post('/scrape', async (req, res, next) => {
 // GET /api/links/stats/recent - Obtener los últimos 10 marcadores más recientemente abiertos
 router.get('/stats/recent', async (req, res, next) => {
     try {
-        const bookmarks = await getRecentBookmarks(db);
+        const usuarioId = req.usuario.id;
+        const bookmarks = await getRecentBookmarks(db, usuarioId);
         res.json(bookmarks);
     } catch (error) {
         next(error);
     }
 });
 
-// GET /api/links - Obtener todos los marcadores (con filtros opcionales)
+// GET /api/links - Obtener marcadores (con filtros opcionales)
 router.get('/', async (req, res, next) => {
     try {
-        const { categoria_id, tag_id, search, limit, offset } = req.query;
+        const { categoria_id, tag_id, search, limit, offset, all } = req.query;
+        const usuarioId = req.usuario.id;
 
-        const bookmarks = await getAllBookmarks(db, {
+        const bookmarks = await getBookmarks(db, usuarioId, {
             categoria_id: categoria_id ? parseInt(categoria_id) : null,
             tag_id: tag_id ? parseInt(tag_id) : null,
             search,
+            all: all === 'true', // Convertir string 'true' a booleano
             limit: limit ? parseInt(limit) : null,
             offset: offset ? parseInt(offset) : null
         });
@@ -119,7 +123,8 @@ router.get('/', async (req, res, next) => {
 // GET /api/links/stats/last-week - Obtener marcadores visitados última semana
 router.get('/stats/last-week', async (req, res, next) => {
     try {
-        const bookmarks = await getBookmarksVisitedLastWeek(db);
+        const usuarioId = req.usuario.id;
+        const bookmarks = await getBookmarksVisitedLastWeek(db, usuarioId);
         res.json(bookmarks);
     } catch (error) {
         next(error);
@@ -129,17 +134,19 @@ router.get('/stats/last-week', async (req, res, next) => {
 // GET /api/links/stats/count-last-week - Contar marcadores visitados última semana
 router.get('/stats/count-last-week', async (req, res, next) => {
     try {
-        const count = await countBookmarksVisitedLastWeek(db);
+        const usuarioId = req.usuario.id;
+        const count = await countBookmarksVisitedLastWeek(db, usuarioId);
         res.json({ count });
     } catch (error) {
         next(error);
     }
 });
 
-// GET /api/links/stats/count-all - Contar todos los marcadores
+// GET /api/links/stats/count-all - Contar todos los marcadores del usuario
 router.get('/stats/count-all', async (req, res, next) => {
     try {
-        const count = await countAllBookmarks(db);
+        const usuarioId = req.usuario.id;
+        const count = await countAllBookmarks(db, usuarioId);
         res.json({ count });
     } catch (error) {
         next(error);
@@ -232,7 +239,8 @@ router.post('/refresh-github', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const bookmark = await getBookmarkById(db, id);
+        const usuarioId = req.usuario.id;
+        const bookmark = await getBookmarkById(db, usuarioId, id);
 
         if (!bookmark) {
             return res.status(404).json({ error: 'Marcador no encontrado' });
@@ -295,7 +303,8 @@ router.post('/', async (req, res, next) => {
 
                 console.log('Creando bookmark:', { titulo, url, descripcion, parsedCategoryId, parsedTags, tienePortada: !!portada, github_stars, github_forks });
 
-                const newBookmark = await createBookmark(db, {
+                const usuarioId = req.usuario.id;
+                const newBookmark = await createBookmark(db, usuarioId, {
                     titulo,
                     url,
                     descripcion,

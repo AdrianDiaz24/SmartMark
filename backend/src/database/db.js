@@ -30,8 +30,9 @@ const { open } = require('sqlite');
 async function initDB() {
 
     // 1. Abrimos la conexión
+    const databasePath = process.env.DATABASE_PATH || './src/database/smartmark.db';
     const db = await open({
-        filename: './src/database/smartmark.db',
+        filename: databasePath,
         driver: sqlite3.Database
     });
 
@@ -39,55 +40,70 @@ async function initDB() {
 
     // 2. Ejecutamos código SQL puro para crear todas las tablas
     await db.exec(`
-        -- 1. TABLA DE CATEGORÍAS 
+        -- 1. TABLA DE USUARIOS
+        CREATE TABLE IF NOT EXISTS Usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- 2. TABLA DE CATEGORÍAS 
         CREATE TABLE IF NOT EXISTS Categorias (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
-            padre_id INTEGER, -- Si es NULL, va a la raíz. Si tiene un ID, es una subcarpeta.
+            padre_id INTEGER,
+            usuario_id INTEGER NOT NULL,
             fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (padre_id) REFERENCES Categorias(id) ON DELETE CASCADE
+            FOREIGN KEY (padre_id) REFERENCES Categorias(id) ON DELETE CASCADE,
+            FOREIGN KEY (usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE
         );
 
-        -- 2. TABLA DE ETIQUETAS 
+        -- 3. TABLA DE ETIQUETAS 
         CREATE TABLE IF NOT EXISTS Tags (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL UNIQUE, 
+            nombre TEXT NOT NULL,
             color TEXT NOT NULL, 
+            usuario_id INTEGER NOT NULL,
             fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-            es_default BOOLEAN DEFAULT 0
+            es_default BOOLEAN DEFAULT 0,
+            FOREIGN KEY (usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE,
+            UNIQUE (nombre, usuario_id)
         );
 
-        -- 3. TABLA DE MARCADORES (Tus enlaces guardados)
+        -- 4. TABLA DE MARCADORES (Tus enlaces guardados)
         CREATE TABLE IF NOT EXISTS Marcadores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             titulo TEXT NOT NULL,
             url TEXT NOT NULL,
             descripcion TEXT,
-            portada BLOB, -- Almacena la imagen en formato binario
-            categoria_id INTEGER, -- Si es NULL, el enlace se muestra suelto en la raíz.
+            portada BLOB,
+            categoria_id INTEGER,
+            usuario_id INTEGER NOT NULL,
             fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-            ultima_apertura DATETIME, -- Registra cuándo se abrió el marcador por última vez
-            github_stars INTEGER DEFAULT 0, -- Para repositorios de GitHub
+            ultima_apertura DATETIME,
+            github_stars INTEGER DEFAULT 0,
             github_forks INTEGER DEFAULT 0,
             github_watchers INTEGER DEFAULT 0,
-            github_languages TEXT, -- JSON array: ["JavaScript", "Python", ...]
-            url_estado TEXT DEFAULT 'desconocido', -- 'valida', 'invalida', 'desconocido'
-            ultima_verificacion DATETIME, -- Última vez que se verificó la URL
-            FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE
+            github_languages TEXT,
+            url_estado TEXT DEFAULT 'desconocido',
+            ultima_verificacion DATETIME,
+            FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE,
+            FOREIGN KEY (usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE
         );
 
-
-        -- 4. TABLA INTERMEDIA (Relación Muchos a Muchos)
+        -- 5. TABLA INTERMEDIA (Relación Muchos a Muchos)
         -- Empareja un Marcador con un Tag
         CREATE TABLE IF NOT EXISTS Marcadores_Tags (
             marcador_id INTEGER,
             tag_id INTEGER,
-            PRIMARY KEY (marcador_id, tag_id), -- Evita que le pongamos la misma etiqueta dos veces al mismo enlace
+            PRIMARY KEY (marcador_id, tag_id),
             FOREIGN KEY (marcador_id) REFERENCES Marcadores(id) ON DELETE CASCADE,
             FOREIGN KEY (tag_id) REFERENCES Tags(id) ON DELETE CASCADE
         );
 
-        -- 5. TABLA INTERMEDIA (Relación Muchos a Muchos)
+        -- 6. TABLA INTERMEDIA (Relación Muchos a Muchos)
         -- Empareja una Categoría con un Tag
         CREATE TABLE IF NOT EXISTS Categorias_Tags (
             categoria_id INTEGER,
@@ -97,7 +113,7 @@ async function initDB() {
             FOREIGN KEY (tag_id) REFERENCES Tags(id) ON DELETE CASCADE
         );
 
-        -- 6. TABLA DE LOG DE VERIFICACIÓN
+        -- 7. TABLA DE LOG DE VERIFICACIÓN
         -- Registra la última verificación de URLs
         CREATE TABLE IF NOT EXISTS verification_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,6 +134,8 @@ async function initDB() {
 }
 
 async function insertDefaultTags(db) {
+    // Estos tags globales se mantienen solo como referencia
+    // Los tags específicos del usuario se crean en el controlador auth
     const defaultTags = [
         // Lenguajes de Programación
         { nombre: 'JavaScript', color: 'FFE943' },    // Amarillo (característico de JS)
@@ -156,21 +174,76 @@ async function insertDefaultTags(db) {
         { nombre: 'Docker Compose', color: '33A4DC' }  // Azul claro
     ];
 
+    // Esta tabla solo se usa como referencia para no duplicar los tags globales
+    // Los tags reales de cada usuario se almacenan en la tabla Tags con usuario_id
+    console.log('Tags predefinidos de programación listados como referencia');
+}
+
+/**
+ * Crea los tags por defecto para un usuario nuevo
+ * @param {Object} db - Instancia de la base de datos
+ * @param {number} usuarioId - ID del usuario
+ * @returns {Promise<Array>} Array de tags creados
+ */
+async function createDefaultTagsForUser(db, usuarioId) {
+    const defaultTags = [
+        // Lenguajes de Programación
+        { nombre: 'JavaScript', color: 'FFE943' },
+        { nombre: 'TypeScript', color: '33A4DC' },
+        { nombre: 'Python', color: '33A4DC' },
+        { nombre: 'Java', color: '33A4DC' },
+        { nombre: 'C#', color: '51986C' },
+        { nombre: 'Go', color: '33A4DC' },
+        { nombre: 'Rust', color: 'FF4343' },
+        { nombre: 'PHP', color: '593DF9' },
+        { nombre: 'Kotlin', color: '593DF9' },
+        { nombre: 'C++', color: '616060' },
+        { nombre: 'Ruby', color: 'FF4343' },
+        { nombre: 'SQL', color: '33A4DC' },
+        { nombre: 'CSS', color: '33A4DC' },
+        { nombre: 'HTML', color: 'FF4343' },
+        { nombre: 'React', color: '33DCCB' },
+        { nombre: 'Vue', color: '51986C' },
+        { nombre: 'Angular', color: 'FF4343' },
+        { nombre: 'Node.js', color: '51986C' },
+        { nombre: 'Django', color: '51986C' },
+        { nombre: 'FastAPI', color: '51986C' },
+        { nombre: 'Spring', color: '51986C' },
+        { nombre: 'Docker', color: '33A4DC' },
+        { nombre: 'GitHub', color: '616060' },
+        { nombre: 'GitLab', color: 'FFE943' },
+        { nombre: 'AWS', color: 'FFE943' },
+        { nombre: 'Firebase', color: 'FFE943' },
+        { nombre: 'Kubernetes', color: '33A4DC' },
+        { nombre: 'Git', color: 'FF4343' },
+        { nombre: 'npm', color: 'FF4343' },
+        { nombre: 'Docker Compose', color: '33A4DC' }
+    ];
+
     try {
+        const tagsDuplicados = [];
         for (let tag of defaultTags) {
-            // Verificar si el tag ya existe
-            const existe = await db.get('SELECT id FROM Tags WHERE nombre = ?', [tag.nombre]);
+            // Verificar si el tag ya existe para este usuario
+            const existe = await db.get(
+                'SELECT id FROM Tags WHERE nombre = ? AND usuario_id = ?',
+                [tag.nombre, usuarioId]
+            );
             if (!existe) {
                 await db.run(
-                    'INSERT INTO Tags (nombre, color, es_default) VALUES (?, ?, 1)',
-                    [tag.nombre, tag.color]
+                    'INSERT INTO Tags (nombre, color, usuario_id, es_default) VALUES (?, ?, ?, 1)',
+                    [tag.nombre, tag.color, usuarioId]
                 );
-                console.log(`Tag por defecto agregado: ${tag.nombre} (${tag.color})`);
+            } else {
+                tagsDuplicados.push(tag.nombre);
             }
         }
+        console.log(`Tags creados para usuario ${usuarioId}. Duplicados: ${tagsDuplicados.length}`);
+        return defaultTags;
     } catch (error) {
-        console.error('Error insertando tags por defecto:', error.message);
+        console.error('Error creando tags por defecto para usuario:', error.message);
+        return [];
     }
 }
 
 module.exports = initDB;
+module.exports.createDefaultTagsForUser = createDefaultTagsForUser;

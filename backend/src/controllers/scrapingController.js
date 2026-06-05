@@ -206,13 +206,21 @@ async function getGitHubLanguages(url) {
 }
 
 // Función para autotagging: encuentra coincidencias entre título/descripción/URL y nombres de tags
-async function autotagBookmark(db, titulo, descripcion, url = '') {
+async function autotagBookmark(db, titulo, descripcion, url = '', usuarioId = null) {
     try {
-        // Obtener todos los tags de la BD
-        const allTags = await db.all('SELECT id, nombre FROM Tags');
+        // Obtener solo los tags del usuario actual
+        let tagsQuery = 'SELECT id, nombre FROM Tags';
+        let tagsParams = [];
+        
+        if (usuarioId) {
+            tagsQuery += ' WHERE usuario_id = ?';
+            tagsParams.push(usuarioId);
+        }
+        
+        const allTags = await db.all(tagsQuery, tagsParams);
         
         if (!allTags || allTags.length === 0) {
-            console.log('[Autotagging] No hay tags disponibles en la base de datos');
+            console.log('[Autotagging] No hay tags disponibles en la base de datos para este usuario');
             return [];
         }
 

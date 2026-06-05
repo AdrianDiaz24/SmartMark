@@ -16,14 +16,15 @@ let db;
 
 // Middleware para inyectar la conexión a la BD
 router.use((req, res, next) => {
-    db = req.app.locals.db;
+    db = req.db;
     next();
 });
 
-// GET /api/categories - Obtener todas las categorías
+// GET /api/categories - Obtener todas las categorías del usuario
 router.get('/', async (req, res, next) => {
     try {
-        const categories = await getAllCategories(db);
+        const usuarioId = req.usuario.id;
+        const categories = await getAllCategories(db, usuarioId);
         res.json(categories);
     } catch (error) {
         next(error);
@@ -34,7 +35,8 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const category = await getCategoryById(db, id);
+        const usuarioId = req.usuario.id;
+        const category = await getCategoryById(db, usuarioId, id);
 
         if (!category) {
             return res.status(404).json({ error: 'Categoría no encontrada' });
@@ -50,12 +52,13 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const { nombre, padre_id, tags } = req.body;
+        const usuarioId = req.usuario.id;
 
         if (!nombre) {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
 
-        const newCategory = await createCategory(db, nombre, padre_id, tags || []);
+        const newCategory = await createCategory(db, usuarioId, nombre, padre_id, tags || []);
         res.status(201).json(newCategory);
     } catch (error) {
         next(error);
@@ -67,8 +70,9 @@ router.put('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
         const { nombre, padre_id } = req.body;
+        const usuarioId = req.usuario.id;
 
-        const updatedCategory = await updateCategory(db, id, nombre, padre_id);
+        const updatedCategory = await updateCategory(db, usuarioId, id, nombre, padre_id);
         res.json(updatedCategory);
     } catch (error) {
         next(error);
@@ -80,8 +84,9 @@ router.delete('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
         const { deleteBookmarks } = req.query;
+        const usuarioId = req.usuario.id;
 
-        const result = await deleteCategory(db, id, deleteBookmarks === 'true');
+        const result = await deleteCategory(db, usuarioId, id, deleteBookmarks === 'true');
         res.json(result);
     } catch (error) {
         next(error);

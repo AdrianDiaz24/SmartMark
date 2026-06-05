@@ -12,6 +12,12 @@ export const apiCall = async (endpoint, options = {}) => {
         }
     };
 
+    // Agregar token JWT si existe
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+    }
+
     if (body) {
         config.body = JSON.stringify(body);
     }
@@ -20,8 +26,14 @@ export const apiCall = async (endpoint, options = {}) => {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
         if (!response.ok) {
+            // Si es 401, el token es inválido, limpiar localStorage
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('usuario');
+                window.location.href = '/login';
+            }
             const error = await response.json();
-            throw new Error(error.error || `Error ${response.status}`);
+            throw new Error(error.message || error.error || `Error ${response.status}`);
         }
 
         return await response.json();

@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "description": "SmartMark - Gestor inteligente de marcadores",
   "scripts": {
-    "docs": "jsdoc -c ./jsdoc.json"
+    "docs": "jsdoc -c ./jsdoc.json",
+    "start": "concurrently \"npm --prefix backend start\" \"npm --prefix frontend start\"",
+    "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend start\"",
+    "backend:start": "npm --prefix backend start",
+    "backend:dev": "npm --prefix backend run dev",
+    "frontend:start": "npm --prefix frontend start",
+    "frontend:build": "npm --prefix frontend run build"
   },
   "devDependencies": {
-    "jsdoc": "^4.0.2",
-    "better-docs": "^2.7.2"
+    "better-docs": "^2.7.2",
+    "concurrently": "^10.0.3",
+    "jsdoc": "^4.0.2"
   }
 }
-

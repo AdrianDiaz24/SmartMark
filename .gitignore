@@ -1,5 +1,6 @@
 /backend/node_modules/
 /backend/src/database/smartmark.db
+/backend/.env
 /frontend/node_modules/
 /frontend/.env
 /node_modules/

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import { useSearch } from '../context/SearchContext';
 import StatCard from './StatCard';
 import LinkCard from './LinkCard';
 import { bookmarksService } from '../services/bookmarksService';
@@ -9,7 +10,9 @@ import './MainContent.css';
 
 function MainContent() {
     const navigate = useNavigate();
+    const { searchTerm, setSearchResults, isSearching } = useSearch();
     const [bookmarks, setBookmarks] = useState([]);
+    const [searchResults, setLocalSearchResults] = useState([]);
     const [stats, setStats] = useState({
         totalBookmarks: 0,
         totalCategories: 0,
@@ -48,6 +51,31 @@ function MainContent() {
             setLoading(false);
         }
     };
+
+    // Ejecutar búsqueda en tiempo real
+    useEffect(() => {
+        if (searchTerm.trim()) {
+            const performSearch = async () => {
+                try {
+                    const results = await bookmarksService.getAll({
+                        search: searchTerm
+                    });
+                    setLocalSearchResults(results || []);
+                    setSearchResults(results || []);
+                } catch (err) {
+                    console.error('Error en búsqueda:', err);
+                    setLocalSearchResults([]);
+                }
+            };
+
+            // Ejecutar búsqueda con pequeño delay para evitar demasiadas llamadas
+            const timeoutId = setTimeout(performSearch, 300);
+            return () => clearTimeout(timeoutId);
+        } else {
+            setLocalSearchResults([]);
+            setSearchResults([]);
+        }
+    }, [searchTerm, setSearchResults]);
 
     useEffect(() => {
         loadData();
@@ -100,6 +128,35 @@ function MainContent() {
                 <div style={{ color: 'red', padding: '10px', marginBottom: '10px' }}>
                     Error al cargar datos: {error}
                 </div>
+            )}
+
+            {/* Sección de Resultados de Búsqueda */}
+            {isSearching && (
+                <section className="main-content__results" aria-labelledby="results-title">
+                    <div className="main-content__results-header">
+                        <h2 id="results-title" className="main-content__results-title">
+                            Resultados de búsqueda
+                        </h2>
+                        <span className="main-content__results-count">
+                            {searchResults.length} resultado{searchResults.length !== 1 ? 's' : ''}
+                        </span>
+                    </div>
+
+                    <div className="main-content__results-list">
+                        {searchResults.length > 0 ? (
+                            searchResults.map(bookmark => (
+                                <LinkCard
+                                    key={`search-${bookmark.id}`}
+                                    bookmark={bookmark}
+                                />
+                            ))
+                        ) : (
+                            <p style={{ color: '#999', padding: '20px', textAlign: 'center' }}>
+                                No se encontraron marcadores
+                            </p>
+                        )}
+                    </div>
+                </section>
             )}
 
             <section className="main-content__recent" aria-labelledby="recent-title">

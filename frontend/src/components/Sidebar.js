@@ -158,8 +158,8 @@ function Sidebar() {
                             handleFilter('carpeta', 'todas');
                         }}
                     >
-                        <img src={iconoArchivador} alt="Todos" className="sidebar-folder__icon" />
-                        <span>Todos los marcadores</span>
+                        <img src={iconoArchivador} alt="Sección general" className="sidebar-folder__icon" />
+                        <span>Sección general</span>
                     </div>
 
                     {foldersLoading ? (

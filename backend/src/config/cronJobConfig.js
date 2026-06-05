@@ -6,8 +6,11 @@ const { verifyAllBookmarks } = require('../services/urlVerificationService');
  * @module config/cronJobConfig
  */
 
-/** @constant {number} VERIFICATION_INTERVAL - Intervalo de verificación en milisegundos (7 días) */
-const VERIFICATION_INTERVAL = 7 * 24 * 60 * 60 * 1000; // 7 días en milisegundos
+/** @constant {number} VERIFICATION_INTERVAL - Intervalo de verificación en milisegundos */
+// TESTING: 5 minutos para comprobar el funcionamiento frecuentemente
+const VERIFICATION_INTERVAL = 5 * 60 * 1000; // 5 minutos
+// PRODUCCIÓN: 7 días (descomentar para usar en producción)
+// const VERIFICATION_INTERVAL = 7 * 24 * 60 * 60 * 1000; // 7 días
 
 /**
  * Verifica si es necesario ejecutar la verificación de URLs
@@ -15,7 +18,7 @@ const VERIFICATION_INTERVAL = 7 * 24 * 60 * 60 * 1000; // 7 días en milisegundo
  * Sistema adaptativo que:
  * - No depende de horarios fijos (como cron tradicional)
  * - Funciona en servidores que se reinician ocasionalmente
- * - Ejecuta verificación si han pasado 7 días desde la última
+ * - Ejecuta verificación si han pasado los intervalos configurados
  * - Guarda un log de cada verificación en la tabla verification_log
  *
  * @async
@@ -28,7 +31,7 @@ const VERIFICATION_INTERVAL = 7 * 24 * 60 * 60 * 1000; // 7 días en milisegundo
  * // Se ejecuta al iniciar el servidor
  * const db = await initDB();
  * await checkAndVerifyIfNeeded(db);
- * // Si han pasado 7 días, verifica todas las URLs
+ * // Si han pasado los intervalos configurados, verifica todas las URLs
  * // Si no, solo muestra el estado
  */
 async function checkAndVerifyIfNeeded(db) {
@@ -60,13 +63,14 @@ async function checkAndVerifyIfNeeded(db) {
 
             if (timeSinceLastVerification < VERIFICATION_INTERVAL) {
                 shouldVerify = false;
-                console.log(`No es necesario verificar aún (faltan ${Math.floor((VERIFICATION_INTERVAL - timeSinceLastVerification) / (1000 * 60 * 60 * 24))} días)`);
+                const minutosRestantes = Math.ceil((VERIFICATION_INTERVAL - timeSinceLastVerification) / (1000 * 60));
+                console.log(`No es necesario verificar aún (faltan ${minutosRestantes} minutos)`);
             }
         } else {
             console.log(`Primera verificación del sistema`);
         }
 
-        // 3. Si pasó 1 semana, ejecutar verificación
+        // 3. Si pasó el intervalo, ejecutar verificación
         if (shouldVerify) {
             console.log(`Ejecutando verificación de URLs...`);
             
@@ -100,7 +104,8 @@ async function checkAndVerifyIfNeeded(db) {
 }
 
 module.exports = {
-    checkAndVerifyIfNeeded
+    checkAndVerifyIfNeeded,
+    VERIFICATION_INTERVAL
 };
 
 

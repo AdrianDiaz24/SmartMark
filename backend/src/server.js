@@ -4,6 +4,7 @@
  * @module server
  */
 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -11,9 +12,11 @@ const path = require('path');
 const fs = require('fs');
 const initDB = require('./database/db');
 const errorHandler = require('./middleware/errorHandler');
-const { checkAndVerifyIfNeeded } = require('./config/cronJobConfig');
+const { authenticateToken } = require('./middleware/authMiddleware');
+const { checkAndVerifyIfNeeded, VERIFICATION_INTERVAL } = require('./config/cronJobConfig');
 
 // Importar rutas
+const authRouter = require('./routes/auth');
 const bookmarksRouter = require('./routes/bookmarks');
 const categoriesRouter = require('./routes/categories');
 const tagsRouter = require('./routes/tags');
@@ -23,7 +26,7 @@ const urlVerificationRouter = require('./routes/urlVerification');
 const app = express();
 
 /** @constant {number} PORT - Puerto en el que escucha el servidor */
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Crear carpeta de uploads si no existe
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -33,6 +36,8 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Configurar multer para almacenar en memoria (ya que guardaremos en BD como BLOB)
 const storage = multer.memoryStorage();
+
+const maxFileSize = (process.env.MAX_FILE_SIZE_MB || 5) * 1024 * 1024;
 
 const upload = multer({
     storage: storage,
@@ -45,12 +50,15 @@ const upload = multer({
         }
     },
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB máximo
+        fileSize: maxFileSize
     }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -60,16 +68,20 @@ let db;
 
 // Middleware para pasar la conexión a las rutas
 app.use((req, res, next) => {
+  req.db = db;
   req.app.locals.db = db;
   req.app.locals.upload = upload;
   next();
 });
 
-// RUTAS
-app.use('/api/links', bookmarksRouter);
-app.use('/api/categories', categoriesRouter);
-app.use('/api/tags', tagsRouter);
-app.use('/api/url-verification', urlVerificationRouter);
+// RUTAS PÚBLICAS
+app.use('/api/auth', authRouter);
+
+// RUTAS PROTEGIDAS
+app.use('/api/links', authenticateToken, bookmarksRouter);
+app.use('/api/categories', authenticateToken, categoriesRouter);
+app.use('/api/tags', authenticateToken, tagsRouter);
+app.use('/api/url-verification', authenticateToken, urlVerificationRouter);
 
 // Ruta raíz de API
 app.get('/api', (req, res) => {
@@ -77,10 +89,16 @@ app.get('/api', (req, res) => {
     message: 'Bienvenido a la API de SmartMark',
     version: '1.0.0',
     endpoints: {
-      links: '/api/links',
-      categories: '/api/categories',
-      tags: '/api/tags',
-      urlVerification: '/api/url-verification'
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login'
+      },
+      protected: {
+        links: '/api/links',
+        categories: '/api/categories',
+        tags: '/api/tags',
+        urlVerification: '/api/url-verification'
+      }
     }
   });
 });
@@ -96,6 +114,7 @@ app.use(errorHandler);
 // ARRANQUE DEL SERVIDOR
 app.listen(PORT, async () => {
   console.log(`Servidor de SmartMark corriendo en http://localhost:${PORT}`);
+  console.log(`Entorno: ${process.env.NODE_ENV || 'development'}`);
   db = await initDB();
   console.log('Base de datos inicializada correctamente');
   
@@ -106,4 +125,15 @@ app.listen(PORT, async () => {
   } catch (error) {
     console.error('⚠Error en verificador de URLs:', error.message);
   }
+
+  // Ejecutar verificación periódicamente durante la ejecución
+  setInterval(async () => {
+    try {
+      await checkAndVerifyIfNeeded(db);
+    } catch (error) {
+      console.error('⚠Error en verificador periódico de URLs:', error.message);
+    }
+  }, VERIFICATION_INTERVAL);
+  
+  console.log(`Verificador de URLs configurado para ejecutarse cada ${VERIFICATION_INTERVAL / (1000 * 60)} minutos`);
 });

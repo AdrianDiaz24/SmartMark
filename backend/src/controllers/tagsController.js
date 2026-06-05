@@ -1,26 +1,21 @@
 // Controlador para gestionar todas las operaciones de Tags
 
 /**
- * Obtiene todos los tags de la base de datos
+ * Obtiene todos los tags del usuario
  * @async
  * @function getAllTags
  * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
  * @returns {Promise<Array>} Array de objetos tag con propiedades: id, nombre, color, fecha_creacion
  * @throws {Error} Si hay un error al consultar la base de datos
- *
- * @example
- * const tags = await getAllTags(db);
- * // Retorna: [
- * //   { id: 1, nombre: 'React', color: 'FF5733', fecha_creacion: '2026-05-19T10:30:00Z' },
- * //   { id: 2, nombre: 'Node.js', color: '3498DB', fecha_creacion: '2026-05-18T15:45:00Z' }
- * // ]
  */
-async function getAllTags(db) {
+async function getAllTags(db, usuarioId) {
     try {
         const tags = await db.all(`
             SELECT id, nombre, color, fecha_creacion FROM Tags
+            WHERE usuario_id = ?
             ORDER BY fecha_creacion DESC
-        `);
+        `, [usuarioId]);
         return tags;
     } catch (error) {
         throw new Error(`Error al obtener tags: ${error.message}`);
@@ -28,23 +23,21 @@ async function getAllTags(db) {
 }
 
 /**
- * Obtiene un tag específico por su ID
+ * Obtiene un tag específico por su ID del usuario
  * @async
  * @function getTagById
  * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
  * @param {number} id - ID del tag a obtener
  * @returns {Promise<Object|undefined>} Objeto tag con propiedades: id, nombre, color, fecha_creacion
  * @throws {Error} Si hay un error al consultar la base de datos
- *
- * @example
- * const tag = await getTagById(db, 1);
- * // Retorna: { id: 1, nombre: 'React', color: 'FF5733', fecha_creacion: '2026-05-19T10:30:00Z' }
  */
-async function getTagById(db, id) {
+async function getTagById(db, usuarioId, id) {
     try {
         const tag = await db.get(`
-            SELECT id, nombre, color, fecha_creacion FROM Tags WHERE id = ?
-        `, [id]);
+            SELECT id, nombre, color, fecha_creacion FROM Tags
+            WHERE id = ? AND usuario_id = ?
+        `, [id, usuarioId]);
         return tag;
     } catch (error) {
         throw new Error(`Error al obtener tag: ${error.message}`);
@@ -52,21 +45,17 @@ async function getTagById(db, id) {
 }
 
 /**
- * Crea un nuevo tag (etiqueta) en la base de datos
+ * Crea un nuevo tag (etiqueta) en la base de datos para el usuario
  * @async
  * @function createTag
  * @param {Object} db - Instancia de la base de datos SQLite
- * @param {string} nombre - Nombre del tag (debe ser único y no vacío)
- * @param {string} color - Color en formato hexadecimal (ej: "FF5733" o "#FF5733")
- * @returns {Promise<Object>} Objeto del tag creado con propiedades: id, nombre, color, fecha_creacion
+ * @param {number} usuarioId - ID del usuario propietario
+ * @param {string} nombre - Nombre del tag (debe ser único por usuario)
+ * @param {string} color - Color en formato hexadecimal
+ * @returns {Promise<Object>} Objeto del tag creado
  * @throws {Error} Si el nombre está vacío, el color es inválido, o el nombre ya existe
- *
- * @example
- * // Crear un nuevo tag
- * const nuevoTag = await createTag(db, 'React', 'FF5733');
- * // Retorna: { id: 1, nombre: 'React', color: 'FF5733', fecha_creacion: '2026-05-19T10:30:00Z' }
  */
-async function createTag(db, nombre, color) {
+async function createTag(db, usuarioId, nombre, color) {
     try {
         if (!nombre || nombre.trim() === '') {
             throw new Error('El nombre del tag es requerido');
@@ -77,24 +66,25 @@ async function createTag(db, nombre, color) {
         }
         const colorFormato = color.startsWith('#') ? color.substring(1) : color;
 
-        // Verificar que el nombre sea único
+        // Verificar que el nombre sea único para este usuario
         const existe = await db.get(`
-            SELECT id FROM Tags WHERE nombre = ?
-        `, [nombre.trim()]);
+            SELECT id FROM Tags WHERE nombre = ? AND usuario_id = ?
+        `, [nombre.trim(), usuarioId]);
 
         if (existe) {
             throw new Error('Ya existe un tag con este nombre');
         }
 
         const resultado = await db.run(`
-            INSERT INTO Tags (nombre, color, fecha_creacion)
-            VALUES (?, ?, CURRENT_TIMESTAMP)
-        `, [nombre.trim(), colorFormato]);
+            INSERT INTO Tags (nombre, color, usuario_id, fecha_creacion)
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        `, [nombre.trim(), colorFormato, usuarioId]);
 
         return {
             id: resultado.lastID,
             nombre: nombre.trim(),
             color: colorFormato,
+            usuario_id: usuarioId,
             fecha_creacion: new Date().toISOString()
         };
     } catch (error) {
@@ -103,27 +93,23 @@ async function createTag(db, nombre, color) {
 }
 
 /**
- * Actualiza un tag existente
+ * Actualiza un tag existente del usuario
  * @async
  * @function updateTag
  * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
  * @param {number} id - ID del tag a actualizar
  * @param {string} [nombre] - Nuevo nombre del tag (opcional)
  * @param {string} [color] - Nuevo color en formato hexadecimal (opcional)
  * @returns {Promise<Object>} Tag actualizado con todas sus propiedades
  * @throws {Error} Si el tag no existe, el nombre ya está en uso, o el color es inválido
- *
- * @example
- * // Actualizar solo el nombre
- * const updated = await updateTag(db, 1, 'Vue.js');
- *
- * @example
- * // Actualizar solo el color
- * const updated = await updateTag(db, 1, undefined, '#E74C3C');
  */
-async function updateTag(db, id, nombre, color) {
+async function updateTag(db, usuarioId, id, nombre, color) {
     try {
-        const tag = await db.get(`SELECT * FROM Tags WHERE id = ?`, [id]);
+        const tag = await db.get(
+            `SELECT * FROM Tags WHERE id = ? AND usuario_id = ?`,
+            [id, usuarioId]
+        );
         if (!tag) {
             throw new Error('Tag no encontrado');
         }
@@ -141,21 +127,21 @@ async function updateTag(db, id, nombre, color) {
             colorFinal = color.startsWith('#') ? color.substring(1) : color;
         }
 
-        // Si cambio el nombre, verificar que sea único
+        // Si cambio el nombre, verificar que sea único para este usuario
         if (nombre && nombre !== tag.nombre) {
             const existe = await db.get(`
-                SELECT id FROM Tags WHERE nombre = ? AND id != ?
-            `, [nombre.trim(), id]);
+                SELECT id FROM Tags WHERE nombre = ? AND id != ? AND usuario_id = ?
+            `, [nombre.trim(), id, usuarioId]);
             if (existe) {
                 throw new Error('Ya existe otro tag con este nombre');
             }
         }
 
         await db.run(`
-            UPDATE Tags SET nombre = ?, color = ? WHERE id = ?
-        `, [nombreFinal, colorFinal, id]);
+            UPDATE Tags SET nombre = ?, color = ? WHERE id = ? AND usuario_id = ?
+        `, [nombreFinal, colorFinal, id, usuarioId]);
 
-        return getTagById(db, id);
+        return getTagById(db, usuarioId, id);
     } catch (error) {
         throw new Error(`Error al actualizar tag: ${error.message}`);
     }
@@ -176,9 +162,12 @@ async function updateTag(db, id, nombre, color) {
  * const result = await deleteTag(db, 1);
  * // Retorna: { mensaje: 'Tag eliminado exitosamente' }
  */
-async function deleteTag(db, id) {
+async function deleteTag(db, usuarioId, id) {
     try {
-        const tag = await db.get(`SELECT * FROM Tags WHERE id = ?`, [id]);
+        const tag = await db.get(
+            `SELECT * FROM Tags WHERE id = ? AND usuario_id = ?`,
+            [id, usuarioId]
+        );
         if (!tag) {
             throw new Error('Tag no encontrado');
         }
@@ -190,8 +179,8 @@ async function deleteTag(db, id) {
 
         // Eliminar el tag
         await db.run(`
-            DELETE FROM Tags WHERE id = ?
-        `, [id]);
+            DELETE FROM Tags WHERE id = ? AND usuario_id = ?
+        `, [id, usuarioId]);
 
         return { mensaje: 'Tag eliminado exitosamente' };
     } catch (error) {

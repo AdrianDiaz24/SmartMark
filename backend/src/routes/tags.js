@@ -14,14 +14,15 @@ let db;
 
 // Middleware para inyectar la conexión a la BD
 router.use((req, res, next) => {
-    db = req.app.locals.db;
+    db = req.db;
     next();
 });
 
-// GET /api/tags - Obtener todos los tags
+// GET /api/tags - Obtener todos los tags del usuario
 router.get('/', async (req, res, next) => {
     try {
-        const tags = await getAllTags(db);
+        const usuarioId = req.usuario.id;
+        const tags = await getAllTags(db, usuarioId);
         res.json(tags);
     } catch (error) {
         next(error);
@@ -32,14 +33,15 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const tag = await getTagById(db, id);
+        const usuarioId = req.usuario.id;
+        const tag = await getTagById(db, usuarioId, id);
 
         if (!tag) {
             return res.status(404).json({ error: 'Tag no encontrado' });
         }
 
         // Obtener estadísticas del tag
-        const stats = await getTagStats(db, id);
+        const stats = await getTagStats(db, usuarioId, id);
         tag.bookmarks = stats.bookmarks;
         tag.categories = stats.categories;
 
@@ -53,12 +55,13 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const { nombre, color } = req.body;
+        const usuarioId = req.usuario.id;
 
         if (!nombre || !color) {
             return res.status(400).json({ error: 'El nombre y color son requeridos' });
         }
 
-        const newTag = await createTag(db, nombre, color);
+        const newTag = await createTag(db, usuarioId, nombre, color);
         res.status(201).json(newTag);
     } catch (error) {
         next(error);
@@ -70,8 +73,9 @@ router.put('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
         const { nombre, color } = req.body;
+        const usuarioId = req.usuario.id;
 
-        const updatedTag = await updateTag(db, id, nombre, color);
+        const updatedTag = await updateTag(db, usuarioId, id, nombre, color);
         res.json(updatedTag);
     } catch (error) {
         next(error);
@@ -82,7 +86,8 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const result = await deleteTag(db, id);
+        const usuarioId = req.usuario.id;
+        const result = await deleteTag(db, usuarioId, id);
         res.json(result);
     } catch (error) {
         next(error);

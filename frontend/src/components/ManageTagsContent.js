@@ -5,6 +5,7 @@ import ManageTagCenter from './ManageTagCenter';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteTagModal from './DeleteTagModal';
 import CreateTagModal from './CreateTagModal';
+import SearchResultsPanel from './SearchResultsPanel';
 import { tagsService } from '../services/tagsService';
 import { useToast } from '../hooks/useToast';
 import './ManageFoldersContent.css';
@@ -14,6 +15,8 @@ function ManageTagsContent() {
     const [tags, setTags] = useState([]);
     const [selectedTag, setSelectedTag] = useState(null);
     const [editedTag, setEditedTag] = useState(null);
+    const [originalData, setOriginalData] = useState(null);
+    const [unsavedChangesToastId, setUnsavedChangesToastId] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -23,6 +26,13 @@ function ManageTagsContent() {
     // Cargar tags al montar el componente
     useEffect(() => {
         loadTags();
+
+        // Limpiar toast al desmontar
+        return () => {
+            if (unsavedChangesToastId) {
+                toast.removeToast?.(unsavedChangesToastId);
+            }
+        };
     }, []);
 
     // Seleccionar primer tag cuando se carguen
@@ -31,6 +41,46 @@ function ManageTagsContent() {
             handleSelectTag(tags[0]);
         }
     }, [tags]);
+
+    // Detectar cambios en el tag editado
+    useEffect(() => {
+        if (!editedTag || !originalData) {
+            return;
+        }
+
+        // Convertir ambos a JSON para comparación exacta
+        try {
+            const editedStr = JSON.stringify({
+                nombre: editedTag.nombre,
+                color: editedTag.color,
+                id: editedTag.id
+            });
+            
+            const originalStr = JSON.stringify({
+                nombre: originalData.nombre,
+                color: originalData.color,
+                id: originalData.id
+            });
+
+            const hasChanges = editedStr !== originalStr;
+
+            if (hasChanges) {
+                // Si hay cambios y no hay toast, mostrar
+                if (!unsavedChangesToastId) {
+                    const toastId = toast.warning('Cambios sin guardar', 3000);
+                    setUnsavedChangesToastId(toastId);
+                }
+            } else {
+                // Si no hay cambios y hay un toast, ocultarlo
+                if (unsavedChangesToastId) {
+                    toast.removeToast?.(unsavedChangesToastId);
+                    setUnsavedChangesToastId(null);
+                }
+            }
+        } catch (err) {
+            console.error('Error al comparar cambios:', err);
+        }
+    }, [editedTag, originalData]);
 
     const loadTags = async () => {
         try {
@@ -53,9 +103,11 @@ function ManageTagsContent() {
             // Cargar el tag con estadísticas
             const tagWithStats = await tagsService.getById(tag.id);
             setEditedTag(tagWithStats);
+            setOriginalData(JSON.parse(JSON.stringify(tagWithStats))); // Copia profunda para comparar cambios
         } catch (error) {
             console.error('Error cargando estadísticas del tag:', error);
             setEditedTag({ ...tag });
+            setOriginalData(JSON.parse(JSON.stringify(tag)));
         }
     };
 
@@ -82,6 +134,15 @@ function ManageTagsContent() {
             setTags(updatedTags);
             setSelectedTag(editedTag);
             
+            // Sincronizar datos originales con editados
+            setOriginalData(JSON.parse(JSON.stringify(editedTag)));
+            
+            // Limpiar toast de cambios sin guardar
+            if (unsavedChangesToastId) {
+                toast.removeToast?.(unsavedChangesToastId);
+                setUnsavedChangesToastId(null);
+            }
+            
             toast.success('Tag actualizado correctamente');
         } catch (err) {
             console.error('Error actualizando tag:', err);
@@ -103,17 +164,11 @@ function ManageTagsContent() {
             const updatedTags = tags.filter(t => t.id !== selectedTag.id);
             setTags(updatedTags);
             
-            // Seleccionar otro tag o limpiar
-            if (updatedTags.length > 0) {
-                setSelectedTag(updatedTags[0]);
-                setEditedTag(updatedTags[0]);
-            } else {
-                setSelectedTag(null);
-                setEditedTag(null);
-            }
-
             setIsDeleteModalOpen(false);
             toast.success('Tag eliminado correctamente');
+            
+            // Navegar a HomePage después de eliminar
+            navigate('/');
         } catch (err) {
             console.error('Error eliminando tag:', err);
             toast.error(`Error al eliminar: ${err.message}`);
@@ -163,6 +218,8 @@ function ManageTagsContent() {
                     onSelect={handleSelectTag}
                     onAdd={() => setIsCreateModalOpen(true)}
                 />
+
+                <SearchResultsPanel />
 
                 {selectedTag && editedTag && (
                     <>
