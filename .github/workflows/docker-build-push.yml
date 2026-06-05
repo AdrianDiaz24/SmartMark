@@ -19,6 +19,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # CI: Setup Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # CI: Backend Tests
+      - name: Backend - Install dependencies
+        run: cd backend && npm install
+
+      - name: Backend - Run tests
+        run: cd backend && npm test -- --passWithNoTests
+
+      # CI: Frontend Tests & Build
+      - name: Frontend - Install dependencies
+        run: cd frontend && npm install
+
+      - name: Frontend - Run tests
+        run: cd frontend && npm test -- --passWithNoTests --testPathIgnorePatterns=node_modules
+
+      - name: Frontend - Build
+        run: cd frontend && npm run build
+
+      # CD: Docker Build & Push
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
