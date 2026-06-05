@@ -13,7 +13,8 @@ const {
     deleteCategory,
     getTagsByCategory,
     addTagsToCategory,
-    removeTagFromCategory
+    removeTagFromCategory,
+    getTotalCategoriesCount
 } = require('../controllers/categoriesController');
 
 let db;
@@ -39,6 +40,27 @@ router.get('/', async (req, res, next) => {
         const usuarioId = req.usuario.id;
         const categories = await getAllCategories(db, usuarioId);
         res.json(categories);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// GET /api/categories/stats/total - Obtener total de categorías incluyendo subcarpetas
+/**
+ * GET /api/categories/stats/total
+ * @summary Obtiene el total de carpetas del usuario (incluyendo subcarpetas)
+ * @tags Categories
+ * @security Bearer
+ * @returns {object} 200 - Total de categorías
+ * @returns.total {number} - Total de carpetas incluyendo subcarpetas
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno
+ */
+router.get('/stats/total', async (req, res, next) => {
+    try {
+        const usuarioId = req.usuario.id;
+        const total = await getTotalCategoriesCount(db, usuarioId);
+        res.json({ total });
     } catch (error) {
         next(error);
     }

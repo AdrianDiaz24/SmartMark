@@ -67,7 +67,7 @@ async function getSubcategories(db, parentId, usuarioId) {
 }
 
 /**
- * Obtiene estadísticas de una categoría (cantidad de subcarpetas y marcadores)
+ * Obtiene estadísticas de una categoría (cantidad de subcarpetas recursivas y marcadores)
  * @async
  * @function getCategoryStats
  * @param {Object} db - Instancia de la base de datos SQLite
@@ -77,16 +77,30 @@ async function getSubcategories(db, parentId, usuarioId) {
  */
 async function getCategoryStats(db, categoryId) {
     try {
-        const subfolders = await db.get(`
-            SELECT COUNT(*) as count FROM Categorias WHERE padre_id = ?
-        `, [categoryId]);
+        // Función recursiva para contar subcarpetas
+        async function countSubcategoriesRecursive(parentId) {
+            const directSubs = await db.all(`
+                SELECT id FROM Categorias WHERE padre_id = ?
+            `, [parentId]);
+
+            let total = directSubs.length;
+
+            for (let sub of directSubs) {
+                const subcount = await countSubcategoriesRecursive(sub.id);
+                total += subcount;
+            }
+
+            return total;
+        }
+
+        const subfolders = await countSubcategoriesRecursive(categoryId);
 
         const bookmarks = await db.get(`
             SELECT COUNT(*) as count FROM Marcadores WHERE categoria_id = ?
         `, [categoryId]);
 
         return {
-            subfolders: subfolders?.count || 0,
+            subfolders: subfolders,
             bookmarks: bookmarks?.count || 0
         };
     } catch (error) {
@@ -382,6 +396,43 @@ async function removeTagFromCategory(db, categoryId, tagId) {
     }
 }
 
+/**
+ * Cuenta el total de categorías de un usuario (incluyendo subcarpetas recursivamente)
+ * @async
+ * @function getTotalCategoriesCount
+ * @param {Object} db - Instancia de la base de datos SQLite
+ * @param {number} usuarioId - ID del usuario propietario
+ * @returns {Promise<number>} Total de categorías incluyendo subcarpetas
+ * @throws {Error} Si hay error al consultar la base de datos
+ */
+async function getTotalCategoriesCount(db, usuarioId) {
+    try {
+        // Función recursiva para contar todas las categorías
+        async function countAllCategories(parentId = null) {
+            const sql = parentId === null
+                ? 'SELECT id FROM Categorias WHERE usuario_id = ? AND padre_id IS NULL'
+                : 'SELECT id FROM Categorias WHERE usuario_id = ? AND padre_id = ?';
+            
+            const params = parentId === null ? [usuarioId] : [usuarioId, parentId];
+            
+            const categories = await db.all(sql, params);
+            let total = categories.length;
+
+            // Contar recursivamente las subcategorías de cada categoría
+            for (let cat of categories) {
+                const subcount = await countAllCategories(cat.id);
+                total += subcount;
+            }
+
+            return total;
+        }
+
+        return await countAllCategories();
+    } catch (error) {
+        throw new Error(`Error al contar categorías: ${error.message}`);
+    }
+}
+
 module.exports = {
     getAllCategories,
     getCategoryById,
@@ -392,6 +443,7 @@ module.exports = {
     getCategoryStats,
     getTagsByCategory,
     addTagsToCategory,
-    removeTagFromCategory
+    removeTagFromCategory,
+    getTotalCategoriesCount
 };
 

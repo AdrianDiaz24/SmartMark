@@ -5,27 +5,7 @@
 
 const express = require('express');
 const router = express.Router();
-const {
-    getBookmarks,
-    getBookmarkById,
-    createBookmark,
-    updateBookmark,
-    deleteBookmark,
-    addTagsToBookmark,
-    removeTagFromBookmark,
-    getBookmarksByTag,
-    recordBookmarkAccess,
-    getRecentBookmarks,
-    getBookmarksVisitedLastWeek,
-    countAllBookmarks,
-    countBookmarksVisitedLastWeek
-} = require('../controllers/bookmarksController');
-const {
-    scrapeUrl,
-    autotagBookmark,
-    getGitHubRepoData,
-    getGitHubLanguages
-} = require('../controllers/scrapingController');
+const bookmarkService = require('../services/bookmarkService');
 
 let db;
 let upload;
@@ -44,72 +24,21 @@ router.use((req, res, next) => {
  * @tags Bookmarks
  * @security Bearer
  * @requestBody {object} required
- * @requestBody.url {string} - URL para hacer scraping (requerido, debe empezar con http)
- * @example
- * {
- *   "url": "https://github.com/user/repo"
- * }
- * @returns {object} 200
- * @returns.success {boolean} - true si el scraping fue exitoso
- * @returns.titulo {string} - Título extraído de la página
- * @returns.descripcion {string} - Descripción extraída
- * @returns.autoTags {array} - Tags automáticos detectados (IDs)
- * @returns.gitHubData {object} - Datos de GitHub si URL es de GitHub (stars, forks, watchers)
- * @returns.gitHubLanguages {array} - Lenguajes del repositorio
- * @returns {object} 400
- * @returns.error {string} - URL es requerida
- * @returns {object} 401
- * @returns.error {string} - No autenticado
- * @returns {object} 500
- * @returns.error {string} - Error en scraping
+ * @requestBody.url {string} - URL para hacer scraping
+ * @returns {object} 200 - Datos scrapeados con tags automáticos
+ * @returns {object} 400 - URL requerida
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error en scraping
  */
 router.post('/scrape', async (req, res, next) => {
     try {
         const { url } = req.body;
-
         if (!url || !url.trim()) {
             return res.status(400).json({ error: 'URL es requerida' });
         }
 
-        const scrapedData = await scrapeUrl(url);
-        const usuarioId = req.usuario.id; // Obtener ID del usuario autenticado
-        
-        // Si el scraping fue exitoso, hacer autotagging
-        if (scrapedData.success) {
-            // 1. Autotagging básico (título, descripción, dominio) - solo para tags del usuario
-            let autoTags = await autotagBookmark(db, scrapedData.titulo, scrapedData.descripcion, url, usuarioId);
-            
-            // 2. Si es GitHub, obtener datos del repositorio
-            let gitHubData = null;
-            if (url.includes('github.com')) {
-                gitHubData = await getGitHubRepoData(url);
-                const gitHubLanguages = await getGitHubLanguages(url);
-                
-                if (gitHubData) {
-                    scrapedData.gitHubData = gitHubData;
-                    scrapedData.gitHubLanguages = gitHubLanguages;
-                    
-                    // Agregar lenguajes de GitHub al autotagging - solo para tags del usuario
-                    for (let language of gitHubLanguages) {
-                        // Buscar si existe un tag para este lenguaje EN LOS TAGS DEL USUARIO
-                        const tagForLanguage = await db.get(
-                            'SELECT id FROM Tags WHERE LOWER(nombre) = LOWER(?) AND usuario_id = ?',
-                            [language, usuarioId]
-                        );
-                        if (tagForLanguage) {
-                            autoTags.push(tagForLanguage.id);
-                            console.log(`[GitHub Autotagging] Añadido tag: ${language} (ID: ${tagForLanguage.id})`);
-                        }
-                    }
-                    
-                    // Eliminar duplicados
-                    autoTags = [...new Set(autoTags)];
-                }
-            }
-            
-            scrapedData.autoTags = autoTags; // Retornar IDs de tags encontrados
-        }
-
+        const usuarioId = req.usuario.id;
+        const scrapedData = await bookmarkService.scrapeAndAutoTag(db, url, usuarioId);
         res.json(scrapedData);
     } catch (error) {
         console.error('Error en POST /scrape:', error);
@@ -117,11 +46,20 @@ router.post('/scrape', async (req, res, next) => {
     }
 });
 
-// GET /api/links/stats/recent - Obtener los últimos 10 marcadores más recientemente abiertos
+// GET /api/links/stats/recent - Obtener los últimos 10 marcadores  más recientemente abiertos
+/**
+ * GET /api/links/stats/recent
+ * @summary Obtiene los últimos 10 marcadores más recientemente visitados
+ * @tags Bookmarks Stats
+ * @security Bearer
+ * @returns {object} 200 - Array de bookmarks recientes
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno
+ */
 router.get('/stats/recent', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
-        const bookmarks = await getRecentBookmarks(db, usuarioId);
+        const bookmarks = await bookmarkService.getRecentBookmarksService(db, usuarioId);
         res.json(bookmarks);
     } catch (error) {
         next(error);
@@ -131,16 +69,16 @@ router.get('/stats/recent', async (req, res, next) => {
 // GET /api/links - Obtener marcadores (con filtros opcionales)
 /**
  * GET /api/links
- * @summary Obtiene marcadores del usuario con filtros (búsqueda global, por carpeta, por tag)
+ * @summary Obtiene marcadores del usuario con filtros
  * @tags Bookmarks
  * @security Bearer
- * @param {number} categoria_id.query - ID de carpeta para filtrar (opcional)
- * @param {number} tag_id.query - ID de tag para filtrar (opcional)
- * @param {string} search.query - Término de búsqueda (busca en título y descripción, opcional)
- * @param {boolean} all.query - Buscar en TODAS las carpetas (true) o solo sección general (false, default)
- * @param {number} limit.query - Máximo resultados (opcional)
- * @param {number} offset.query - Resultados a saltar, para paginación (default: 0)
- * @returns {object} 200 - Array de marcadores encontrados
+ * @param {number} categoria_id.query - ID de carpeta para filtrar
+ * @param {number} tag_id.query - ID de tag para filtrar
+ * @param {string} search.query - Término de búsqueda
+ * @param {boolean} all.query - Buscar en TODAS las carpetas
+ * @param {number} limit.query - Máximo resultados
+ * @param {number} offset.query - Resultados a saltar
+ * @returns {object} 200 - Array de marcadores
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error interno
  */
@@ -149,11 +87,11 @@ router.get('/', async (req, res, next) => {
         const { categoria_id, tag_id, search, limit, offset, all } = req.query;
         const usuarioId = req.usuario.id;
 
-        const bookmarks = await getBookmarks(db, usuarioId, {
+        const bookmarks = await bookmarkService.getBookmarksWithTags(db, usuarioId, {
             categoria_id: categoria_id ? parseInt(categoria_id) : null,
             tag_id: tag_id ? parseInt(tag_id) : null,
             search,
-            all: all === 'true', // Convertir string 'true' a booleano
+            all: all === 'true',
             limit: limit ? parseInt(limit) : null,
             offset: offset ? parseInt(offset) : null
         });
@@ -177,7 +115,7 @@ router.get('/', async (req, res, next) => {
 router.get('/stats/last-week', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
-        const bookmarks = await getBookmarksVisitedLastWeek(db, usuarioId);
+        const bookmarks = await bookmarkService.getRecentBookmarksService(db, usuarioId);
         res.json(bookmarks);
     } catch (error) {
         next(error);
@@ -190,16 +128,16 @@ router.get('/stats/last-week', async (req, res, next) => {
  * @summary Cuenta marcadores visitados en últimos 7 días
  * @tags Bookmarks Stats
  * @security Bearer
- * @returns {object} 200
- * @returns.count {number} - Cantidad de marcadores visitados en última semana
+ * @returns {object} 200 - Conteo
+ * @returns.count {number} - Cantidad de marcadores
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error interno
  */
 router.get('/stats/count-last-week', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
-        const count = await countBookmarksVisitedLastWeek(db, usuarioId);
-        res.json({ count });
+        const stats = await bookmarkService.getBookmarkStats(db, usuarioId);
+        res.json({ count: stats.thisWeek });
     } catch (error) {
         next(error);
     }
@@ -211,16 +149,16 @@ router.get('/stats/count-last-week', async (req, res, next) => {
  * @summary Cuenta TODOS los marcadores del usuario
  * @tags Bookmarks Stats
  * @security Bearer
- * @returns {object} 200
- * @returns.count {number} - Total de marcadores del usuario
+ * @returns {object} 200 - Conteo total
+ * @returns.count {number} - Total de marcadores
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error interno
  */
 router.get('/stats/count-all', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
-        const count = await countAllBookmarks(db, usuarioId);
-        res.json({ count });
+        const stats = await bookmarkService.getBookmarkStats(db, usuarioId);
+        res.json({ count: stats.total });
     } catch (error) {
         next(error);
     }
@@ -232,51 +170,34 @@ router.get('/stats/count-all', async (req, res, next) => {
  * @summary Actualiza datos de GitHub (stars, forks) de TODOS los marcadores GitHub
  * @tags Bookmarks GitHub
  * @security Bearer
- * @returns {object} 200
- * @returns.success {boolean} - Siempre true
- * @returns.total {number} - Total de marcadores GitHub encontrados
- * @returns.updated {number} - Total actualizado exitosamente
- * @returns.failed {number} - Total que falló
- * @returns.results {array} - Detalle de cada marcador: {id, titulo, status, data/error}
+ * @returns {object} 200 - Resultado de la actualización
+ * @returns.success {boolean} - true
+ * @returns.total {number} - Total de marcadores GitHub
+ * @returns.updated {number} - Total actualizado
+ * @returns.failed {number} - Total fallido
+ * @returns.results {array} - Detalle de cada marcador
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error interno
  */
 router.post('/refresh-github', async (req, res, next) => {
     try {
-        console.log('[GitHub Refresh] Iniciando actualización de datos de GitHub');
+        console.log('[GitHub Refresh] Iniciando actualización');
         
-        // Obtener todos los marcadores
-        const allBookmarks = await db.all(`
-            SELECT id, url, titulo FROM Marcadores WHERE url LIKE '%github.com%'
-        `);
+        const allBookmarks = await db.all(
+            `SELECT id, url, titulo FROM Marcadores WHERE url LIKE '%github.com%'`
+        );
 
-        console.log(`[GitHub Refresh] Encontrados ${allBookmarks.length} marcadores de GitHub`);
+        console.log(`[GitHub Refresh] Encontrados ${allBookmarks.length} marcadores`);
 
         let updated = 0;
         let failed = 0;
         const results = [];
 
-        // Actualizar datos de GitHub para cada marcador
         for (let bookmark of allBookmarks) {
             try {
-                console.log(`[GitHub Refresh] Actualizando: ${bookmark.titulo}`);
-                
-                const gitHubData = await getGitHubRepoData(bookmark.url);
-                const gitHubLanguages = await getGitHubLanguages(bookmark.url);
+                const gitHubData = await bookmarkService.refreshGitHubData(db, bookmark.id, bookmark.url);
 
                 if (gitHubData) {
-                    await db.run(`
-                        UPDATE Marcadores 
-                        SET github_stars = ?, github_forks = ?, github_watchers = ?, github_languages = ?
-                        WHERE id = ?
-                    `, [
-                        gitHubData.stars || 0,
-                        gitHubData.forks || 0,
-                        gitHubData.watchers || 0,
-                        gitHubLanguages && gitHubLanguages.length > 0 ? JSON.stringify(gitHubLanguages) : null,
-                        bookmark.id
-                    ]);
-
                     updated++;
                     results.push({
                         id: bookmark.id,
@@ -284,20 +205,18 @@ router.post('/refresh-github', async (req, res, next) => {
                         status: 'success',
                         data: gitHubData
                     });
-
-                    console.log(`[GitHub Refresh] ✓ Actualizado: ${bookmark.titulo} (Starts: ${gitHubData.stars}, Forks: ${gitHubData.forks})`);
+                    console.log(`[GitHub Refresh] ✓ ${bookmark.titulo}`);
                 } else {
                     failed++;
                     results.push({
                         id: bookmark.id,
                         titulo: bookmark.titulo,
                         status: 'failed',
-                        error: 'No se pudieron obtener datos de GitHub'
+                        error: 'No se obtuvieron datos'
                     });
                 }
             } catch (error) {
                 failed++;
-                console.error(`[GitHub Refresh] Error actualizando ${bookmark.titulo}:`, error.message);
                 results.push({
                     id: bookmark.id,
                     titulo: bookmark.titulo,
@@ -306,8 +225,6 @@ router.post('/refresh-github', async (req, res, next) => {
                 });
             }
         }
-
-        console.log(`[GitHub Refresh] Completado: ${updated} actualizados, ${failed} fallidos`);
 
         res.json({
             success: true,
@@ -328,17 +245,16 @@ router.post('/refresh-github', async (req, res, next) => {
  * @summary Obtiene un marcador específico por ID
  * @tags Bookmarks
  * @security Bearer
- * @pathParam {number} id - ID del marcador (requerido)
+ * @param {number} id.path - ID del marcador
  * @returns {object} 200 - Marcador encontrado
  * @returns {object} 401 - No autenticado
  * @returns {object} 404 - Marcador no encontrado
- * @returns {object} 500 - Error interno del servidor
+ * @returns {object} 500 - Error interno
  */
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const usuarioId = req.usuario.id;
-        const bookmark = await getBookmarkById(db, usuarioId, id);
+        const bookmark = await bookmarkService.getBookmarkDetailService(db, id);
 
         if (!bookmark) {
             return res.status(404).json({ error: 'Marcador no encontrado' });
@@ -357,23 +273,19 @@ router.get('/:id', async (req, res, next) => {
  * @tags Bookmarks
  * @security Bearer
  * @requestBody {object} required - Datos del nuevo marcador
- * @requestBody.titulo {string} - Título del marcador (requerido)
- * @requestBody.url {string} - URL del sitio web (requerido)
+ * @requestBody.titulo {string} - Título (requerido)
+ * @requestBody.url {string} - URL (requerido)
  * @requestBody.descripcion {string} - Descripción (opcional)
- * @requestBody.categoria_id {number} - ID de carpeta (opcional, default: sección general)
- * @requestBody.tags {array} - Array de IDs de tags (opcional)
- * @requestBody.portada {file} - Imagen de portada .png/.jpg/.svg (opcional)
- * @requestBody.github_stars {number} - Stars de GitHub (opcional, solo para repos)
- * @requestBody.github_forks {number} - Forks de GitHub (opcional, solo para repos)
- * @requestBody.github_languages {array} - Lenguajes de GitHub (opcional, solo para repos)
- * @returns {object} 201 - Marcador creado exitosamente
- * @returns {object} 400 - Título o URL faltantes
+ * @requestBody.categoria_id {number} - ID de carpeta (opcional)
+ * @requestBody.tag_ids {array} - Array de IDs de tags (opcional)
+ * @requestBody.portada {file} - Imagen (opcional)
+ * @returns {object} 201 - Marcador creado
+ * @returns {object} 400 - Datos incompletos
  * @returns {object} 401 - No autenticado
- * @returns {object} 500 - Error interno del servidor
+ * @returns {object} 500 - Error interno
  */
 router.post('/', async (req, res, next) => {
     try {
-        // Obtener upload del middleware
         const uploadSingle = upload.single('portada');
         
         uploadSingle(req, res, async (err) => {
@@ -382,57 +294,34 @@ router.post('/', async (req, res, next) => {
             }
 
             try {
-                // Extraer campos del body o del query/form fields
-                let { titulo, url, descripcion, categoria_id, tags, github_stars = 0, github_forks = 0, github_watchers = 0, github_languages = [] } = req.body;
+                let { titulo, url, descripcion, categoria_id, tag_ids } = req.body;
 
                 if (!titulo || !url) {
                     return res.status(400).json({ error: 'El título y URL son requeridos' });
                 }
 
-                // Si se subió un archivo, convertir a base64
                 let portada = null;
                 if (req.file) {
-                    // Convertir el buffer a base64
                     portada = req.file.buffer.toString('base64');
-                    console.log(`Archivo recibido: ${req.file.originalname}, tamaño: ${req.file.size} bytes`);
                 }
 
-                // Parsear tags - pueden venir como JSON string
                 let parsedTags = [];
-                if (tags) {
+                if (tag_ids) {
                     try {
-                        parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+                        parsedTags = typeof tag_ids === 'string' ? JSON.parse(tag_ids) : tag_ids;
                     } catch (e) {
                         parsedTags = [];
                     }
                 }
 
-                // Parsear github_languages - pueden venir como JSON string
-                let parsedGithubLanguages = [];
-                if (github_languages) {
-                    try {
-                        parsedGithubLanguages = typeof github_languages === 'string' ? JSON.parse(github_languages) : github_languages;
-                    } catch (e) {
-                        parsedGithubLanguages = [];
-                    }
-                }
-                
-                const parsedCategoryId = categoria_id ? parseInt(categoria_id) : null;
-
-                console.log('Creando bookmark:', { titulo, url, descripcion, parsedCategoryId, parsedTags, tienePortada: !!portada, github_stars, github_forks });
-
                 const usuarioId = req.usuario.id;
-                const newBookmark = await createBookmark(db, usuarioId, {
+                const newBookmark = await bookmarkService.createBookmarkWithTags(db, usuarioId, {
                     titulo,
                     url,
                     descripcion,
+                    categoria_id: categoria_id ? parseInt(categoria_id) : null,
                     portada,
-                    categoria_id: parsedCategoryId,
-                    tags: parsedTags || [],
-                    github_stars: parseInt(github_stars) || 0,
-                    github_forks: parseInt(github_forks) || 0,
-                    github_watchers: parseInt(github_watchers) || 0,
-                    github_languages: parsedGithubLanguages || []
+                    tag_ids: parsedTags
                 });
 
                 res.status(201).json(newBookmark);
@@ -453,22 +342,21 @@ router.post('/', async (req, res, next) => {
  * @summary Actualiza un marcador existente
  * @tags Bookmarks
  * @security Bearer
- * @pathParam {number} id - ID del marcador (requerido)
+ * @param {number} id.path - ID del marcador
  * @requestBody {object} required - Datos a actualizar
- * @requestBody.titulo {string} - Título del marcador (opcional)
- * @requestBody.url {string} - URL del sitio web (opcional)
+ * @requestBody.titulo {string} - Título (opcional)
+ * @requestBody.url {string} - URL (opcional)
  * @requestBody.descripcion {string} - Descripción (opcional)
  * @requestBody.categoria_id {number} - ID de carpeta (opcional)
- * @requestBody.tags {array} - Array de IDs de tags (opcional)
- * @requestBody.portada {file} - Imagen de portada .png/.jpg/.svg (opcional)
- * @returns {object} 200 - Marcador actualizado exitosamente
+ * @requestBody.tag_ids {array} - Array de IDs de tags (opcional)
+ * @requestBody.portada {file} - Imagen (opcional)
+ * @returns {object} 200 - Marcador actualizado
  * @returns {object} 401 - No autenticado
  * @returns {object} 404 - Marcador no encontrado
- * @returns {object} 500 - Error interno del servidor
+ * @returns {object} 500 - Error interno
  */
 router.put('/:id', async (req, res, next) => {
     try {
-        // Obtener upload del middleware
         const uploadSingle = upload.single('portada');
         
         uploadSingle(req, res, async (err) => {
@@ -478,54 +366,34 @@ router.put('/:id', async (req, res, next) => {
 
             try {
                 const { id } = req.params;
-                let { titulo, url, descripcion, categoria_id, tags, portada: bodyPortada } = req.body;
+                let { titulo, url, descripcion, categoria_id, tag_ids, portada: bodyPortada } = req.body;
 
-                // Si se subió un archivo, convertir a base64
                 let portada = undefined;
                 if (req.file) {
-                    // Convertir el buffer a base64
                     portada = req.file.buffer.toString('base64');
-                    console.log(`Archivo recibido para actualización: ${req.file.originalname}, tamaño: ${req.file.size} bytes`);
                 } else if (bodyPortada === '') {
-                    // Si la portada es una string vacía, significa que queremos eliminarla
                     portada = null;
-                    console.log('Eliminando portada del bookmark');
                 }
 
-                // Parsear tags - pueden venir como JSON string
                 let parsedTags = undefined;
-                if (tags) {
+                if (tag_ids) {
                     try {
-                        parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+                        parsedTags = typeof tag_ids === 'string' ? JSON.parse(tag_ids) : tag_ids;
                     } catch (e) {
                         parsedTags = undefined;
                     }
                 }
-                
-                // Parsear categoria_id - puede ser: número > 0, string vacía (sección general), o undefined (no cambiar)
-                let parsedCategoryId = undefined;
+
+                const updateData = { titulo, url, descripcion, portada, tag_ids: parsedTags };
+
+                // Manejar categoria_id
                 if (categoria_id !== undefined && categoria_id !== null) {
-                    if (categoria_id === '' || categoria_id === '0' || categoria_id === 0) {
-                        // String vacía = sección general (null)
-                        parsedCategoryId = null;
-                    } else {
-                        // Convertir a número
-                        const intId = parseInt(categoria_id);
-                        if (!isNaN(intId)) {
-                            parsedCategoryId = intId;
-                        }
-                    }
+                    updateData.categoria_id = categoria_id === '' || categoria_id === '0' 
+                        ? null 
+                        : parseInt(categoria_id);
                 }
 
-                const updatedBookmark = await updateBookmark(db, id, {
-                    titulo,
-                    url,
-                    descripcion,
-                    portada,
-                    categoria_id: parsedCategoryId,
-                    tags: parsedTags
-                });
-
+                const updatedBookmark = await bookmarkService.updateBookmarkWithTags(db, id, updateData);
                 res.json(updatedBookmark);
             } catch (error) {
                 console.error('Error en PUT /links/:id:', error);
@@ -544,17 +412,17 @@ router.put('/:id', async (req, res, next) => {
  * @summary Elimina un marcador
  * @tags Bookmarks
  * @security Bearer
- * @pathParam {number} id - ID del marcador (requerido)
- * @returns {object} 200 - Marcador eliminado exitosamente
+ * @param {number} id.path - ID del marcador
+ * @returns {object} 200 - Marcador eliminado
  * @returns {object} 401 - No autenticado
  * @returns {object} 404 - Marcador no encontrado
- * @returns {object} 500 - Error interno del servidor
+ * @returns {object} 500 - Error interno
  */
 router.delete('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const result = await deleteBookmark(db, id);
-        res.json(result);
+        const result = await bookmarkService.deleteBookmarkService(db, id);
+        res.json({ success: true, ...result });
     } catch (error) {
         next(error);
     }
@@ -563,18 +431,14 @@ router.delete('/:id', async (req, res, next) => {
 // POST /api/links/:id/tags - Agregar tags a un marcador
 /**
  * POST /api/links/{id}/tags
- * @summary Agrega tags a un marcador existente
+ * @summary Agrega tags a un marcador
  * @tags Bookmarks
  * @security Bearer
- * @param {number} id.path - ID del marcador (requerido)
+ * @param {number} id.path - ID del marcador
  * @requestBody {object} required
- * @requestBody.tag_ids {string} - Array de IDs de tags a agregar como JSON (requerido)
- * @example
- * {
- *   "tag_ids": [1, 3, 5]
- * }
- * @returns {object} 200 - Tags agregados al marcador
- * @returns {object} 400 - tag_ids debe ser un array
+ * @requestBody.tag_ids {array} - Array de IDs de tags
+ * @returns {object} 200 - Tags agregados
+ * @returns {object} 400 - tag_ids debe ser array
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error interno
  */
@@ -587,8 +451,9 @@ router.post('/:id/tags', async (req, res, next) => {
             return res.status(400).json({ error: 'tag_ids debe ser un array' });
         }
 
-        const tags = await addTagsToBookmark(db, id, tag_ids);
-        res.json(tags);
+        await bookmarkService.recordBookmarkAccess(db, id);
+        const bookmark = await bookmarkService.getBookmarkDetailService(db, id);
+        res.json(bookmark.tags || []);
     } catch (error) {
         next(error);
     }
@@ -600,19 +465,21 @@ router.post('/:id/tags', async (req, res, next) => {
  * @summary Elimina un tag de un marcador
  * @tags Bookmarks
  * @security Bearer
- * @param {number} id.path - ID del marcador (requerido)
- * @param {number} tag_id.path - ID del tag a eliminar (requerido)
- * @returns {object} 200 - Tag eliminado exitosamente
+ * @param {number} id.path - ID del marcador
+ * @param {number} tag_id.path - ID del tag
+ * @returns {object} 200 - Tag eliminado
  * @returns.success {boolean} - true
- * @returns.message {string} - "Tag removido del marcador"
  * @returns {object} 401 - No autenticado
  * @returns {object} 500 - Error interno
  */
 router.delete('/:id/tags/:tag_id', async (req, res, next) => {
     try {
         const { id, tag_id } = req.params;
-        const result = await removeTagFromBookmark(db, id, tag_id);
-        res.json(result);
+        await db.run(
+            'DELETE FROM Marcadores_Tags WHERE marcador_id = ? AND tag_id = ?',
+            [id, tag_id]
+        );
+        res.json({ success: true, message: 'Tag removido del marcador' });
     } catch (error) {
         next(error);
     }
@@ -624,11 +491,9 @@ router.delete('/:id/tags/:tag_id', async (req, res, next) => {
  * @summary Registra una visita/acceso a un marcador
  * @tags Bookmarks
  * @security Bearer
- * @param {number} id.path - ID del marcador (requerido)
+ * @param {number} id.path - ID del marcador
  * @returns {object} 200 - Acceso registrado
  * @returns.success {boolean} - true
- * @returns.visitas {number} - Total de visitas del marcador
- * @returns.ultima_visita {string} - Timestamp de esta visita
  * @returns {object} 401 - No autenticado
  * @returns {object} 404 - Marcador no encontrado
  * @returns {object} 500 - Error interno
@@ -636,13 +501,12 @@ router.delete('/:id/tags/:tag_id', async (req, res, next) => {
 router.post('/:id/access', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const bookmark = await recordBookmarkAccess(db, id);
-        res.json(bookmark);
+        await bookmarkService.recordBookmarkAccess(db, id);
+        res.json({ success: true });
     } catch (error) {
         next(error);
     }
 });
-
 
 module.exports = router;
 
