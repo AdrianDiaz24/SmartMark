@@ -1,4 +1,8 @@
-// Rutas para gestionar Tags
+/**
+ * @fileoverview Rutas para gestionar Tags - CRUD y estadísticas
+ * @module routes/tags
+ */
+
 const express = require('express');
 const router = express.Router();
 const {
@@ -19,6 +23,15 @@ router.use((req, res, next) => {
 });
 
 // GET /api/tags - Obtener todos los tags del usuario
+/**
+ * GET /api/tags
+ * @summary Obtiene todos los tags del usuario autenticado
+ * @tags Tags
+ * @security Bearer
+ * @returns {array} 200 - Array de tags con nombre y color hex
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.get('/', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
@@ -52,6 +65,19 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /api/tags - Crear un nuevo tag
+/**
+ * POST /api/tags
+ * @summary Crea un nuevo tag
+ * @tags Tags
+ * @security Bearer
+ * @requestBody {object} required - Datos del nuevo tag
+ * @requestBody.nombre {string} - Nombre del tag (requerido)
+ * @requestBody.color {string} - Color en formato hex (requerido, ej: #FF5733)
+ * @returns {object} 201 - Tag creado exitosamente
+ * @returns {object} 400 - Nombre o color faltantes
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.post('/', async (req, res, next) => {
     try {
         const { nombre, color } = req.body;

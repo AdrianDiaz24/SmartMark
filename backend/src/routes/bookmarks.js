@@ -1,4 +1,8 @@
-// Rutas para gestionar Marcadores (Bookmarks)
+/**
+ * @fileoverview Rutas para gestionar Marcadores (Bookmarks) - CRUD, scraping, búsqueda
+ * @module routes/bookmarks
+ */
+
 const express = require('express');
 const router = express.Router();
 const {
@@ -100,6 +104,21 @@ router.get('/stats/recent', async (req, res, next) => {
 });
 
 // GET /api/links - Obtener marcadores (con filtros opcionales)
+/**
+ * GET /api/links
+ * @summary Obtiene marcadores del usuario autenticado con filtros
+ * @tags Bookmarks
+ * @security Bearer
+ * @queryParam {number} categoria_id - ID de carpeta para filtrar (opcional)
+ * @queryParam {number} tag_id - ID de tag para filtrar (opcional)
+ * @queryParam {string} search - Término de búsqueda en títulos/descripciones (opcional)
+ * @queryParam {boolean} all - Si es true, busca en todas las carpetas, si false solo en sección general (default: false)
+ * @queryParam {number} limit - Número máximo de resultados (default: sin límite)
+ * @queryParam {number} offset - Número de resultados a saltar para paginación (default: 0)
+ * @returns {array} 200 - Array de marcadores con todos sus datos
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.get('/', async (req, res, next) => {
     try {
         const { categoria_id, tag_id, search, limit, offset, all } = req.query;
@@ -236,6 +255,17 @@ router.post('/refresh-github', async (req, res, next) => {
 });
 
 // GET /api/links/:id - Obtener un marcador específico
+/**
+ * GET /api/links/{id}
+ * @summary Obtiene un marcador específico por ID
+ * @tags Bookmarks
+ * @security Bearer
+ * @pathParam {number} id - ID del marcador (requerido)
+ * @returns {object} 200 - Marcador encontrado
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 404 - Marcador no encontrado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -253,6 +283,26 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /api/links - Crear un nuevo marcador
+/**
+ * POST /api/links
+ * @summary Crea un nuevo marcador
+ * @tags Bookmarks
+ * @security Bearer
+ * @requestBody {object} required - Datos del nuevo marcador
+ * @requestBody.titulo {string} - Título del marcador (requerido)
+ * @requestBody.url {string} - URL del sitio web (requerido)
+ * @requestBody.descripcion {string} - Descripción (opcional)
+ * @requestBody.categoria_id {number} - ID de carpeta (opcional, default: sección general)
+ * @requestBody.tags {array} - Array de IDs de tags (opcional)
+ * @requestBody.portada {file} - Imagen de portada .png/.jpg/.svg (opcional)
+ * @requestBody.github_stars {number} - Stars de GitHub (opcional, solo para repos)
+ * @requestBody.github_forks {number} - Forks de GitHub (opcional, solo para repos)
+ * @requestBody.github_languages {array} - Lenguajes de GitHub (opcional, solo para repos)
+ * @returns {object} 201 - Marcador creado exitosamente
+ * @returns {object} 400 - Título o URL faltantes
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.post('/', async (req, res, next) => {
     try {
         // Obtener upload del middleware
@@ -330,6 +380,24 @@ router.post('/', async (req, res, next) => {
 });
 
 // PUT /api/links/:id - Actualizar un marcador
+/**
+ * PUT /api/links/{id}
+ * @summary Actualiza un marcador existente
+ * @tags Bookmarks
+ * @security Bearer
+ * @pathParam {number} id - ID del marcador (requerido)
+ * @requestBody {object} required - Datos a actualizar
+ * @requestBody.titulo {string} - Título del marcador (opcional)
+ * @requestBody.url {string} - URL del sitio web (opcional)
+ * @requestBody.descripcion {string} - Descripción (opcional)
+ * @requestBody.categoria_id {number} - ID de carpeta (opcional)
+ * @requestBody.tags {array} - Array de IDs de tags (opcional)
+ * @requestBody.portada {file} - Imagen de portada .png/.jpg/.svg (opcional)
+ * @returns {object} 200 - Marcador actualizado exitosamente
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 404 - Marcador no encontrado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.put('/:id', async (req, res, next) => {
     try {
         // Obtener upload del middleware
@@ -403,6 +471,17 @@ router.put('/:id', async (req, res, next) => {
 });
 
 // DELETE /api/links/:id - Eliminar un marcador
+/**
+ * DELETE /api/links/{id}
+ * @summary Elimina un marcador
+ * @tags Bookmarks
+ * @security Bearer
+ * @pathParam {number} id - ID del marcador (requerido)
+ * @returns {object} 200 - Marcador eliminado exitosamente
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 404 - Marcador no encontrado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.delete('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;

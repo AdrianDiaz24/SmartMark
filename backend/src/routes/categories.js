@@ -1,4 +1,8 @@
-// Rutas para gestionar Categorías
+/**
+ * @fileoverview Rutas para gestionar Categorías (Carpetas) - CRUD y relaciones con tags
+ * @module routes/categories
+ */
+
 const express = require('express');
 const router = express.Router();
 const {
@@ -21,6 +25,15 @@ router.use((req, res, next) => {
 });
 
 // GET /api/categories - Obtener todas las categorías del usuario
+/**
+ * GET /api/categories
+ * @summary Obtiene todas las carpetas del usuario autenticado
+ * @tags Categories
+ * @security Bearer
+ * @returns {array} 200 - Array de carpetas con estructura jerárquica
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.get('/', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
@@ -49,6 +62,20 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /api/categories - Crear una nueva categoría
+/**
+ * POST /api/categories
+ * @summary Crea una nueva carpeta
+ * @tags Categories
+ * @security Bearer
+ * @requestBody {object} required - Datos de la nueva carpeta
+ * @requestBody.nombre {string} - Nombre de la carpeta (requerido)
+ * @requestBody.padre_id {number} - ID de carpeta padre para subcarpetas (opcional)
+ * @requestBody.tags {array} - Array de IDs de tags (opcional)
+ * @returns {object} 201 - Carpeta creada exitosamente
+ * @returns {object} 400 - Nombre faltante
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.post('/', async (req, res, next) => {
     try {
         const { nombre, padre_id, tags } = req.body;

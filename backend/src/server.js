@@ -10,6 +10,7 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const expressJsdocSwagger = require('express-jsdoc-swagger');
 const initDB = require('./database/db');
 const errorHandler = require('./middleware/errorHandler');
 const { authenticateToken } = require('./middleware/authMiddleware');
@@ -27,6 +28,33 @@ const app = express();
 
 /** @constant {number} PORT - Puerto en el que escucha el servidor */
 const PORT = process.env.PORT || 3000;
+
+// Configurar Swagger Documentation
+const swaggerOptions = {
+    info: {
+        version: '1.0.0',
+        title: 'SmartMark API',
+        description: 'API REST para gestionar marcadores, carpetas, tags y verificación de URLs'
+    },
+    servers: [
+        {
+            url: `http://localhost:${PORT}`,
+            description: 'Development server'
+        },
+        {
+            url: process.env.API_URL || 'http://localhost:3000',
+            description: 'Production server'
+        }
+    ],
+    baseDir: __dirname,
+    filesPattern: './routes/**/*.js',
+    swaggerUIPath: '/api-docs',
+    exposeSwaggerUI: true,
+    exposeApiDocs: true,
+    apiDocsPath: '/api-docs.json'
+};
+
+expressJsdocSwagger(app)(swaggerOptions);
 
 // Crear carpeta de uploads si no existe
 const uploadsDir = path.join(__dirname, '../uploads');
