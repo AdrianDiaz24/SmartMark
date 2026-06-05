@@ -10,7 +10,8 @@
   },
   "scripts": {
     "start": "cross-env PORT=3001 react-scripts start",
-    "build": "react-scripts build"
+    "build": "react-scripts build",
+    "test": "react-scripts test --coverage --watchAll=false"
   },
   "browserslist": {
     "production": [
