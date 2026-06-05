@@ -38,6 +38,31 @@ router.use((req, res, next) => {
 });
 
 // POST /api/links/scrape - Hacer web scraping de una URL
+/**
+ * POST /api/links/scrape
+ * @summary Realiza web scraping automático de una URL
+ * @tags Bookmarks
+ * @security Bearer
+ * @requestBody {object} required
+ * @requestBody.url {string} - URL para hacer scraping (requerido, debe empezar con http)
+ * @example
+ * {
+ *   "url": "https://github.com/user/repo"
+ * }
+ * @returns {object} 200
+ * @returns.success {boolean} - true si el scraping fue exitoso
+ * @returns.titulo {string} - Título extraído de la página
+ * @returns.descripcion {string} - Descripción extraída
+ * @returns.autoTags {array} - Tags automáticos detectados (IDs)
+ * @returns.gitHubData {object} - Datos de GitHub si URL es de GitHub (stars, forks, watchers)
+ * @returns.gitHubLanguages {array} - Lenguajes del repositorio
+ * @returns {object} 400
+ * @returns.error {string} - URL es requerida
+ * @returns {object} 401
+ * @returns.error {string} - No autenticado
+ * @returns {object} 500
+ * @returns.error {string} - Error en scraping
+ */
 router.post('/scrape', async (req, res, next) => {
     try {
         const { url } = req.body;
@@ -106,18 +131,18 @@ router.get('/stats/recent', async (req, res, next) => {
 // GET /api/links - Obtener marcadores (con filtros opcionales)
 /**
  * GET /api/links
- * @summary Obtiene marcadores del usuario autenticado con filtros
+ * @summary Obtiene marcadores del usuario con filtros (búsqueda global, por carpeta, por tag)
  * @tags Bookmarks
  * @security Bearer
- * @queryParam {number} categoria_id - ID de carpeta para filtrar (opcional)
- * @queryParam {number} tag_id - ID de tag para filtrar (opcional)
- * @queryParam {string} search - Término de búsqueda en títulos/descripciones (opcional)
- * @queryParam {boolean} all - Si es true, busca en todas las carpetas, si false solo en sección general (default: false)
- * @queryParam {number} limit - Número máximo de resultados (default: sin límite)
- * @queryParam {number} offset - Número de resultados a saltar para paginación (default: 0)
- * @returns {array} 200 - Array de marcadores con todos sus datos
+ * @param {number} categoria_id.query - ID de carpeta para filtrar (opcional)
+ * @param {number} tag_id.query - ID de tag para filtrar (opcional)
+ * @param {string} search.query - Término de búsqueda (busca en título y descripción, opcional)
+ * @param {boolean} all.query - Buscar en TODAS las carpetas (true) o solo sección general (false, default)
+ * @param {number} limit.query - Máximo resultados (opcional)
+ * @param {number} offset.query - Resultados a saltar, para paginación (default: 0)
+ * @returns {object} 200 - Array de marcadores encontrados
  * @returns {object} 401 - No autenticado
- * @returns {object} 500 - Error interno del servidor
+ * @returns {object} 500 - Error interno
  */
 router.get('/', async (req, res, next) => {
     try {
@@ -140,6 +165,15 @@ router.get('/', async (req, res, next) => {
 });
 
 // GET /api/links/stats/last-week - Obtener marcadores visitados última semana
+/**
+ * GET /api/links/stats/last-week
+ * @summary Obtiene marcadores visitados en los últimos 7 días
+ * @tags Bookmarks Stats
+ * @security Bearer
+ * @returns {object} 200 - Array de marcadores visitados recientemente
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno
+ */
 router.get('/stats/last-week', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
@@ -151,6 +185,16 @@ router.get('/stats/last-week', async (req, res, next) => {
 });
 
 // GET /api/links/stats/count-last-week - Contar marcadores visitados última semana
+/**
+ * GET /api/links/stats/count-last-week
+ * @summary Cuenta marcadores visitados en últimos 7 días
+ * @tags Bookmarks Stats
+ * @security Bearer
+ * @returns {object} 200
+ * @returns.count {number} - Cantidad de marcadores visitados en última semana
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno
+ */
 router.get('/stats/count-last-week', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
@@ -162,6 +206,16 @@ router.get('/stats/count-last-week', async (req, res, next) => {
 });
 
 // GET /api/links/stats/count-all - Contar todos los marcadores del usuario
+/**
+ * GET /api/links/stats/count-all
+ * @summary Cuenta TODOS los marcadores del usuario
+ * @tags Bookmarks Stats
+ * @security Bearer
+ * @returns {object} 200
+ * @returns.count {number} - Total de marcadores del usuario
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno
+ */
 router.get('/stats/count-all', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
@@ -173,6 +227,20 @@ router.get('/stats/count-all', async (req, res, next) => {
 });
 
 // POST /api/links/refresh-github - Actualizar datos de GitHub de todos los marcadores
+/**
+ * POST /api/links/refresh-github
+ * @summary Actualiza datos de GitHub (stars, forks) de TODOS los marcadores GitHub
+ * @tags Bookmarks GitHub
+ * @security Bearer
+ * @returns {object} 200
+ * @returns.success {boolean} - Siempre true
+ * @returns.total {number} - Total de marcadores GitHub encontrados
+ * @returns.updated {number} - Total actualizado exitosamente
+ * @returns.failed {number} - Total que falló
+ * @returns.results {array} - Detalle de cada marcador: {id, titulo, status, data/error}
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno
+ */
 router.post('/refresh-github', async (req, res, next) => {
     try {
         console.log('[GitHub Refresh] Iniciando actualización de datos de GitHub');
@@ -493,6 +561,23 @@ router.delete('/:id', async (req, res, next) => {
 });
 
 // POST /api/links/:id/tags - Agregar tags a un marcador
+/**
+ * POST /api/links/{id}/tags
+ * @summary Agrega tags a un marcador existente
+ * @tags Bookmarks
+ * @security Bearer
+ * @param {number} id.path - ID del marcador (requerido)
+ * @requestBody {object} required
+ * @requestBody.tag_ids {string} - Array de IDs de tags a agregar como JSON (requerido)
+ * @example
+ * {
+ *   "tag_ids": [1, 3, 5]
+ * }
+ * @returns {object} 200 - Tags agregados al marcador
+ * @returns {object} 400 - tag_ids debe ser un array
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno
+ */
 router.post('/:id/tags', async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -510,6 +595,19 @@ router.post('/:id/tags', async (req, res, next) => {
 });
 
 // DELETE /api/links/:id/tags/:tag_id - Remover un tag de un marcador
+/**
+ * DELETE /api/links/{id}/tags/{tag_id}
+ * @summary Elimina un tag de un marcador
+ * @tags Bookmarks
+ * @security Bearer
+ * @param {number} id.path - ID del marcador (requerido)
+ * @param {number} tag_id.path - ID del tag a eliminar (requerido)
+ * @returns {object} 200 - Tag eliminado exitosamente
+ * @returns.success {boolean} - true
+ * @returns.message {string} - "Tag removido del marcador"
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno
+ */
 router.delete('/:id/tags/:tag_id', async (req, res, next) => {
     try {
         const { id, tag_id } = req.params;
@@ -521,6 +619,20 @@ router.delete('/:id/tags/:tag_id', async (req, res, next) => {
 });
 
 // POST /api/links/:id/access - Registrar que se abrió el marcador
+/**
+ * POST /api/links/{id}/access
+ * @summary Registra una visita/acceso a un marcador
+ * @tags Bookmarks
+ * @security Bearer
+ * @param {number} id.path - ID del marcador (requerido)
+ * @returns {object} 200 - Acceso registrado
+ * @returns.success {boolean} - true
+ * @returns.visitas {number} - Total de visitas del marcador
+ * @returns.ultima_visita {string} - Timestamp de esta visita
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 404 - Marcador no encontrado
+ * @returns {object} 500 - Error interno
+ */
 router.post('/:id/access', async (req, res, next) => {
     try {
         const { id } = req.params;
