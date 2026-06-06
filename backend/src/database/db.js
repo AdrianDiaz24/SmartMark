@@ -41,6 +41,14 @@ async function initDB() {
 
     console.log('Conexión a la base de datos SQLite establecida correctamente.');
 
+    // ACTIVA EXPLÍCITAMENTE LAS CLAVES FORÁNEAS (PRAGMA foreign_keys = ON)
+    try {
+        await db.exec('PRAGMA foreign_keys = ON');
+        console.log('✓ PRAGMA foreign_keys = ON activado');
+    } catch (error) {
+        console.error('⚠ Error activando PRAGMA foreign_keys:', error.message);
+    }
+
     // Ejecuta migraciones versionadas
     try {
         await runMigrations(db);

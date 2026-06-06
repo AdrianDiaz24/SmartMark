@@ -137,20 +137,14 @@ async function recordMigration(db, nombre, duracionMs) {
  * @returns {Promise<void>}
  */
 async function executeMigrationSql(db, sql) {
-    // Dividir por punto y coma y filtrar líneas vacías/comentarios
-    const statements = sql
-        .split(';')
-        .map(stmt => stmt.trim())
-        .filter(stmt => stmt && !stmt.startsWith('--'));
-
-    for (const statement of statements) {
-        try {
-            await db.exec(statement);
-        } catch (error) {
-            // Ignorar errores de "tabla ya existe" (CREATE TABLE IF NOT EXISTS)
-            if (!error.message.includes('already exists')) {
-                throw error;
-            }
+    try {
+        // Ejecutar todo el SQL de una sola vez
+        // SQLite puede manejar múltiples statements separados por ;
+        await db.exec(sql);
+    } catch (error) {
+        // Ignorar errores de "tabla ya existe" (CREATE TABLE IF NOT EXISTS)
+        if (!error.message.includes('already exists') && !error.message.includes('UNIQUE constraint failed')) {
+            throw error;
         }
     }
 }

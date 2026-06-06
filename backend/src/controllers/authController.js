@@ -33,9 +33,9 @@ async function register(db, email, username, password) {
             throw new Error('El username debe tener al menos 3 caracteres');
         }
 
-        // Validar que la contraseña tenga al menos 6 caracteres
-        if (!password || password.length < 6) {
-            throw new Error('La contraseña debe tener al menos 6 caracteres');
+        // Validar que la contraseña tenga al menos 8 caracteres
+        if (!password || password.length < 8) {
+            throw new Error('La contraseña debe tener al menos 8 caracteres');
         }
 
         // Verificar si el email ya existe
