@@ -1,5 +1,11 @@
+/* BREAKPOINTS:
+   - Mobile: 0 - 767px
+   - Tablet: 768px - 1023px
+   - Desktop: 1024px+
+*/
+
 .stat-card {
-    background-color: #E4E4E4; /* Fondo gris claro */
+    background-color: #E4E4E4;
     color: #333;
     border-radius: 15px;
     padding: 20px;
@@ -23,4 +29,41 @@
 .stat-card__count {
     font-size: 24px;
     font-weight: bold;
+}
+
+/* --- TABLET (768px - 1023px) --- */
+@media (max-width: 1023px) {
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-card__title {
+        font-size: 12px;
+    }
+
+    .stat-card__count {
+        font-size: 20px;
+    }
+}
+
+/* --- MOBILE (0 - 767px) --- */
+@media (max-width: 767px) {
+    .stat-card {
+        padding: 12px;
+        min-width: 0;
+    }
+
+    .stat-card__info {
+        gap: 6px;
+    }
+
+    .stat-card__title {
+        font-size: 10px;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .stat-card__count {
+        font-size: 16px;
+    }
 }

@@ -3,9 +3,9 @@ import ManageBookmarksContent from '../components/ManageBookmarksContent';
 
 function ManageBookmarksPage() {
     return (
-        <>
+        <main>
             <ManageBookmarksContent />
-        </>
+        </main>
     );
 }
 

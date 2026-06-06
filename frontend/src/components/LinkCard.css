@@ -112,3 +112,104 @@
     top: 15px;
     right: 15px;
 }
+
+/* --- TABLET (768px - 1023px) --- */
+@media (max-width: 1023px) {
+    .link-card {
+        padding: 12px;
+        gap: 15px;
+    }
+
+    .link-card__image {
+        width: 90px;
+        height: 90px;
+    }
+
+    .link-card__icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .link-card__logo-smartmark {
+        width: 50px;
+        height: 50px;
+    }
+
+    .link-card__title {
+        font-size: 16px;
+    }
+
+    .link-card__description {
+        font-size: 12px;
+    }
+
+    .link-card__tags {
+        gap: 8px;
+    }
+
+    .card__edit-btn img {
+        width: 16px;
+        height: 16px;
+    }
+
+    .card__edit-btn--top {
+        top: 12px;
+        right: 12px;
+    }
+}
+
+/* --- MOBILE (0 - 767px) --- */
+@media (max-width: 767px) {
+    .link-card {
+        padding: 10px;
+        gap: 10px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .link-card__image {
+        display: none;
+    }
+
+    .link-card__icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .link-card__logo-smartmark {
+        width: 50px;
+        height: 50px;
+    }
+
+    .link-card__content {
+        gap: 6px;
+        width: 100%;
+    }
+
+    .link-card__title {
+        font-size: 14px;
+    }
+
+    .link-card__description {
+        font-size: 11px;
+    }
+
+    .link-card__tags {
+        gap: 6px;
+    }
+
+    .card__edit-btn {
+        padding: 3px;
+    }
+
+    .card__edit-btn img {
+        width: 14px;
+        height: 14px;
+    }
+
+    .card__edit-btn--top {
+        top: 10px;
+        right: 10px;
+    }
+}
+

@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSearch } from '../context/SearchContext';
 import { useAuth } from '../context/AuthContext';
+import { useSidebar } from '../context/SidebarContext';
 import CreateBookmarkModal from "./CreateBookmarkModal";
 import './Header.css';
 
 import Logo from '../assets/Img/Logo_SmartMark.png';
+import LogoPequeno from '../assets/Img/Logo_SmartMark_pequeño.png';
 import Mas from '../assets/Img/mas_negro.png';
 
 function Header() {
@@ -15,6 +17,7 @@ function Header() {
     const [searchParams] = useSearchParams();
     const { searchTerm, updateSearchTerm, clearSearch } = useSearch();
     const { usuario, logout } = useAuth();
+    const { isMenuOpen, toggleMenu } = useSidebar();
 
     // Obtener carpeta activa del URL
     const activeFolderId = searchParams.get('carpeta');
@@ -53,8 +56,15 @@ function Header() {
 
     return(
         <header className="header">
+            <button className="header__hamburger" onClick={toggleMenu} aria-label="Abrir menú">
+                <span className={`header__hamburger-line ${isMenuOpen ? 'active' : ''}`}></span>
+                <span className={`header__hamburger-line ${isMenuOpen ? 'active' : ''}`}></span>
+                <span className={`header__hamburger-line ${isMenuOpen ? 'active' : ''}`}></span>
+            </button>
+
             <section className="header__logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
                 <img src={Logo} alt="SmartMark" className="header__logo-img"/>
+                <img src={LogoPequeno} alt="SmartMark" className="header__logo-img--small"/>
             </section>
 
             <form className={"header__search"} onSubmit={(e) => { e.preventDefault(); handleKeyPress({key: 'Enter'}); }}>
