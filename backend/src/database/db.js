@@ -1,27 +1,30 @@
 const sqlite3 = require('sqlite3').verbose();
 const { open } = require('sqlite');
+const { runMigrations } = require('./migrationRunner');
 
 /**
  * @fileoverview Inicialización y configuración de la base de datos SQLite para SmartMark
- * Define el esquema completo de tablas con relaciones jerárquicas
  * @module database/db
+ * 
+ * Ahora utiliza un sistema de migraciones versionadas ubicado en ./migrations/
+ * Las migraciones se ejecutan automáticamente al inicializar la BD
  */
 
 /**
- * Inicializa la conexión a la base de datos SQLite y crea todas las tablas
+ * Inicializa la conexión a la base de datos SQLite y ejecuta migraciones
  * @async
  * @function initDB
  * @returns {Promise<Object>} Instancia de la conexión a la base de datos
- * @throws {Error} Si hay error al conectarse a la BD o crear tablas
+ * @throws {Error} Si hay error al conectarse a la BD o ejecutar migraciones
  *
  * @description
- * Crea las siguientes tablas:
- * - **Categorias**: Carpetas con soporte para jerarquía (padre_id)
- * - **Tags**: Etiquetas coloreadas para clasificar contenido
- * - **Marcadores**: Bookmarks con metadatos GitHub y estado de URL
- * - **Marcadores_Tags**: Relación many-to-many entre marcadores y tags
- * - **Categorias_Tags**: Relación many-to-many entre categorías y tags
- * - **verification_log**: Registro de las verificaciones de URLs del sistema
+ * Proceso de inicialización:
+ * 1. Abre la conexión a SQLite
+ * 2. Ejecuta el sistema de migraciones versionadas
+ * 3. Crea tags por defecto para nuevos usuarios
+ * 
+ * Las tablas se crean mediante migraciones SQL ubicadas en ./migrations/
+ * Esto permite evolucionar el esquema de forma controlada entre versiones
  *
  * @example
  * const db = await initDB();
@@ -29,7 +32,7 @@ const { open } = require('sqlite');
  */
 async function initDB() {
 
-    // 1. Abrimos la conexión
+    // Abre la conexión
     const databasePath = process.env.DATABASE_PATH || './src/database/smartmark.db';
     const db = await open({
         filename: databasePath,
@@ -38,96 +41,15 @@ async function initDB() {
 
     console.log('Conexión a la base de datos SQLite establecida correctamente.');
 
-    // 2. Ejecutamos código SQL puro para crear todas las tablas
-    await db.exec(`
-        -- 1. TABLA DE USUARIOS
-        CREATE TABLE IF NOT EXISTS Usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT NOT NULL UNIQUE,
-            username TEXT NOT NULL UNIQUE,
-            password_hash TEXT NOT NULL,
-            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
+    // Ejecuta migraciones versionadas
+    try {
+        await runMigrations(db);
+    } catch (error) {
+        console.error('Error fatal ejecutando migraciones:', error);
+        throw error;
+    }
 
-        -- 2. TABLA DE CATEGORÍAS 
-        CREATE TABLE IF NOT EXISTS Categorias (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            padre_id INTEGER,
-            usuario_id INTEGER NOT NULL,
-            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (padre_id) REFERENCES Categorias(id) ON DELETE CASCADE,
-            FOREIGN KEY (usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE
-        );
-
-        -- 3. TABLA DE ETIQUETAS 
-        CREATE TABLE IF NOT EXISTS Tags (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            color TEXT NOT NULL, 
-            usuario_id INTEGER NOT NULL,
-            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-            es_default BOOLEAN DEFAULT 0,
-            FOREIGN KEY (usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE,
-            UNIQUE (nombre, usuario_id)
-        );
-
-        -- 4. TABLA DE MARCADORES (Tus enlaces guardados)
-        CREATE TABLE IF NOT EXISTS Marcadores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titulo TEXT NOT NULL,
-            url TEXT NOT NULL,
-            descripcion TEXT,
-            portada BLOB,
-            categoria_id INTEGER,
-            usuario_id INTEGER NOT NULL,
-            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-            ultima_apertura DATETIME,
-            github_stars INTEGER DEFAULT 0,
-            github_forks INTEGER DEFAULT 0,
-            github_watchers INTEGER DEFAULT 0,
-            github_languages TEXT,
-            url_estado TEXT DEFAULT 'desconocido',
-            ultima_verificacion DATETIME,
-            FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE,
-            FOREIGN KEY (usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE
-        );
-
-        -- 5. TABLA INTERMEDIA (Relación Muchos a Muchos)
-        -- Empareja un Marcador con un Tag
-        CREATE TABLE IF NOT EXISTS Marcadores_Tags (
-            marcador_id INTEGER,
-            tag_id INTEGER,
-            PRIMARY KEY (marcador_id, tag_id),
-            FOREIGN KEY (marcador_id) REFERENCES Marcadores(id) ON DELETE CASCADE,
-            FOREIGN KEY (tag_id) REFERENCES Tags(id) ON DELETE CASCADE
-        );
-
-        -- 6. TABLA INTERMEDIA (Relación Muchos a Muchos)
-        -- Empareja una Categoría con un Tag
-        CREATE TABLE IF NOT EXISTS Categorias_Tags (
-            categoria_id INTEGER,
-            tag_id INTEGER,
-            PRIMARY KEY (categoria_id, tag_id),
-            FOREIGN KEY (categoria_id) REFERENCES Categorias(id) ON DELETE CASCADE,
-            FOREIGN KEY (tag_id) REFERENCES Tags(id) ON DELETE CASCADE
-        );
-
-        -- 7. TABLA DE LOG DE VERIFICACIÓN
-        -- Registra la última verificación de URLs
-        CREATE TABLE IF NOT EXISTS verification_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            last_verification DATETIME DEFAULT CURRENT_TIMESTAMP,
-            status TEXT DEFAULT 'completed',
-            marcadores_verificados INTEGER DEFAULT 0,
-            marcadores_invalidos INTEGER DEFAULT 0,
-            errores TEXT
-        );
-    `);
-
-    console.log('Tablas creadas correctamente');
-
-    // 3. Insertar tags por defecto (solo si no existen)
+    // Insertar tags por defecto (solo si no existen)
     await insertDefaultTags(db);
 
     return db;
