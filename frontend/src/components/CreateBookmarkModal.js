@@ -248,7 +248,7 @@ function CreateBookmarkModal({ isOpen, onClose, onBookmarkCreated, defaultFolder
 
             // Agregar tags
             if (selectedTagIds.length > 0) {
-                submitData.append('tags', JSON.stringify(selectedTagIds));
+                submitData.append('tag_ids', JSON.stringify(selectedTagIds));
             }
 
             // Agregar datos de GitHub si existen

@@ -217,7 +217,7 @@ function ManageBookmarksContent() {
             // Agregar tags
             const tagIds = editedBookmark.tags?.map(t => t.id) || [];
             if (tagIds.length > 0) {
-                submitData.append('tags', JSON.stringify(tagIds));
+                submitData.append('tag_ids', JSON.stringify(tagIds));
             }
 
             const updatedBookmark = await bookmarksService.update(editedBookmark.id, submitData);
@@ -295,13 +295,13 @@ function ManageBookmarksContent() {
                 submitData.append('categoria_id', editedBookmark.categoria_id);
             }
 
-            // Agregar tags
-            const tagIds = editedBookmark.tags?.map(t => t.id) || [];
-            if (tagIds.length > 0) {
-                submitData.append('tags', JSON.stringify(tagIds));
-            }
+             // Agregar tags
+             const tagIds = editedBookmark.tags?.map(t => t.id) || [];
+             if (tagIds.length > 0) {
+                 submitData.append('tag_ids', JSON.stringify(tagIds));
+             }
 
-            const updatedBookmark = await bookmarksService.update(editedBookmark.id, submitData);
+             const updatedBookmark = await bookmarksService.update(editedBookmark.id, submitData);
 
             // Actualizar la lista con los datos del servidor
             const updatedBookmarks = bookmarks.map(b => 

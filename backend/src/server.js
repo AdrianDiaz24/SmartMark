@@ -92,11 +92,16 @@ const upload = multer({
     }
 });
 
-// Middleware
-app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
-    credentials: true
-}));
+// Configuración de CORS
+const corsOptions = {
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+// Middleware de CORS
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

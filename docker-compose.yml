@@ -9,6 +9,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      # CORS para Docker: permite requests desde el contenedor frontend
+      - CORS_ORIGIN=http://frontend
     volumes:
       - smartmark-db:/app/src/database
       - smartmark-uploads:/app/uploads
