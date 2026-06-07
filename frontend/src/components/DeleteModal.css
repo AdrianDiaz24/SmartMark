@@ -45,3 +45,44 @@
     color: #333;
     margin-left: auto;
 }
+
+
+/* Tablets (hasta 768px) */
+@media (max-width: 768px) {
+    .modal-content.modal-content--delete {
+        padding: 30px;
+    }
+}
+
+/* Teléfonos móviles (hasta 576px) */
+@media (max-width: 576px) {
+    .modal-content.modal-content--delete {
+        padding: 20px 15px;
+        width: 100%;
+    }
+
+
+    .delete-modal__text {
+        font-size: 14px;
+        line-height: 1.4;
+        margin-top: 10px;
+        margin-bottom: 25px;
+    }
+
+
+    .delete-modal__actions {
+        flex-direction: column-reverse;
+        gap: 12px;
+    }
+
+    .delete-modal__btn {
+        width: 100%;
+        padding: 12px;
+        text-align: center;
+        white-space: normal;
+    }
+
+    .delete-modal__btn--cancel {
+        margin-left: 0;
+    }
+}

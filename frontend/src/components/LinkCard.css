@@ -258,9 +258,7 @@
 
     .link-card__title {
         font-size: 13px;
-        overflow: visible;
-        text-overflow: clip;
-        white-space: normal;
+        display: block;
         word-break: break-word;
         line-height: 1.3;
     }
