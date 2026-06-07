@@ -14,6 +14,16 @@ function LinkCard({ bookmark, folder }) {
     const isFolder = !!folder;
     const item = folder || bookmark;
 
+    // Verificar si el bookmark tiene una portada customizada (DEFINIR PRIMERO)
+    const hasCustomPortada = !!(
+        bookmark?.portada && 
+        typeof bookmark.portada === 'string' && 
+        bookmark.portada.trim() !== ''
+    ) && !isFolder;
+
+    // Verificar si la URL está inválida (DEFINIR PRIMERO)
+    const isInvalidUrl = !isFolder && bookmark?.url_estado === 'invalida';
+
     const handleEdit = (e) => {
         e.stopPropagation();
         if (isFolder) {
@@ -32,6 +42,12 @@ function LinkCard({ bookmark, folder }) {
                 navigate(`/todos?carpeta=${folder.id}`);
             }
         } else if (bookmark) {
+            // Verificar si la URL está marcada como inválida
+            if (isInvalidUrl) {
+                console.warn(`La URL ${bookmark.url} está marcada como inválida`);
+                // Aún así permitir que el usuario intente acceder
+            }
+            
             // Registrar el acceso al marcador
             bookmarksService.recordAccess(bookmark.id).catch(err => {
                 console.error('Error registrando acceso:', err);
@@ -73,15 +89,7 @@ function LinkCard({ bookmark, folder }) {
         return logoSmartMark;
     };
 
-    // Verificar si el bookmark tiene una portada customizada (no es undefined, null o string vacío)
-    const hasCustomPortada = !!(
-        bookmark?.portada && 
-        typeof bookmark.portada === 'string' && 
-        bookmark.portada.trim() !== ''
-    ) && !isFolder;
 
-    // Verificar si la URL está inválida
-    const isInvalidUrl = !isFolder && bookmark?.url_estado === 'invalida';
 
     return (
         <div className={`link-card ${isInvalidUrl ? 'link-card--invalid-url' : ''}`} onClick={handleFolderClick} style={{ cursor: isFolder || bookmark ? 'pointer' : 'default' }}>

@@ -6,6 +6,12 @@
     min-width: 400px;
 }
 
+@media (max-width: 767px) {
+    .manage-center {
+        min-width: 0;
+    }
+}
+
 .manage-card {
     background-color: #2B2A2A;
     border-radius: 15px;
@@ -81,3 +87,172 @@
 .info-box__value--small {
     font-size: 18px;
 }
+/* --- BREAKPOINTS INTERMEDIOS --- */
+
+/* Tablet grande (1024px - 1199px) */
+@media (max-width: 1199px) and (min-width: 1025px) {
+    .manage-card {
+        padding: 18px;
+        gap: 14px;
+    }
+
+    .manage-card__title {
+        font-size: 16px;
+    }
+
+    .manage-card__field label {
+        font-size: 13px;
+    }
+
+    .manage-card__input {
+        font-size: 12px;
+        padding: 10px 14px;
+    }
+
+    .manage-info-grid {
+        gap: 12px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+    }
+
+    .info-box {
+        padding: 16px;
+        gap: 8px;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .info-box__label {
+        font-size: 13px;
+    }
+
+    .info-box__value {
+        font-size: 24px;
+    }
+}
+
+/* Tablet grande (800px - 1024px) */
+@media (max-width: 1024px) and (min-width: 801px) {
+    .manage-card {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .manage-card__title {
+        font-size: 15px;
+    }
+
+    .manage-card__field label {
+        font-size: 12px;
+    }
+
+    .manage-card__input {
+        font-size: 11px;
+        padding: 8px 12px;
+    }
+
+    .manage-info-grid {
+        gap: 10px;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .info-box {
+        padding: 12px;
+        gap: 6px;
+        flex: 0 1 calc(33.333% - 7px);
+        min-width: 90px;
+    }
+
+    .info-box__label {
+        font-size: 11px;
+    }
+
+    .info-box__value {
+        font-size: 20px;
+    }
+}
+
+/* Tablet normal (400px - 760px) --- */
+@media (max-width: 760px) {
+    .manage-card {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    .manage-card__title {
+        font-size: 14px;
+    }
+
+    .manage-card__field label {
+        font-size: 11px;
+    }
+
+    .manage-card__input {
+        font-size: 10px;
+        padding: 7px 10px;
+    }
+
+    .manage-info-grid {
+        gap: 8px;
+        flex-direction: row;
+    }
+
+    .info-box {
+        padding: 10px;
+        gap: 4px;
+    }
+
+    .info-box__label {
+        font-size: 10px;
+    }
+
+    .info-box__value {
+        font-size: 18px;
+    }
+}
+
+/* --- MOBILE (0 - 400px) --- */
+@media (max-width: 400px) {
+    .manage-card {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .manage-card__title {
+        font-size: 13px;
+    }
+
+    .manage-card__field label {
+        font-size: 10px;
+    }
+
+    .manage-card__input {
+        font-size: 9px;
+        padding: 6px 8px;
+    }
+
+    .manage-info-grid {
+        gap: 6px;
+        flex-direction: row;
+    }
+
+    .info-box {
+        padding: 8px;
+        gap: 3px;
+    }
+
+    .info-box__label {
+        font-size: 9px;
+        line-height: 1.1;
+    }
+
+    .info-box__value {
+        font-size: 14px;
+    }
+
+    .info-box__value--small {
+        font-size: 10px;
+    }
+}
+

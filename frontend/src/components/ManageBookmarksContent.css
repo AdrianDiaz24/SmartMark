@@ -32,3 +32,89 @@
     width: 280px;
     flex-shrink: 0;
 }
+
+/* -- BREAKPOINTS INTERMEDIOS --- */
+
+/* Desktop grande (1200px+) */
+@media (max-width: 1399px) {
+    .manage-content--2-cols {
+        gap: 20px;
+        padding: 0 30px 40px 40px;
+    }
+}
+
+/* Tablet grande (1024px - 1199px) */
+@media (max-width: 1199px) and (min-width: 1025px) {
+    .manage-content--2-cols {
+        gap: 15px;
+        padding: 0 20px 30px 20px;
+    }
+
+    .manage-content--2-cols .quick-actions {
+        width: 220px;
+        flex-shrink: 0;
+    }
+}
+
+/* Tablet grande (800px - 1024px) */
+@media (max-width: 1024px) and (min-width: 801px) {
+    .manage-content--2-cols {
+        padding-left: 15px;
+    }
+}
+
+/* Tablet normal (400px - 760px) --- */
+@media (max-width: 760px) {
+    .manage-page-layout {
+        padding: 0 10px;
+    }
+
+    .manage-header {
+        padding: 10px 0 8px 0;
+        margin-bottom: 10px;
+    }
+
+    .manage-header h2 {
+        font-size: 20px;
+    }
+
+    .manage-content--2-cols {
+        flex-direction: column;
+        gap: 10px;
+        padding: 0 0 20px 0;
+    }
+
+    .manage-content--2-cols > div {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .manage-content--2-cols .quick-actions {
+        width: 100%;
+        flex-shrink: 1;
+    }
+}
+
+/* --- MOBILE (0 - 400px) --- */
+@media (max-width: 400px) {
+    .manage-page-layout {
+        padding: 0 8px;
+    }
+
+    .manage-header {
+        padding: 8px 0 6px 0;
+        margin-bottom: 8px;
+    }
+
+    .manage-header h2 {
+        font-size: 18px;
+    }
+
+    .manage-content--2-cols {
+        gap: 8px;
+        padding: 0 0 16px 0;
+    }
+}
+
+

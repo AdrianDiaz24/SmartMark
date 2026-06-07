@@ -31,6 +31,12 @@ const VERIFICATION_TIMEOUT = process.env.HTTP_TIMEOUT ? parseInt(process.env.HTT
  */
 async function verifyUrl(url) {
     try {
+        // Validar que URL es un string válido
+        if (!url || typeof url !== 'string') {
+            console.warn(`URL inválida (no es string): ${url}`);
+            return 'invalida';
+        }
+
         // Primero intentar con HEAD (más rápido)
         try {
             const response = await axios.head(url, {
@@ -43,6 +49,7 @@ async function verifyUrl(url) {
             if (response.status < 400) {
                 return 'valida';
             }
+            // Si es 4xx o 5xx, pasar al GET
         } catch (headError) {
             // Si HEAD falla, intentar con GET
             try {
@@ -52,18 +59,22 @@ async function verifyUrl(url) {
                     validateStatus: () => true
                 });
 
+                // Si GET devuelve status < 400, es válida
                 if (response.status < 400) {
                     return 'valida';
                 }
+                // Si es 4xx o 5xx, continuamos para retornar inválida
             } catch (getError) {
+                // Si GET falla completamente, es inválida
                 return 'invalida';
             }
         }
 
-        // Si ambos fallan o el código es 4xx/5xx
+        // Si llegamos aquí, significa que HEAD tuvo status >= 400
+        // o GET tuvo status >= 400, así que es inválida
         return 'invalida';
     } catch (error) {
-        console.error(`Error verificando URL ${url}:`, error.message);
+        console.warn(`Error ao verificar URL ${url}: ${error.message}`);
         return 'invalida';
     }
 }
@@ -95,7 +106,7 @@ async function verifyAllBookmarks(db) {
         
         // Obtener todos los marcadores
         const bookmarks = await db.all(`
-            SELECT id, url 
+            SELECT id, url
             FROM Marcadores
         `);
 
@@ -122,7 +133,7 @@ async function verifyAllBookmarks(db) {
                 } else {
                     invalidos++;
                 }
-                
+
                 // Log cada 10 marcadores
                 if (contador % 10 === 0) {
                     console.log(`Verificados ${contador} de ${bookmarks.length} marcadores...`);

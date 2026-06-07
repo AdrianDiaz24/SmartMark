@@ -4,6 +4,13 @@
     flex-direction: column;
 }
 
+@media (max-width: 767px) {
+    .manage-center {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
 .manage-card--full-form {
     background-color: #2B2A2A;
     border-radius: 15px;
@@ -191,3 +198,117 @@
 }
 
 .manage-sidebar__add-btn--tags:hover { opacity: 0.7; }
+
+/* --- BREAKPOINTS INTERMEDIOS --- */
+
+/* Tablet grande (1024px - 1199px) */
+@media (max-width: 1199px) and (min-width: 1025px) {
+    .manage-card--full-form {
+        padding: 18px;
+        gap: 13px;
+    }
+
+    .manage-card__image-placeholder {
+        height: 150px;
+    }
+
+    .manage-card__field label {
+        font-size: 13px;
+    }
+
+    .manage-card__input,
+    .manage-card__textarea,
+    .manage-card__input--select {
+        font-size: 12px;
+        padding: 10px 13px;
+    }
+}
+
+/* Tablet grande (800px - 1024px) */
+@media (max-width: 1024px) and (min-width: 801px) {
+    .manage-card--full-form {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .manage-card__image-placeholder {
+        height: 130px;
+    }
+
+    .manage-card__field label {
+        font-size: 12px;
+    }
+
+    .manage-card__input,
+    .manage-card__textarea,
+    .manage-card__input--select {
+        font-size: 11px;
+        padding: 8px 12px;
+    }
+}
+
+/* Tablet normal (400px - 760px) --- */
+@media (max-width: 760px) {
+    .manage-card--full-form {
+        padding: 14px;
+        gap: 11px;
+    }
+
+    .manage-card__image-placeholder {
+        height: 100px;
+    }
+
+    .manage-card__field label {
+        font-size: 11px;
+    }
+
+    .manage-card__input,
+    .manage-card__textarea,
+    .manage-card__input--select {
+        font-size: 10px;
+        padding: 7px 10px;
+    }
+}
+
+/* --- MOBILE (0 - 400px) --- */
+@media (max-width: 400px) {
+    .manage-card--full-form {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .manage-card__image-placeholder {
+        height: 80px;
+        margin-bottom: 2px;
+    }
+
+    .manage-card__image-delete-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+
+    .manage-card__field label {
+        font-size: 9px;
+    }
+
+    .manage-card__input,
+    .manage-card__textarea,
+    .manage-card__input--select {
+        font-size: 8px;
+        padding: 6px 8px;
+    }
+
+    .manage-card__input--select {
+        min-width: 120px;
+    }
+
+    .carpeta-actions {
+        gap: 4px;
+    }
+
+    .manage-card__tags-row label {
+        font-size: 9px;
+    }
+}
+
