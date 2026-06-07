@@ -5,7 +5,7 @@ async function scrapeUrl(url) {
     try {
         // Valida que la URL sea válida
         const urlObj = new URL(url);
-        
+
         // Hacer request con timeout
         const response = await axios.get(url, {
             timeout: 10000, // 10 segundos máximo
@@ -40,10 +40,6 @@ async function scrapeUrl(url) {
             descripcion = $('meta[name="description"]').attr('content') || '';
         }
 
-        // Extraer imagen
-        let imagen = '';
-        imagen = $('meta[property="og:image"]').attr('content') || '';
-
         // Limpiar espacios en blanco
         titulo = titulo.trim().substring(0, 200); // Máximo 200 caracteres
         descripcion = descripcion.trim().substring(0, 500); // Máximo 500 caracteres
@@ -52,19 +48,17 @@ async function scrapeUrl(url) {
             success: true,
             titulo: titulo || 'Sin título',
             descripcion: descripcion || '',
-            imagen: imagen || null,
             url: urlObj.toString()
         };
     } catch (error) {
         console.error('Error al hacer scraping:', error.message);
-        
+
         // Retornar error pero con datos básicos
         return {
             success: false,
             error: error.message,
             titulo: '',
-            descripcion: '',
-            imagen: null
+            descripcion: ''
         };
     }
 }

@@ -12,6 +12,7 @@ import PrivateRoute from './components/PrivateRoute';
 import { ToastProvider } from './context/ToastContext';
 import { SearchProvider } from './context/SearchContext';
 import { AuthProvider } from './context/AuthContext';
+import { SidebarProvider } from './context/SidebarContext';
 import { ToastContainer } from './components/Toast';
 import './App.css';
 
@@ -20,36 +21,38 @@ function App() {
         <ToastProvider>
             <AuthProvider>
                 <SearchProvider>
-                    <Router>
-                        <div className="App">
-                            <Routes>
-                                {/* Rutas públicas (login y registro) */}
-                                <Route path="/login" element={<LoginPage />} />
-                                <Route path="/registro" element={<RegisterPage />} />
+                    <SidebarProvider>
+                        <Router>
+                            <div className="App">
+                                <Routes>
+                                    {/* Rutas públicas (login y registro) */}
+                                    <Route path="/login" element={<LoginPage />} />
+                                    <Route path="/registro" element={<RegisterPage />} />
 
-                                {/* Rutas protegidas */}
-                                <Route
-                                    path="/*"
-                                    element={
-                                        <PrivateRoute>
-                                            <>
-                                                <Header />
-                                                <Routes>
-                                                    <Route path="/" element={<HomePage />} />
-                                                    <Route path="/todos" element={<BookmarksPage />} />
-                                                    <Route path="/gestionar-carpetas" element={<ManageFoldersPage />} />
-                                                    <Route path="/gestionar-tags" element={<ManageTagsPage />} />
-                                                    <Route path="/gestionar-marcadores" element={<ManageBookmarksPage />} />
-                                                    <Route path="*" element={<Navigate to="/" />} />
-                                                </Routes>
-                                            </>
-                                        </PrivateRoute>
-                                    }
-                                />
-                            </Routes>
-                            <ToastContainer />
-                        </div>
-                    </Router>
+                                    {/* Rutas protegidas */}
+                                    <Route
+                                        path="/*"
+                                        element={
+                                            <PrivateRoute>
+                                                <>
+                                                    <Header />
+                                                    <Routes>
+                                                        <Route path="/" element={<HomePage />} />
+                                                        <Route path="/todos" element={<BookmarksPage />} />
+                                                        <Route path="/gestionar-carpetas" element={<ManageFoldersPage />} />
+                                                        <Route path="/gestionar-tags" element={<ManageTagsPage />} />
+                                                        <Route path="/gestionar-marcadores" element={<ManageBookmarksPage />} />
+                                                        <Route path="*" element={<Navigate to="/" />} />
+                                                    </Routes>
+                                                </>
+                                            </PrivateRoute>
+                                        }
+                                    />
+                                </Routes>
+                                <ToastContainer />
+                            </div>
+                        </Router>
+                    </SidebarProvider>
                 </SearchProvider>
             </AuthProvider>
         </ToastProvider>

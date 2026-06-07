@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import Sidebar from './Sidebar';
 import ManageBookmark from './ManageBookmark';
 import QuickActionsPanel from './QuickActionsPanel';
 import DeleteBookmarkModal from './DeleteBookmarkModal';
@@ -217,7 +218,7 @@ function ManageBookmarksContent() {
             // Agregar tags
             const tagIds = editedBookmark.tags?.map(t => t.id) || [];
             if (tagIds.length > 0) {
-                submitData.append('tags', JSON.stringify(tagIds));
+                submitData.append('tag_ids', JSON.stringify(tagIds));
             }
 
             const updatedBookmark = await bookmarksService.update(editedBookmark.id, submitData);
@@ -295,13 +296,13 @@ function ManageBookmarksContent() {
                 submitData.append('categoria_id', editedBookmark.categoria_id);
             }
 
-            // Agregar tags
-            const tagIds = editedBookmark.tags?.map(t => t.id) || [];
-            if (tagIds.length > 0) {
-                submitData.append('tags', JSON.stringify(tagIds));
-            }
+             // Agregar tags
+             const tagIds = editedBookmark.tags?.map(t => t.id) || [];
+             if (tagIds.length > 0) {
+                 submitData.append('tag_ids', JSON.stringify(tagIds));
+             }
 
-            const updatedBookmark = await bookmarksService.update(editedBookmark.id, submitData);
+             const updatedBookmark = await bookmarksService.update(editedBookmark.id, submitData);
 
             // Actualizar la lista con los datos del servidor
             const updatedBookmarks = bookmarks.map(b => 
@@ -369,27 +370,31 @@ function ManageBookmarksContent() {
 
             <SearchResultsPanel />
 
-            {editedBookmark && (
-                <div className="manage-content manage-content--2-cols">
-                    <ManageBookmark
-                        bookmark={editedBookmark}
-                        onChange={handleInputChange}
-                        onFileChange={handleFileChange}
-                        availableFolders={folders}
-                        systemTags={allTags}
-                        onToggleTag={handleToggleTag}
-                        onRemovePortada={handleRemovePortada}
-                    />
+            <div className="manage-content manage-content--2-cols" style={{ display: 'flex', gap: '30px' }}>
+                <Sidebar />
+                
+                {editedBookmark && (
+                    <div style={{ display: 'flex', gap: '30px', flex: 1, alignItems: 'flex-start' }}>
+                        <ManageBookmark
+                            bookmark={editedBookmark}
+                            onChange={handleInputChange}
+                            onFileChange={handleFileChange}
+                            availableFolders={folders}
+                            systemTags={allTags}
+                            onToggleTag={handleToggleTag}
+                            onRemovePortada={handleRemovePortada}
+                        />
 
-                    <QuickActionsPanel
-                        viewButtonText="Visitar página web"
-                        onUpdate={handleUpdate}
-                        onView={handleVisitWebpage}
-                        onDelete={() => setIsDeleteModalOpen(true)}
-                        isLoading={updating}
-                    />
-                </div>
-            )}
+                        <QuickActionsPanel
+                            viewButtonText="Visitar página web"
+                            onUpdate={handleUpdate}
+                            onView={handleVisitWebpage}
+                            onDelete={() => setIsDeleteModalOpen(true)}
+                            isLoading={updating}
+                        />
+                    </div>
+                )}
+            </div>
 
             <DeleteBookmarkModal
                 isOpen={isDeleteModalOpen}

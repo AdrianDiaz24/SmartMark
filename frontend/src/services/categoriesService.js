@@ -38,6 +38,9 @@ export const categoriesService = {
     removeTag: (id, tagId) =>
         apiCall(`/categories/${id}/tags/${tagId}`, {
             method: 'DELETE'
-        })
+        }),
+
+    // Obtener el total de categorías incluyendo subcarpetas
+    getTotalCount: () => apiCall('/categories/stats/total')
 };
 

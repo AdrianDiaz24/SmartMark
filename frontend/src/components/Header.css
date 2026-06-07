@@ -8,6 +8,52 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
+/* BREAKPOINTS:
+   - Mobile: 0 - 767px
+   - Tablet: 768px - 1023px
+   - Desktop: 1024px+
+*/
+
+.header {
+    background-color: #2B2A2A;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* --- HAMBURGUESA (solo visible en tablet y mobile) --- */
+.header__hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 10px;
+    gap: 5px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.header__hamburger-line {
+    width: 24px;
+    height: 2px;
+    background-color: #fff;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 1023px) {
+    .header__hamburger {
+        display: flex;
+    }
+}
+
 /* --- LOGO --- */
 .header__logo {
     display: flex;
@@ -17,6 +63,23 @@
 .header__logo-img {
     height: 35px;
     object-fit: contain;
+}
+
+.header__logo-img--small {
+    display: none;
+    height: 35px;
+    object-fit: contain;
+}
+
+/* --- MOBILE (0 - 767px) --- */
+@media (max-width: 767px) {
+    .header__logo-img {
+        display: none;
+    }
+
+    .header__logo-img--small {
+        display: block;
+    }
 }
 
 /* --- BUSCADOR --- */
@@ -29,6 +92,10 @@
     margin: 0 20px;
 }
 
+.search-icon {
+    color: #fff;
+    flex-shrink: 0;
+}
 
 .header__search-input {
     background-color: #E4E4E4;
@@ -60,6 +127,7 @@
     cursor: pointer;
     font-weight: bold;
     font-size: 14px;
+    white-space: nowrap;
 }
 
 .header__add-btn:hover {
@@ -88,6 +156,7 @@
     justify-content: center;
     border-radius: 50%;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .header__user-btn:hover {
@@ -145,3 +214,86 @@
 .header__logout-btn:hover {
     background-color: #E83333;
 }
+
+/* --- RESPONSIVE TABLET (768px - 1023px) --- */
+@media (max-width: 1023px) {
+    .header {
+        padding: 0 12px;
+        gap: 8px;
+    }
+
+    .header__search {
+        max-width: 300px;
+        margin: 0 8px;
+        gap: 10px;
+    }
+
+    .header__search-input {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .header__add-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .header__add-icon {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+/* --- RESPONSIVE MOBILE (0 - 767px) --- */
+@media (max-width: 767px) {
+    .header {
+        padding: 0 8px;
+        gap: 6px;
+    }
+
+    .search-icon {
+        display: none;
+    }
+
+    .header__search {
+        max-width: 120px;
+        margin: 0 4px;
+        gap: 8px;
+    }
+
+    .header__search-input {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    .header__search-input::placeholder {
+        /* Mostrar solo "Buscar" */
+        content: 'Buscar';
+    }
+
+    .header__add-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+        gap: 4px;
+    }
+
+    .header__actions {
+        gap: 6px;
+    }
+
+    .header__add-icon {
+        display: none;
+    }
+
+    .header__hamburger {
+        margin-right: 6px;
+        padding: 6px;
+    }
+
+    .header__hamburger-line {
+        width: 20px;
+        height: 1.5px;
+    }
+}
+

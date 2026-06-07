@@ -52,3 +52,28 @@
 .modal-overlay {
     z-index: 9999;
 }
+
+
+@media (max-width: 576px) {
+
+    .modal-content--tag {
+        width: 100%;
+        max-width: 85vw;
+        padding: 15px 20px;
+    }
+
+    .modal__form {
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .modal__color-grid {
+        gap: 8px;
+        margin-top: 0px;
+    }
+
+    .modal__color-swatch {
+        aspect-ratio: 2 / 1;
+        border-radius: 8px;
+    }
+}

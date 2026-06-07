@@ -1,3 +1,5 @@
+
+
 .filter-bar-container {
     display: flex;
     justify-content: space-between;
@@ -7,12 +9,15 @@
     background-color: transparent;
     width: 100%;
     box-sizing: border-box;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .filter-bar__left {
     display: flex;
     gap: 15px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .filter-pill {
@@ -24,9 +29,12 @@
     font-weight: bold;
     cursor: pointer;
     transition: opacity 0.2s ease;
+    white-space: nowrap;
 }
 
-.filter-pill:hover { opacity: 0.8; }
+.filter-pill:hover {
+    opacity: 0.8;
+}
 
 .search-pill {
     background-color: #51986C;
@@ -42,7 +50,10 @@
     width: 200px;
     outline: none;
 }
-.filter-search::placeholder { color: #cccccc; }
+
+.filter-search::placeholder {
+    color: #cccccc;
+}
 
 .filter-bar__right {
     display: flex;
@@ -59,10 +70,76 @@
     padding: 6px 16px;
     border-radius: 20px;
     transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 .view-toggle-btn--active {
     background-color: #666666;
     color: white;
+}
+
+/* --- TABLET (768px - 1023px) --- */
+@media (max-width: 1023px) {
+    .filter-bar-container {
+        padding: 12px 20px;
+    }
+
+    .filter-bar__left {
+        gap: 10px;
+    }
+
+    .filter-pill {
+        padding: 5px 12px;
+        font-size: 11px;
+    }
+
+    .filter-search {
+        padding: 6px 15px;
+        font-size: 12px;
+        width: 150px;
+    }
+
+    .view-toggle-btn {
+        padding: 5px 12px;
+        font-size: 12px;
+    }
+}
+
+/* --- MOBILE (0 - 767px) --- */
+@media (max-width: 767px) {
+    .filter-bar-container {
+        padding: 10px;
+        justify-content: flex-start;
+    }
+
+    .filter-bar__left {
+        gap: 8px;
+        order: 2;
+        width: 100%;
+    }
+
+    .filter-pill {
+        padding: 4px 10px;
+        font-size: 10px;
+    }
+
+    .filter-search {
+        padding: 5px 10px;
+        font-size: 11px;
+        width: 100%;
+        order: 1;
+    }
+
+    .filter-bar__right {
+        gap: 8px;
+        order: 3;
+        width: 100%;
+    }
+
+    .view-toggle-btn {
+        padding: 4px 10px;
+        font-size: 11px;
+        flex: 1;
+    }
 }
 

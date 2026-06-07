@@ -50,25 +50,35 @@ function CreateFolderModal({ isOpen, onClose, onCreateFolder }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (!folderName.trim()) {
-            alert('El nombre de la carpeta es requerido');
+            toast.error('El nombre de la carpeta es requerido');
             return;
         }
 
         const folderData = {
             nombre: folderName.trim(),
-            padre_id: parentFolderId || null,
+            padre_id: parentFolderId ? parseInt(parentFolderId, 10) : null,
             tags: selectedTagIds  // Incluir tags
         };
 
         if (onCreateFolder) {
-            onCreateFolder(folderData);
-            setFolderName('');
-            setParentFolderId('');
-            setSelectedTagIds([]);
+            try {
+                setIsLoading(true);
+                await onCreateFolder(folderData);
+                setFolderName('');
+                setParentFolderId('');
+                setSelectedTagIds([]);
+
+                // Disparar evento global para que MainContent se actualice
+                window.dispatchEvent(new CustomEvent('folderCreated', { detail: folderData }));
+            } catch (error) {
+                console.error('Error creando carpeta:', error);
+            } finally {
+                setIsLoading(false);
+            }
         } else {
             console.log("Creando carpeta:", folderData);
             onClose();

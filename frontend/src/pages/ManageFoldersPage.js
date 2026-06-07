@@ -3,9 +3,9 @@ import ManageFoldersContent from '../components/ManageFoldersContent';
 
 function ManageFoldersPage() {
     return (
-        <>
+        <main>
             <ManageFoldersContent />
-        </>
+        </main>
     );
 }
 

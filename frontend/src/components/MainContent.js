@@ -27,18 +27,19 @@ function MainContent() {
             setLoading(true);
             
             // Cargar todos los datos en paralelo
-            const [bookmarksData, categoriesData, tagsData, countLastWeek, countAll] = await Promise.all([
+            const [bookmarksData, categoriesData, tagsData, countLastWeek, countAll, totalCategoriesCount] = await Promise.all([
                 bookmarksService.getRecentBookmarks(),
                 categoriesService.getAll(),
                 tagsService.getAll(),
                 bookmarksService.countVisitedLastWeek(),
-                bookmarksService.countAllBookmarks()
+                bookmarksService.countAllBookmarks(),
+                categoriesService.getTotalCount()
             ]);
 
             setBookmarks(bookmarksData || []);
             setStats({
                 totalBookmarks: countAll?.count || 0,
-                totalCategories: Array.isArray(categoriesData) ? categoriesData.length : 0,
+                totalCategories: totalCategoriesCount?.total || 0,
                 totalTags: Array.isArray(tagsData) ? tagsData.length : 0,
                 visitedLastWeek: countLastWeek?.count || 0
             });
@@ -104,14 +105,29 @@ function MainContent() {
         return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
-    // Recargar datos cuando se crea un marcador
+    // Recargar datos cuando se crea un marcador, tag o carpeta
     useEffect(() => {
         const handleBookmarkCreated = () => {
             loadData();
         };
 
+        const handleTagCreated = () => {
+            loadData();
+        };
+
+        const handleFolderCreated = () => {
+            loadData();
+        };
+
         window.addEventListener('bookmarkCreated', handleBookmarkCreated);
-        return () => window.removeEventListener('bookmarkCreated', handleBookmarkCreated);
+        window.addEventListener('tagCreated', handleTagCreated);
+        window.addEventListener('folderCreated', handleFolderCreated);
+        
+        return () => {
+            window.removeEventListener('bookmarkCreated', handleBookmarkCreated);
+            window.removeEventListener('tagCreated', handleTagCreated);
+            window.removeEventListener('folderCreated', handleFolderCreated);
+        };
     }, []);
 
     return (

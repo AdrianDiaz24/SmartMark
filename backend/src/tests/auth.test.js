@@ -2,23 +2,23 @@ describe('Autenticación', () => {
   describe('Validaciones de contraseña', () => {
     it('debería rechazar contraseñas vacías', () => {
       const password = '';
-      expect(password.length).toBeLessThan(6);
+      expect(password.length).toBeLessThan(8);
     });
 
     it('debería validar contraseñas con caracteres especiales', () => {
       const password = 'Pass123!@#';
-      expect(password.length).toBeGreaterThanOrEqual(6);
+      expect(password.length).toBeGreaterThanOrEqual(8);
       expect(/[0-9]/.test(password)).toBe(true);
     });
 
-    it('debería rechazar contraseñas menores a 6 caracteres', () => {
-      const password = '12345';
-      expect(password.length < 6).toBe(true);
+    it('debería rechazar contraseñas menores a 8 caracteres', () => {
+      const password = '1234567';
+      expect(password.length < 8).toBe(true);
     });
 
     it('debería acepar contraseñas válidas', () => {
       const password = 'ValidPassword123';
-      expect(password.length >= 6).toBe(true);
+      expect(password.length >= 8).toBe(true);
     });
   });
 

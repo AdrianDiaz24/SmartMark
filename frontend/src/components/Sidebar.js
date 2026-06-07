@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSidebar } from '../context/SidebarContext';
 import CreateFolderModal from './CreateFolderModal';
 import CreateTagModal from './CreateTagModal';
 import TagBadge from './TagBadge';
@@ -14,6 +15,7 @@ import iconoArchivador from '../assets/Img/archivador.png';
 
 function Sidebar() {
     const toast = useToast();
+    const { isMenuOpen, closeMenu } = useSidebar();
     const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
     const [tags, setTags] = useState([]);
@@ -82,6 +84,8 @@ function Sidebar() {
         }
         
         navigate(`/todos?${currentParams.toString()}`);
+        // Cerrar menú en mobile/tablet
+        closeMenu();
     };
 
     const handleCreateFolder = async (folderData) => {
@@ -134,89 +138,93 @@ function Sidebar() {
     };
 
     return (
-        <aside className="sidebar-container">
+        <>
+            <div className={`sidebar-overlay ${isMenuOpen ? 'sidebar-overlay--active' : ''}`} onClick={closeMenu}></div>
 
-            {/* SECCIÓN DE CARPETAS */}
-            <div className="sidebar-folder" style={{ marginBottom: '20px' }}>
-                <div className="sidebar-folder__header">
-                    <h3 
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => navigate('/gestionar-carpetas')}
-                        title="Click para gestionar carpetas"
-                    >
-                        Carpetas
-                    </h3>
-                    <button className="sidebar-folder__add-btn" onClick={() => setIsFolderModalOpen(true)}>
-                        <img src={iconoAñadir} alt="Añadir carpeta" className="sidebar-folder__add-icon" />
-                    </button>
-                </div>
-                <div className="sidebar-folder__list">
-                    <div
-                        className={`sidebar-folder__item ${selectedFolderId === null && !activeFolder ? 'active' : ''}`}
-                        onClick={() => {
-                            setSelectedFolderId(null);
-                            handleFilter('carpeta', 'todas');
-                        }}
-                    >
-                        <img src={iconoArchivador} alt="Sección general" className="sidebar-folder__icon" />
-                        <span>Sección general</span>
+            <aside className={`sidebar-container ${isMenuOpen ? 'sidebar-container--open' : ''}`}>
+
+                {/* SECCIÓN DE CARPETAS */}
+                <div className="sidebar-folder" style={{ marginBottom: '20px' }}>
+                    <div className="sidebar-folder__header">
+                        <h3 
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => navigate('/gestionar-carpetas')}
+                            title="Click para gestionar carpetas"
+                        >
+                            Carpetas
+                        </h3>
+                        <button className="sidebar-folder__add-btn" onClick={() => setIsFolderModalOpen(true)}>
+                            <img src={iconoAñadir} alt="Añadir carpeta" className="sidebar-folder__add-icon" />
+                        </button>
                     </div>
+                    <div className="sidebar-folder__list">
+                        <div
+                            className={`sidebar-folder__item ${selectedFolderId === null && !activeFolder ? 'active' : ''}`}
+                            onClick={() => {
+                                setSelectedFolderId(null);
+                                handleFilter('carpeta', 'todas');
+                            }}
+                        >
+                            <img src={iconoArchivador} alt="Sección general" className="sidebar-folder__icon" />
+                            <span>Sección general</span>
+                        </div>
 
-                    {foldersLoading ? (
-                        <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Cargando carpetas...</p>
-                    ) : folders.length > 0 ? (
-                        renderFolders(folders)
-                    ) : (
-                        <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Sin carpetas</p>
-                    )}
+                        {foldersLoading ? (
+                            <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Cargando carpetas...</p>
+                        ) : folders.length > 0 ? (
+                            renderFolders(folders)
+                        ) : (
+                            <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Sin carpetas</p>
+                        )}
+                    </div>
                 </div>
-            </div>
 
-            {/* SECCIÓN DE TAGS */}
-            <div className="sidebar-tags">
-                <div className="sidebar-tags__header">
-                    <h3 
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => navigate('/gestionar-tags')}
-                        title="Click para gestionar tags"
-                    >
-                        Tags
-                    </h3>
-                    <button className="sidebar-tags__add-btn" onClick={() => setIsTagModalOpen(true)}>
-                        +
-                    </button>
+                {/* SECCIÓN DE TAGS */}
+                <div className="sidebar-tags">
+                    <div className="sidebar-tags__header">
+                        <h3 
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => navigate('/gestionar-tags')}
+                            title="Click para gestionar tags"
+                        >
+                            Tags
+                        </h3>
+                        <button className="sidebar-tags__add-btn" onClick={() => setIsTagModalOpen(true)}>
+                            +
+                        </button>
+                    </div>
+                    <div className="sidebar-tags__list">
+                        {tagsLoading ? (
+                            <p style={{ fontSize: '12px', color: '#999' }}>Cargando...</p>
+                        ) : tags.length > 0 ? (
+                            tags.map(tag => (
+                                <TagBadge
+                                    key={tag.id}
+                                    texto={tag.nombre}
+                                    colorHex={tag.color}
+                                    isSelected={activeTag === String(tag.id)}
+                                    onClick={() => handleFilter('tag', String(tag.id))}
+                                />
+                            ))
+                        ) : (
+                            <p style={{ fontSize: '12px', color: '#999' }}>Sin tags</p>
+                        )}
+                    </div>
                 </div>
-                <div className="sidebar-tags__list">
-                    {tagsLoading ? (
-                        <p style={{ fontSize: '12px', color: '#999' }}>Cargando...</p>
-                    ) : tags.length > 0 ? (
-                        tags.map(tag => (
-                            <TagBadge
-                                key={tag.id}
-                                texto={tag.nombre}
-                                colorHex={tag.color}
-                                isSelected={activeTag === String(tag.id)}
-                                onClick={() => handleFilter('tag', String(tag.id))}
-                            />
-                        ))
-                    ) : (
-                        <p style={{ fontSize: '12px', color: '#999' }}>Sin tags</p>
-                    )}
-                </div>
-            </div>
 
-            <CreateFolderModal 
-                isOpen={isFolderModalOpen} 
-                onClose={() => setIsFolderModalOpen(false)}
-                onCreateFolder={handleCreateFolder}
-            />
-            <CreateTagModal 
-                isOpen={isTagModalOpen} 
-                onClose={() => setIsTagModalOpen(false)}
-                onCreateTag={handleCreateTag}
-            />
+                <CreateFolderModal 
+                    isOpen={isFolderModalOpen} 
+                    onClose={() => setIsFolderModalOpen(false)}
+                    onCreateFolder={handleCreateFolder}
+                />
+                <CreateTagModal 
+                    isOpen={isTagModalOpen} 
+                    onClose={() => setIsTagModalOpen(false)}
+                    onCreateTag={handleCreateTag}
+                />
 
-        </aside>
+            </aside>
+        </>
     );
 }
 

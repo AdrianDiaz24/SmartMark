@@ -3,9 +3,9 @@ import ManageTagsContent from '../components/ManageTagsContent';
 
 function ManageTagsPage() {
     return (
-        <>
+        <main>
             <ManageTagsContent />
-        </>
+        </main>
     );
 }
 

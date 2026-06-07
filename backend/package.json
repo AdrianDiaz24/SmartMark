@@ -35,6 +35,7 @@
     "escape-html": "^1.0.3",
     "etag": "^1.8.1",
     "express": "^5.2.1",
+    "express-jsdoc-swagger": "^1.8.0",
     "fill-range": "^7.1.1",
     "finalhandler": "^2.1.1",
     "forwarded": "^0.2.0",
@@ -57,6 +58,7 @@
     "is-glob": "^4.0.3",
     "is-number": "^7.0.0",
     "is-promise": "^4.0.0",
+    "joi": "^18.2.1",
     "jsonwebtoken": "^9.0.3",
     "math-intrinsics": "^1.1.0",
     "media-typer": "^1.1.0",
@@ -108,7 +110,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "check-migrations": "node check-migrations.js"
   },
   "keywords": [],
   "author": "",

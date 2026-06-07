@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import { useToast } from '../hooks/useToast';
 import './CreateTagModal.css';
 
 
@@ -9,7 +10,7 @@ const TAG_COLORS = [
 ];
 
 function CreateTagModal({ isOpen, onClose, onCreateTag }) {
-
+    const toast = useToast();
     const [tagName, setTagName] = useState('');
     const [selectedColor, setSelectedColor] = useState(TAG_COLORS[0]); // Por defecto el primero (rojo)
     const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +22,7 @@ function CreateTagModal({ isOpen, onClose, onCreateTag }) {
         e.preventDefault();
 
         if (tagName.trim() === '') {
-            alert('Por favor, introduce un nombre para el tag.');
+            toast.error('Por favor, introduce un nombre para el tag.');
             return;
         }
 
@@ -31,8 +32,11 @@ function CreateTagModal({ isOpen, onClose, onCreateTag }) {
             if (onCreateTag) {
                 await onCreateTag({
                     nombre: tagName.trim(),
-                    color: selectedColor
+                    color: `#${selectedColor}`
                 });
+
+                // Disparar evento global para que MainContent se actualice
+                window.dispatchEvent(new CustomEvent('tagCreated', { detail: { nombre: tagName.trim(), color: `#${selectedColor}` } }));
             }
 
             // Limpiar formulario
@@ -40,7 +44,7 @@ function CreateTagModal({ isOpen, onClose, onCreateTag }) {
             setSelectedColor(TAG_COLORS[0]);
         } catch (error) {
             console.error('Error creando tag:', error);
-            alert('Error al crear el tag: ' + error.message);
+            toast.error('Error al crear el tag: ' + error.message);
         } finally {
             setIsLoading(false);
         }

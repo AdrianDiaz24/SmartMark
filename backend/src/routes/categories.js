@@ -1,4 +1,8 @@
-// Rutas para gestionar Categorías
+/**
+ * @fileoverview Rutas para gestionar Categorías (Carpetas) - CRUD y relaciones con tags
+ * @module routes/categories
+ */
+
 const express = require('express');
 const router = express.Router();
 const {
@@ -9,8 +13,11 @@ const {
     deleteCategory,
     getTagsByCategory,
     addTagsToCategory,
-    removeTagFromCategory
+    removeTagFromCategory,
+    getTotalCategoriesCount
 } = require('../controllers/categoriesController');
+const validate = require('../middleware/validation');
+const { createCategorySchema, updateCategorySchema } = require('../schemas/categorySchemas');
 
 let db;
 
@@ -21,6 +28,15 @@ router.use((req, res, next) => {
 });
 
 // GET /api/categories - Obtener todas las categorías del usuario
+/**
+ * GET /api/categories
+ * @summary Obtiene todas las carpetas del usuario autenticado
+ * @tags Categories
+ * @security Bearer
+ * @returns {object} 200 - Array de carpetas con estructura jerárquica
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno del servidor
+ */
 router.get('/', async (req, res, next) => {
     try {
         const usuarioId = req.usuario.id;
@@ -31,7 +47,45 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+// GET /api/categories/stats/total - Obtener total de categorías incluyendo subcarpetas
+/**
+ * GET /api/categories/stats/total
+ * @summary Obtiene el total de carpetas del usuario (incluyendo subcarpetas)
+ * @tags Categories
+ * @security Bearer
+ * @returns {object} 200 - Total de categorías
+ * @returns.total {number} - Total de carpetas incluyendo subcarpetas
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno
+ */
+router.get('/stats/total', async (req, res, next) => {
+    try {
+        const usuarioId = req.usuario.id;
+        const total = await getTotalCategoriesCount(db, usuarioId);
+        res.json({ total });
+    } catch (error) {
+        next(error);
+    }
+});
+
 // GET /api/categories/:id - Obtener una categoría específica
+/**
+ * GET /api/categories/{id}
+ * @summary Obtiene una carpeta específica por ID
+ * @tags Categories
+ * @security Bearer
+ * @param {number} id.path - ID de la carpeta (requerido)
+ * @returns {object} 200 - Carpeta encontrada
+ * @returns.id {number} - ID de la carpeta
+ * @returns.nombre {string} - Nombre de la carpeta
+ * @returns.padre_id {number|null} - ID de la carpeta padre (null si es raíz)
+ * @returns.usuario_id {number} - ID del usuario propietario
+ * @returns.bookmarkCount {number} - Cantidad de marcadores en esta carpeta
+ * @returns.subcarpetas {array} - Array de subcarpetas
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 404 - Carpeta no encontrada
+ * @returns {object} 500 - Error interno
+ */
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -49,16 +103,30 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /api/categories - Crear una nueva categoría
-router.post('/', async (req, res, next) => {
+/**
+ * POST /api/categories
+ * @summary Crea una nueva carpeta
+ * @tags Categories
+ * @security Bearer
+ * @requestBody {object} required - Datos de la nueva carpeta
+ * @requestBody.nombre {string} - Nombre de la carpeta (requerido, 2-100 caracteres)
+ * @requestBody.descripcion {string} - Descripción de la carpeta (opcional)
+ * @requestBody.padre_id {number} - ID de carpeta padre para subcarpetas (opcional)
+ * @requestBody.tags {array} - Array de IDs de tags (opcional)
+ * @returns {object} 201 - Carpeta creada exitosamente
+ * @returns {object} 400 - Nombre inválido o faltante
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 500 - Error interno del servidor
+ */
+router.post('/', validate(createCategorySchema), async (req, res, next) => {
     try {
-        const { nombre, padre_id, tags } = req.body;
+        const { nombre, descripcion, padre_id, tags } = req.body;
         const usuarioId = req.usuario.id;
 
-        if (!nombre) {
-            return res.status(400).json({ error: 'El nombre es requerido' });
-        }
+        // Convertir padre_id a número si viene como string
+        const parentId = padre_id ? parseInt(padre_id, 10) : null;
 
-        const newCategory = await createCategory(db, usuarioId, nombre, padre_id, tags || []);
+        const newCategory = await createCategory(db, usuarioId, nombre, parentId, tags || []);
         res.status(201).json(newCategory);
     } catch (error) {
         next(error);
@@ -66,13 +134,34 @@ router.post('/', async (req, res, next) => {
 });
 
 // PUT /api/categories/:id - Actualizar una categoría
-router.put('/:id', async (req, res, next) => {
+/**
+ * PUT /api/categories/{id}
+ * @summary Actualiza una carpeta existente
+ * @tags Categories
+ * @security Bearer
+ * @param {number} id.path - ID de la carpeta (requerido)
+ * @requestBody {object} required
+ * @requestBody.nombre {string} - Nuevo nombre de la carpeta (opcional, 2-100 caracteres)
+ * @requestBody.descripcion {string} - Nueva descripción (opcional)
+ * @requestBody.padre_id {number|null} - Nuevo ID de carpeta padre para mover (opcional)
+ * @returns {object} 200 - Carpeta actualizada
+ * @returns.id {number} - ID de la carpeta
+ * @returns.nombre {string} - Nombre actualizado
+ * @returns.padre_id {number|null} - Carpeta padre (null si es raíz)
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 404 - Carpeta no encontrada
+ * @returns {object} 500 - Error interno
+ */
+router.put('/:id', validate(updateCategorySchema), async (req, res, next) => {
     try {
         const { id } = req.params;
         const { nombre, padre_id } = req.body;
         const usuarioId = req.usuario.id;
 
-        const updatedCategory = await updateCategory(db, usuarioId, id, nombre, padre_id);
+        // Convertir padre_id a número si viene como string
+        const parentId = padre_id ? parseInt(padre_id, 10) : padre_id;
+
+        const updatedCategory = await updateCategory(db, usuarioId, id, nombre, parentId);
         res.json(updatedCategory);
     } catch (error) {
         next(error);
@@ -80,6 +169,23 @@ router.put('/:id', async (req, res, next) => {
 });
 
 // DELETE /api/categories/:id - Eliminar una categoría
+/**
+ * DELETE /api/categories/{id}
+ * @summary Elimina una carpeta
+ * @tags Categories
+ * @security Bearer
+ * @param {number} id.path - ID de la carpeta (requerido)
+ * @param {boolean} deleteBookmarks.query - Si es true, también elimina marcadores en carpeta (opcional, default: false)
+ * @example /api/categories/5?deleteBookmarks=false
+ * @returns {object} 200 - Carpeta eliminada
+ * @returns.success {boolean} - true
+ * @returns.message {string} - "Categoría eliminada"
+ * @returns.bookmarksMovedToGeneral {number} - Marcadores movidos à sección general
+ * @returns.bookmarksDeleted {number} - Marcadores eliminados (si deleteBookmarks=true)
+ * @returns {object} 401 - No autenticado
+ * @returns {object} 404 - Carpeta no encontrada
+ * @returns {object} 500 - Error interno
+ */
 router.delete('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
