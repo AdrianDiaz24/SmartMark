@@ -7,10 +7,9 @@
 
 .manage-header {
     border-bottom: 1px solid #ccc;
-    padding: 20px 40px 15px 40px;
+    padding: 0;
     margin-bottom: 25px;
 }
-
 
 .manage-header h2 {
     margin: 0;
@@ -23,6 +22,19 @@
     gap: 30px;
     align-items: flex-start;
     width: 100%;
-    padding: 0 40px;
+    padding-right: 40px;
     box-sizing: border-box;
 }
+
+@media (max-width: 1023px) {
+    .manage-content {
+        padding-right: 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .manage-content {
+        padding-right: 10px;
+    }
+}
+

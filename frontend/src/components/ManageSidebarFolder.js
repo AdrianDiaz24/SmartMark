@@ -1,10 +1,11 @@
 import React from 'react';
+import { useSidebar } from '../context/SidebarContext';
 import './ManageSidebarFolder.css';
 import iconoAñadir from '../assets/Img/añadir_carpeta.png';
 import iconoCarpeta from '../assets/Img/carpeta.png';
 
 function ManageSidebarFolder({ title, items, selectedId, onSelect, onAdd }) {
-
+    const { isMenuOpen, toggleMenu } = useSidebar();
 
     const renderItem = (item, isSubfolder = false) => {
         const isActive = selectedId === item.id;
@@ -36,17 +37,25 @@ function ManageSidebarFolder({ title, items, selectedId, onSelect, onAdd }) {
     };
 
     return (
-        <aside className="manage-sidebar-folder">
-            <div className="manage-sidebar-folder__header">
-                <h3>{title}</h3>
-                <button className="manage-sidebar-folder__add-btn" onClick={onAdd}>
-                    <img src={iconoAñadir} alt={`Añadir ${title}`} className="manage-sidebar-folder__add-icon" />
-                </button>
-            </div>
-            <div className="manage-sidebar-folder__list">
-                {items.map(item => renderItem(item))}
-            </div>
-        </aside>
+        <>
+            <div 
+                className={`sidebar-overlay ${isMenuOpen ? 'sidebar-overlay--active' : ''}`}
+                onClick={toggleMenu}
+            ></div>
+            <aside className={`manage-sidebar-folder ${isMenuOpen ? 'sidebar-container--open' : ''}`}>
+                <div className="manage-sidebar-folder__card">
+                    <div className="manage-sidebar-folder__header">
+                        <h3>{title}</h3>
+                        <button className="manage-sidebar-folder__add-btn" onClick={onAdd}>
+                            <img src={iconoAñadir} alt={`Añadir ${title}`} className="manage-sidebar-folder__add-icon" />
+                        </button>
+                    </div>
+                    <div className="manage-sidebar-folder__list">
+                        {items.map(item => renderItem(item))}
+                    </div>
+                </div>
+            </aside>
+        </>
     );
 }
 

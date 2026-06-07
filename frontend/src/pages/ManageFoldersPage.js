@@ -1,11 +1,9 @@
 import React from 'react';
-import SidebarFolders from '../components/SidebarFolders';
 import ManageFoldersContent from '../components/ManageFoldersContent';
 
 function ManageFoldersPage() {
     return (
-        <main className="app-layout">
-            <SidebarFolders />
+        <main>
             <ManageFoldersContent />
         </main>
     );

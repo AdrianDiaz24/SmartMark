@@ -18,10 +18,14 @@
 }
 
 .cards-container--grid {
-    display: grid;
-    gap: 25px;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    align-items: start;
+    columns: 4;
+    column-gap: 25px;
+    column-fill: balance;
+}
+
+.cards-container--grid > * {
+    break-inside: avoid;
+    margin-bottom: 25px;
 }
 
 .cards-container--list {
@@ -30,15 +34,21 @@
     gap: 20px;
 }
 
-/* --- TABLET (768px - 1023px) --- */
-@media (max-width: 1023px) {
+/* --- DESKTOP MEDIO (1024px - 1399px) / TABLET (768px - 1023px) --- */
+@media (max-width: 1399px) {
     .cards-container {
         padding: 0 20px;
     }
 
     .cards-container--grid {
         gap: 18px;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        columns: 3;
+        column-gap: 18px;
+        column-fill: balance;
+    }
+
+    .cards-container--grid > * {
+        margin-bottom: 18px;
     }
 
     .cards-container--list {
@@ -46,8 +56,30 @@
     }
 }
 
-/* --- MOBILE (0 - 767px) --- */
+/* --- MOBILE GRANDE (551px - 767px) --- */
 @media (max-width: 767px) {
+    .cards-container {
+        padding: 0 15px;
+    }
+
+    .cards-container--grid {
+        gap: 15px;
+        columns: 3;
+        column-gap: 15px;
+        column-fill: balance;
+    }
+
+    .cards-container--grid > * {
+        margin-bottom: 15px;
+    }
+
+    .cards-container--list {
+        gap: 12px;
+    }
+}
+
+/* --- MOBILE (0 - 670px) --- */
+@media (max-width: 670px) {
     .bookmarks-page-wrapper {
         width: 100vw;
         overflow-x: hidden;
@@ -62,7 +94,13 @@
 
     .cards-container--grid {
         gap: 12px;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        columns: 2;
+        column-gap: 12px;
+        column-fill: balance;
+    }
+
+    .cards-container--grid > * {
+        margin-bottom: 12px;
     }
 
     .cards-container--list {
