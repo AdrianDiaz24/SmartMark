@@ -156,59 +156,20 @@ El proyecto terminó "muy justo" en documentación y finales de sprint. No todas
 ### Dificultad 4: Fallo en Implementación de CI (GitHub Actions - Continuous Integration)
 
 **Problema:**
-Se planeó implementar CI (validación automática de código, tests) en GitHub Actions, pero no se completó dentro del cronograma.
+Aunque en un principio no se implemento por falta de tiempo durante esta semana extra se implemento CI con la ejecucion de test con cada commit, verificando el correcto funcionamiento antes de realizar el CD
 
 **Causa raíz:**
 - Se priorizó CD (Continuous Deployment) sobre CI
-- Tests unitarios nunca se implementaron (todo era manual)
-- Debugging de CI es más lento que desarrollo local
+- Tests unitarios no se implementaron hasta esta semana
 
-**Estado actual:**
-```
-GitHub Actions Workflow: Implementado
-- Build Docker images
--  Push a Docker Hub
--  Tagging (latest + commit SHA)
-
-Falta:
-- Test Unitarios
-- Creacion de un workflow de CI que ejecute los tests unitarios
-- Hacer que genere documentación automática del código y se publique en GitHub Pages
-```
-
-**Configuración parcial que existe:**
-```yaml
-# .github/workflows/docker-build-push.yml (funciona)
-name: Build and Push Docker Images
-on:
-  push:
-    branches: [main]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build and push Backend
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          push: true
-```
-
-**¿Por qué no se implementó CI?**
-1. CD fue suficiente para validar que imágenes se crean correctamente
-2. Tests manuales en navegador eran más efectivos para UI
-3. Tiempo limitado: MVP completado vs CI adicional
-4. Sin tests unitarios, no hay qué validar automáticamente
-
-**Plan para futuro:**
+**Implementaciones a futuro:**
 ```
 Fase 1: Tests unitarios (backend)
 Fase 2: Tests de integración
 Fase 3: GitHub Actions CI con validaciones
-Fase 4: Documentación automática en GitHub Pages
 ```
+
+Actualmente se ha creado los test unitarios para backend y frontend y CI en GitHub Actions para la validacion a traves de estos tests.
 
 **Decisión tomada:** Avanzar en el desarrollo del MVP y CD, dejando CI para iteraciones futuras.
 

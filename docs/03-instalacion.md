@@ -296,16 +296,21 @@ docker logs smartmark-frontend -f
 
 ## 4. Variables de Entorno Detalladas
 
-### 4.1 Backend (Sin archivo .env)
+### 4.1 Backend 
 
 El backend usa valores hardcodeados en el código, sin necesidad de `.env`:
 
-| Configuración | Valor | Ubicación |
-|--------------|-------|-----------|
-| **Puerto** | `3000` | `backend/src/server.js` línea 26 |
-| **Base de datos** | `./src/database/smartmark.db` | `backend/src/database/db.js` |
-| **CORS Origin** | `http://localhost:3001` | `backend/src/server.js`|
-| **Verificación URLs** | Cada 7 días | `backend/src/config/cronJobConfig.js` |
+| Configuración            | Valor                                                 |
+|--------------------------|-------------------------------------------------------|
+| **PORT**                 | `3000`                                                | 
+| **NODE_ENV**             | `development`                                         | 
+| **DATABASE_PATH**        | `./src/database/smartmark.db`                         | 
+| **CORS_ORIGIN**          | `http://localhost:3001` o URL del frontend desplegado | 
+| **JWT_SECRET**           | `Codigo Alfanumerico`                                 | 
+| **JWT_EXPIRE**           | `7d`                                                  | 
+| **VERIFICATION_INTERVAL** | `604800000`                                           | 
+| **MAX_FILE_SIZE_MB**     | `5 MB`                                                | 
+| **HTTP_TIMEOUT**         | 5000                                                  |
 
 **Para cambiar estos valores, edita directamente los archivos correspondientes.**
 

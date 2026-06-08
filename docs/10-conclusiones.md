@@ -20,15 +20,9 @@ El propósito de SmartMark era resolver la desorganización en la gestión de re
 
 El proyecto ha alcanzado el **100% de los requisitos definidos para el Producto Mínimo Viable (MVP)** y la implementación de las funcionalidades que dan valor a la aplicación. SmartMark es hoy una aplicación completamente funcional, desplegable mediante Docker y capaz de gestionar el flujo completo de información sin errores.
 
-Sin embargo, como en todo ciclo de desarrollo real, el alcance tuvo que ajustarse frente a la limitación temporal. Las siguientes funcionalidades quedaron fuera del alcance temporal, pero se consideran implementaciones importantes para futuras versiones:
+Se han implementado todas las funcionalidades principales (CRUD, extracción de metadatos, organización por carpetas y tags, búsqueda y filtrado) y las funcionalidades avanzadas (integración con GitHub, auto-etiquetado técnico, verificación de URLs). Esto demuestra un cumplimiento total del alcance propuesto inicialmente.
 
-- **Integración Continua (CI):** Aunque se logró implementar el Despliegue Continuo (CD) mediante GitHub Actions para la generación y subida de imágenes a Docker Hub, la validación automática (CI) se intentó la implementación pero sin éxito, dejándolo para realizarlo más adelante, por desgracia quedó fuera del alcance temporal aunque 
-
-
-- **Testing Automatizado:** Por restricciones de tiempo, se optó por un enfoque de pruebas funcionales y E2E manuales. La cobertura manual fue exhaustiva y garantizó la estabilidad del MVP, pero la falta de tests unitarios automatizados (Jest) es un hito pendiente.
-
-
-- **Optimización de Assets:** La conversión planificada de la iconografía a formato SVG vectorial puro tuvo que descartarse temporalmente en favor de formatos PNG, priorizando la funcionalidad de la aplicación sobre el perfeccionismo estético.
+Adenmas de esto, se han implementado funcionalidades adicionales que no estaban inicialmente planificadas como el login y registro, haciendo que en un mismo despliegue se pueda tener diferentes usuarios con diferentes marcadores cada uno.
 
 ---
 
@@ -37,30 +31,21 @@ Sin embargo, como en todo ciclo de desarrollo real, el alcance tuvo que ajustars
 La arquitectura de SmartMark se ha diseñado para ser escalable. Las siguientes iteraciones del producto se centrarán en las siguientes áreas:
 
 **A corto plazo:**
-1.  **Implementación de Testing Automatizado:** Creación de baterías de pruebas unitarias para el backend y pruebas E2E automatizadas para el frontend.
 
-
-2.  **Completar el Pipeline CI:** Añadir flujos en GitHub Actions que ejecuten los tests.
-
-
-3.  **Refactorización UI:** Migrar todos los assets gráficos a SVG nativo para mejorar el rendimiento y la escalabilidad visual.
+1. **Refactorización UI:** Migrar todos los assets gráficos a SVG nativo para mejorar el rendimiento y la escalabilidad visual.
 
 **A medio plazo:**
 1.  **Importación y Exportación:** Para facilitar la migración desde otros gestores de marcadores o desde otro dispositivo, se implementará una función de importación/exportación en JSON, esto facilitará que los usuarios den el salto de otro gestor de marcadores a SmartMark o facilitar el traspaso de tú marcadores entre dispositivos.
 
 
-2.  **Extensión de Navegador:** Desarrollar una extensión para Chrome/Firefox que permita guardar marcadores en SmartMark directamente desde la pestaña activa con un solo clic, esto facilitara el guardado de marcadores para poder usar la aplicación sin tener que tenerla abierta en el navegador.
-
-
-3.  **Mayor implementación de API:** Implementar diferentes API en la aplicación propórcionara un gran valor a SmartMark ya qué no solo guardara los datos básicos de los marcadores, sino que mostraran datos adicionales enriqueciendo los mismos, un ejemplo de esto sería usar la API de YouTube haciendo que cualquier enlace a un video te muestre datos adicionales sobre la duración, visitas, likes.
+2. **Mayor implementación de API:** Implementar diferentes API en la aplicación propórcionara un gran valor a SmartMark ya qué no solo guardara los datos básicos de los marcadores, sino que mostraran datos adicionales enriqueciendo los mismos, un ejemplo de esto sería usar la API de YouTube haciendo que cualquier enlace a un video te muestre datos adicionales sobre la duración, visitas, likes.
 
 **A largo plazo:**
 
-1.  **Sistema Multi-usuario:** Evolucionar de un modelo de uso individual y local a un modelo SaaS, implementando registro, login (JWT) y bases de datos aisladas por usuario, esto permitirá la implementación de funcionalidades colaborativas y facilitará el acceso a SmartMark a clientes fuera del ámbito informático.
+1. **Carpetas colaborativas:** Permitir que los usuarios compartan carpetas específicas con otros usuarios, facilitando la colaboración en proyectos comunes o la compartición de recursos entre equipos de trabajo.
 
-2.  **Despliegue web (Hosting):** Desplegar SmartMark en un hosting web para que los usuarios puedan acceder a su biblioteca de marcadores desde cualquier dispositivo sin necesidad de configurar Docker, esto facilitará el acceso a la aplicación a usuarios no técnicos y permitirá que SmartMark llegue a un público más amplio.
 
-2.  **Carpetas colaborativas:** Permitir que los usuarios compartan carpetas específicas con otros usuarios, facilitando la colaboración en proyectos comunes o la compartición de recursos entre equipos de trabajo.
+2.  **Extensión de Navegador:** Desarrollar una extensión para Chrome/Firefox que permita guardar marcadores en SmartMark directamente desde la pestaña activa con un solo clic, esto facilitara el guardado de marcadores para poder usar la aplicación sin tener que tenerla abierta en el navegador.
 
 ---
 
@@ -68,7 +53,8 @@ La arquitectura de SmartMark se ha diseñado para ser escalable. Las siguientes 
 
 El desarrollo integral de SmartMark (Full-Stack y DevOps) ha supuesto un reto técnico y de gestión del que se extraen valiosos aprendizajes profesionales:
 
-1.  **El valor de priorizar el MVP:** La decisión de abandonar la lucha con los conversores de SVG o posponer la Integración Continua (CI) demostró ser acertada. Entender cuándo una tarea bloquea el avance y saber adaptarte es vital para entregar software funcional a tiempo. Es preferible un producto completo con iconos PNG que un producto inacabado con iconos perfectos.
+1.  **El valor de priorizar el MVP:** La decisión de abandonar la lucha con los conversores de SVG o posponer la Integración Continua (CI) demostró ser acertada. Entender cuándo una tarea bloquea el avance y saber adaptarte es vital para entregar software funcional a tiempo. Es preferible un producto completo con iconos PNG que un producto inacabado con iconos perfectos. Aun asi con el tiempo extra puede implementar el CI y los test unitarios
+
 
 
 2.  **Gestión de la incertidumbre técnica:** La implementación del *web scraping* representó un terreno desconocido. La experiencia demostró que investigar librerías (Cheerio), leer documentación oficial y apoyarse en herramientas de IA para resolver cuellos de botella permite integrar tecnologías complejas en tiempo récord.

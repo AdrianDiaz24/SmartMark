@@ -7,6 +7,8 @@ services:
     container_name: smartmark-backend
     ports:
       - "3000:3000"
+    env_file:
+      - backend/.env
     environment:
       - NODE_ENV=production
       # CORS para Docker: permite requests desde el contenedor frontend

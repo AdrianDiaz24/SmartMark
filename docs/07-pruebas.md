@@ -11,6 +11,8 @@ Se utilizó **únicamente pruebas manuales** durante todo el desarrollo.
 - Tests manuales en navegador más efectivos para UI/UX
 - Debugging manual más rápido que configurar framework de tests
 
+La ultima semana se implemetaron los test tanto para el backend como para el frontend, estos test se pasan cada vez que se hace un commit en la rama main y se han ido ejecutando a lo largo de las ultimas implementaciones para comprobar el correcto funcionamiento.
+
 ### Ciclo de Desarrollo con Pruebas Manuales
 
 
@@ -28,6 +30,13 @@ Se utilizó **únicamente pruebas manuales** durante todo el desarrollo.
 - Base de datos: Visualizado de BD de IntelliJ
 
 ---
+
+Actualmente aunque se han seguido usando pruebas manuales el ciclo de uso de los test unitarios usados esta ultima semana es el siguietne:
+1. Desarrollar una funcionalidad en local                                       
+2. Ejecutar test backend: cd backend && npm run test
+3. Ejecutar test frontend: cd frontend && npm run test
+4. Si falla: Corregir código y repetir paso 2-3
+5. Si funciona: Continuar con la siguiente funcionalidad
 
 ## 2. Tipos de Pruebas Realizadas
 
@@ -156,6 +165,7 @@ Búsqueda
 - Middleware: CORS, error handler en cada request
 - Servicios (scraping, verificación): Probado en su mayoria, el scraping con URLs reales funciona correctamente, el cron job se verifico en un principio pero no se pudo esperar 7 días para verificarlo completamente con la version final
 - Base de datos: operaciones CRUD básicas
+- Timeouts y reintentos
 
 **Frontend:**
 - Components principales: Las paginas funcionan correctamente
@@ -165,9 +175,8 @@ Búsqueda
 
 **No cubierto:**
 - Casos extremos (URLs especiales, formatos no estándar)
-- Timeouts y reintentos
 - Tests de carga (rendimiento con muchos marcadores)
-- Tests de accesibilidad
+
 ---
 
 ## 4. Resultados y Estadísticas de las Pruebas
@@ -176,4 +185,4 @@ Todas las funcionalidades principales del MVP fueron probadas manualmente en el 
 
 Es verdad que es dificil dar un resultado o estadisticas de porcentajes de test exitosos o fallidos, ya que no se utilizó un framework de testing automatizado, pero se puede decir que el 100% de las funcionalidades principales fueron probadas manualmente y funcionaron correctamente.
 
-,
+En cuanto a los test unitarios actualmente se pasan el 100% de los test tanto del backend como del frontend, aunque se han implementado recientemente, se han ido pasando a lo largo de las ultimas implementaciones para verificar el correcto funcionamiento de cada funcionalidad.

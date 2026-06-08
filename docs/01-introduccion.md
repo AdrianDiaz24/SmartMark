@@ -46,7 +46,7 @@ Crear una herramienta de gestión de marcadores especializada en el ecosistema d
    - Carpetas con estructura jerárquica (subcarpetas ilimitadas).
    - Etiquetas (tags) personalizables y reutilizables.
 4. **Búsqueda y Filtrado**: Búsqueda en tiempo real por título, descripción, carpeta o etiqueta.
-5. **Estadísticas básicas**: Registro de última apertura y conteo de accesos.
+5. **Estadísticas básicas**: Registro de última apertura, fecha de creación...
 
 ### Funcionalidades Avanzadas
 
@@ -87,7 +87,7 @@ Existen varias herramientas consolidadas que abordan la gestión de marcadores:
 
 #### 2. Mantenimiento Proactivo
 - **Problema**: Los usuarios descubren URLs rotas meses después, sin saber cuándo sucedió.
-- **Solución SmartMark**: Sistema de verificación automática cada 7 días que detecta enlaces inactivos (Error 404) y alerta al usuario.
+- **Solución SmartMark**: Sistema de verificación automática cada 7 días que detecta enlaces inactivos (Error 404) y alerta al usuario (Cada 5 minutos para poder mostrarlo).
 - **Beneficio**: Mantener una biblioteca de recursos siempre actualizada y operativa.
 
 #### 3. Auto-clasificación Técnica

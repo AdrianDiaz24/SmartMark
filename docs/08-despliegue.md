@@ -6,87 +6,118 @@ SmartMark ha sido concebida y desarrollada bajo la idea **Self-Hosted**. Esto si
 
 Por tanto, el "entorno de despliegue" y distribución principal del proyecto es **Docker Hub**. Las imágenes compiladas y optimizadas de la aplicación residen de forma pública en esta aplicación web, listas para ser descargadas y ejecutadas en cualquier entorno compatible con el motor de Docker.
 
+Aunque en un principio se desarrollo para ser usado por un unico usuario en cada desplegue se ha añadido un login y registro de usuarios haciando que ahora mismo el proyecto se pueda desplegar y ser usado por varias personas en un mismo despliegue, actualmente para probar/usarla puedes acceder desde https://smartmark-phi.vercel.app
+
 ---
 
 ## 2. Configuración de CI/CD
 
-El ciclo de vida del desarrollo cuenta con una automatización enfocada en la **Despliegue Continuo (CD - Continuous Deployment)** implementada mediante **GitHub Actions**.
+El ciclo de vida del desarrollo cuenta con una automatización enfocada tanto en **Despliegue Continuo (CD - Continuous Deployment)** como **Integracion Continua (CI - en Continuous Integration)** implementada mediante **GitHub Actions**.
 
 El flujo de trabajo automatizado (*Workflow*) está configurado de la siguiente manera:
 
 1. **Triggers de ejecución:** Se activa automáticamente con cada `git push` a las ramas `main` o `master`. Además, incluye el evento `workflow_dispatch` para permitir la ejecución manual del despliegue desde la interfaz de GitHub si fuera necesario.
 
 
-2. **Fase de Build:** Los servidores de integración de GitHub (entornos Ubuntu) clonan el repositorio, configuran el entorno con Docker Buildx, acceden a los directorios `./frontend` y `./backend`, y construyen las imágenes de contenedor de forma independiente.
+2. Fase de Test: Se ejecutan los test tanto del backend como del frontend para asegurar que el código es estable y no se han introducido errores antes de proceder al despliegue. Si alguno de los test falla, el proceso se detiene y no se realiza el despliegue, garantizando así la calidad del código en producción.
 
 
-3. **Autenticación y Push:** El *workflow* inicia sesión en Docker Hub utilizando credenciales seguras (almacenadas de forma encriptada en los *secrets* del repositorio como `DOCKER_USERNAME` y `DOCKER_PASSWORD`(Token)) y sube las imágenes compiladas.
+3. **Fase de Build:** Los servidores de integración de GitHub (entornos Ubuntu) clonan el repositorio, configuran el entorno con Docker Buildx, acceden a los directorios `./frontend` y `./backend`, y construyen las imágenes de contenedor de forma independiente.
 
 
-4. **Estrategia de Tagging:** Cada imagen se etiqueta de forma dual:
+4. **Autenticación y Push:** El *workflow* inicia sesión en Docker Hub utilizando credenciales seguras (almacenadas de forma encriptada en los *secrets* del repositorio como `DOCKER_USERNAME` y `DOCKER_PASSWORD`(Token)) y sube las imágenes compiladas.
+
+
+5. **Estrategia de Tagging:** Cada imagen se etiqueta de forma dual:
     * Con la etiqueta `latest` para facilitar instalaciones rápidas.
     * Con el identificador único del commit (`github.sha`) para permitir la trazabilidad exacta del código y garantizar la capacidad de reversión (*rollback*) a versiones específicas.
 
-A continuación, se adjunta el código exacto del *pipeline* que gestiona este despliegue automatizado:
+A continuación, se adjunta el código exacto del *pipeline* que gestiona este despliegue y integracion automatizado:
 
 ```yaml
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches:
-      - main
-      - master
-  workflow_dispatch:
+   push:
+      branches:
+         - main
+         - master
+   workflow_dispatch:
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+   build-and-push:
+      runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      packages: write
+      permissions:
+         contents: read
+         packages: write
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      steps:
+         - name: Checkout repository
+           uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+         # CI: Setup Node.js
+         - name: Set up Node.js
+           uses: actions/setup-node@v3
+           with:
+              node-version: '18'
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+         # CI: Backend Tests
+         - name: Backend - Install dependencies
+           run: cd backend && npm install
 
-      # Build y push del Backend
-      - name: Build and push Backend
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/smartmark-backend:latest
-            ${{ secrets.DOCKER_USERNAME }}/smartmark-backend:${{ github.sha }}
+         - name: Backend - Run tests
+           run: cd backend && npm test -- --passWithNoTests
 
-      # Build y push del Frontend
-      - name: Build and push Frontend
-        uses: docker/build-push-action@v4
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/smartmark-frontend:latest
-            ${{ secrets.DOCKER_USERNAME }}/smartmark-frontend:${{ github.sha }}
+         # CI: Frontend Tests & Build
+         - name: Frontend - Install dependencies
+           run: cd frontend && npm install
 
-      - name: Deployment notification
-        run: |
-          echo "Docker images built and pushed successfully!"
-          echo "Backend image: ${{ secrets.DOCKER_USERNAME }}/smartmark-backend:latest"
-          echo "Frontend image: ${{ secrets.DOCKER_USERNAME }}/smartmark-frontend:latest"
+         - name: Frontend - Run tests
+           run: cd frontend && npm test -- --passWithNoTests --testPathIgnorePatterns=node_modules
+
+         - name: Frontend - Build
+           run: cd frontend && npm run build
+
+         # CD: Docker Build & Push
+         - name: Set up Docker Buildx
+           uses: docker/setup-buildx-action@v2
+
+         - name: Login to Docker Hub
+           uses: docker/login-action@v2
+           with:
+              username: ${{ secrets.DOCKER_USERNAME }}
+              password: ${{ secrets.DOCKER_PASSWORD }}
+
+         # Build y push del Backend
+         - name: Build and push Backend
+           uses: docker/build-push-action@v4
+           with:
+              context: ./backend
+              file: ./backend/Dockerfile
+              push: true
+              tags: |
+                 ${{ secrets.DOCKER_USERNAME }}/smartmark-backend:latest
+                 ${{ secrets.DOCKER_USERNAME }}/smartmark-backend:${{ github.sha }}
+
+         # Build y push del Frontend
+         - name: Build and push Frontend
+           uses: docker/build-push-action@v4
+           with:
+              context: ./frontend
+              file: ./frontend/Dockerfile
+              push: true
+              tags: |
+                 ${{ secrets.DOCKER_USERNAME }}/smartmark-frontend:latest
+                 ${{ secrets.DOCKER_USERNAME }}/smartmark-frontend:${{ github.sha }}
+
+         - name: Deployment notification
+           run: |
+              echo "Docker images built and pushed successfully!"
+              echo "Backend image: ${{ secrets.DOCKER_USERNAME }}/smartmark-backend:latest"
+              echo "Frontend image: ${{ secrets.DOCKER_USERNAME }}/smartmark-frontend:latest"
+
+
 ```
 ---
 
@@ -310,12 +341,9 @@ Tambien se cuenta con toda la documentacion del directorio `docs` donde se expli
 
 Durante el desarrollo de SmartMark, se utilizó Git para el control de versiones. Se implementó el despliegue continuo utilizando GitHub Actions, lo que permite desplegar nuevas versiones a Docker Hub cada vez que se hacen commits en la rama `main`. Esto asegura que las imágenes de Docker estén siempre actualizadas con la última versión estable del código.
 
-No se usó ramas, ya que fue un proyecto desarrollado por una sola persona y el despliegue continuo no estaba implementado hasta tener una version estable del proyecto, por lo que se trabajó directamente en la rama `main`.
+No se usó ramas en un principio ya que solo lo desarrollaba una persona y no estaba desplegado, pero al desplegarlo tanto en docker, vercel y railway y automatizar el despliegue se creo la rama `development` y dentro de esta sacabamos otras ramas `fix/error` o `feature/nueva-funcionalidad` para desarrollar nuevas funcionalidades o corregir errores, y una vez que estas ramas estaban listas se hacian merge a `development` y despues de tener unas cuantas nuevas caracteristicas se hacia el merge a `main` para que se desplegaran automaticamente a docker hub y a las otras plataformas de despliegue.
 
-Actualmente, con el Despliegue Continuo implementado en caso de que se fuera a desarrollar nuevas funcionalidades o solucionar cualquier error se realizaria desde una nueva rama
-`feature/nueva-funcionalidad` o `fix/solucion-error` y una vez se realizara el merge a `main` se desplegaría automáticamente la nueva versión a Docker Hub.
-
-En cuanto a la Integración Continua se intentó implementar la documentación automática del código del backend, en un HTML y este se publicara automáticamente en GitHub Pages y en la rama `gh-pages` cada vez que se hiciera un commit en la rama `main`, pero no fui capaz de hacerlo funcionar correctamente y debido al tiempo y el resto de cosas por implementar decidí pasar al despliegue continuo y el resto de la documentación para volver a intentar esto en caso de que tuviera tiempo.
+En cuanto a la Integración Continua se implementaron test tanto para el backend como para el frontend, estos test se ejecutan cada vez que se hace un commit en la rama `main` y si alguno de los test falla el proceso de despliegue se detiene, lo que garantiza que solo se desplieguen versiones estables y sin errores a producción.
 
 #### Comandos basicos de Git
 

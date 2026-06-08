@@ -29,7 +29,7 @@ La aplicacion revisa las tecnologias usadas y autoetiqueta con las tecnologias q
   - Portada visual
   - Título y descripción
   - Tags asignados (con color personalizado)
-  - Indicador de URL rota (borde naranja si está inactiva)
+  - Indicador de URL rota (borde rojo si está inactiva)
   - Si es GitHub: estrellas, forks, lenguaje principal
 
 
@@ -120,17 +120,17 @@ Un marcador puede ser: #React, #TypeScript, #Importante
 ### 1.4 Verificación Automática de URLs (Mantenimiento Proactivo)
 
 #### Cron Job Semanal
-- **Intervalo**: Se ejecuta automáticamente cada 7 días.
+- **Intervalo**: Se ejecuta automáticamente cada 7 días (5 minutos por ahora para poder probarlo bien).
 - **Desde dónde**: Al iniciar el backend, se verifica si pasaron 7 días desde la última ejecución almacenada en BD.
 - **Qué hace**: 
   1. Recorre todos los marcadores guardados.
   2. Realiza HEAD request a cada URL.
   3. Registra el estado (200, 404, timeout, etc.).
-  4. Marca visualmente las URLs rotas (borde naranja en la tarjeta).
+  4. Marca visualmente las URLs rotas (borde rojo en la tarjeta).
 
 #### Indicadores Visuales
 - **URL válida**: Borde normal en tarjeta.
-- **URL rota**: Borde **naranja** en tarjeta.
+- **URL rota**: Borde **rojo** en tarjeta.
 
 **Ejemplo de log en BD** (tabla `verification_log`):
 ```
@@ -175,7 +175,7 @@ Para URLs que apunten a repositorios de GitHub, se muestran:
   - Fondo principal: Gris oscuro (#1a1a1a)
   - Fondo secundario: Gris más claro (#2a2a2a)
   - Texto principal: Blanco (#ffffff)
-  - Alertas: Naranja para URLs rotas, rojo para errores y verdes para acciones realizadas correctamente.
+  - Alertas: Rojo para URLs rotas y errores y verdes para acciones realizadas correctamente.
 
 #### Tipografía
 - **Fuentes**: System fonts nativos del sistema operativo:
