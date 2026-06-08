@@ -7,12 +7,16 @@ services:
     container_name: smartmark-backend
     ports:
       - "3000:3000"
-    env_file:
-      - backend/.env
     environment:
       - NODE_ENV=production
-      # CORS para Docker: permite requests desde el contenedor frontend
       - CORS_ORIGIN=http://frontend
+      - PORT=3000
+      - DATABASE_PATH=/app/src/database/smartmark.db #
+      - JWT_SECRET=dasdadwadasfwadfwaf45486d4a86d5a
+      - JWT_EXPIRE=7d
+      - VERIFICATION_INTERVAL=604800000
+      - MAX_FILE_SIZE_MB=5
+      - HTTP_TIMEOUT=5000
     volumes:
       - smartmark-db:/app/src/database
       - smartmark-uploads:/app/uploads
